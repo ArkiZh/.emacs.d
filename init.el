@@ -21,7 +21,8 @@
 		smartparens
 		;; --- Better Editor ---
 		hungry-delete
-
+		;; --- interactive ---
+		popwin
 		;;smartparens
 		;; --- Major Mode ---
 		;;js2-mode
@@ -76,6 +77,9 @@
 ;; 禁止 Emacs 自动生成备份文件
 (setq make-backup-files nil)
 
+;; 禁止自动保存
+(setq auto-save-default nil)
+
 ;; 关闭工具栏，tool-bar-mode 即为一个 Minor Mode
 (tool-bar-mode -1)
 
@@ -98,6 +102,9 @@
 (global-set-key (kbd "C-h C-f") 'find-function)
 (global-set-key (kbd "C-h C-v") 'find-variable)
 (global-set-key (kbd "C-h C-k") 'find-function-on-key)
+
+;; 自动加载修改过的文件
+(global-auto-revert-mode t)
 
 ;; 关闭文件滑动控件
 ;; (scroll-bar-mode -1)
@@ -160,3 +167,8 @@
 (require 'smartparens-config)
 ;;(add-hook 'emacs-lisp-mode-hook 'smartparens-mode)
 (smartparens-global-mode t)
+
+
+;; 配置popwin
+(require 'popwin)
+(popwin-mode 1)
