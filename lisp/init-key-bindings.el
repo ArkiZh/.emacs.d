@@ -26,5 +26,8 @@
 ;; 使用hippie-expand增强自动补全
 (global-set-key (kbd "M-RET") 'hippie-expand)
 
+;; 使dired模式下按回车不会生成多个buffer
+(with-eval-after-load 'dired 
+  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
 (provide 'init-key-bindings)

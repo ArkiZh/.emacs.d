@@ -38,4 +38,14 @@
 					 try-complete-lisp-symbol-partially
 					 try-complete-lisp-symbol))
 
+;; Less typing when emacs asks yes or no
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; Dired config
+(setq dired-recursive-deletes 'always) ;; Always delete recursively
+(setq dired-recursive-copies 'always) ;; Always copy recursively
+(put 'dired-find-alternate-file 'disabled nil) ;; Enable this danger function: reuse current buffer by pressing "a" in dired mode
+(require 'dired-x) ;; Enable <C-x C-j> to open current file's directory
+(setq dired-dwim-target t) ;; 当一个frame中存在多个window时，将下一个分屏自动设置成拷贝地址的目标
+
 (provide 'init-better-defaults)
