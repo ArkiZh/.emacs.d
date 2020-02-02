@@ -25,4 +25,17 @@
 (recentf-mode 1)
 (setq recentf-max-menu-item 15)
 
+;; 调整hippie-expand调用的自动补全功能顺序
+(setq hippie-expand-try-functions-list '(
+					 try-expand-dabbrev
+					 try-expand-dabbrev-all-buffers
+					 try-expand-dabbrev-from-kill
+					 try-complete-file-name-partially
+					 try-complete-file-name
+					 try-expand-all-abbrevs
+					 try-expand-list
+					 try-expand-line
+					 try-complete-lisp-symbol-partially
+					 try-complete-lisp-symbol))
+
 (provide 'init-better-defaults)

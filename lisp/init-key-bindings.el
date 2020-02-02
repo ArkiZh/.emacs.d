@@ -23,4 +23,8 @@
 ;; 将自定义函数 indent-region-or-buffer 绑定到 indent-region默认的<C-M-\> 键上
 (global-set-key (kbd "C-M-\\") 'indent-region-or-buffer)
 
+;; 使用hippie-expand增强自动补全
+(global-set-key (kbd "M-RET") 'hippie-expand)
+
+
 (provide 'init-key-bindings)
