@@ -18,6 +18,14 @@
 (global-auto-revert-mode t)
 
 ;; 在emacs-lisp模式下括号高亮匹配
+;; 先将函数扩展为光标不在括号上也能显示两侧的括号
+(define-advice show-paren-function (:around (fn) fix-show-paren-function)
+  "Highlight enclosing parens."
+  (cond ((looking-at-p "\\s(") (funcall fn))
+	(t (save-excursion
+	     (ignore-errors (backward-up-list))
+	     (funcall fn)))))
+;; 激活show-paren-mode
 (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
 
 ;; 记录最近打开过的文件
