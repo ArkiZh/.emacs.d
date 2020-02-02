@@ -20,4 +20,7 @@
 ;; 将自定义函数 open-init-file 绑定到 <f2> 键上
 (global-set-key (kbd "<f2>") 'open-init-file)
 
+;; 将自定义函数 indent-region-or-buffer 绑定到 indent-region默认的<C-M-\> 键上
+(global-set-key (kbd "C-M-\\") 'indent-region-or-buffer)
+
 (provide 'init-key-bindings)
