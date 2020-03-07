@@ -14,17 +14,17 @@
 			;; --- Themes ---
 			monokai-theme
 			solarized-theme
-			
-			;; --- Auto-completion ---
+
+			;; --- Better editor ---
+			move-text
 			company
 			;;smex ;; use swiper instead
 			swiper
 			counsel
 			smartparens
-			;; --- Better Editor ---
 			hungry-delete
-			;; --- interactive ---
 			popwin
+			
 			;; --- shell util ---
 			exec-path-from-shell
 
@@ -79,6 +79,9 @@
 
 ;; 启用monokai、solarized-dark主题
 (load-theme 'solarized-dark t)
+
+;; 配置move-text
+(move-text-default-bindings)
 
 ;; 启用hungry-delete
 (require 'hungry-delete)
