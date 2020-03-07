@@ -6,40 +6,59 @@
 
 ;; 注意 elpa.emacs-china.org 是 Emacs China 中文社区在国内搭建的一个 ELPA 镜像
 
- ;; cl - Common Lisp Extension
+;; cl - Common Lisp Extension
 (require 'cl)
 
- ;; Add Packages
+;; Add Packages
 (defvar arki/packages '(
-		;; --- Themes ---
-		monokai-theme
-		;; --- Auto-completion ---
-		company
-		;;smex ;; use swiper instead
-		swiper
-		counsel
-		smartparens
-		;; --- Better Editor ---
-		hungry-delete
-		;; --- interactive ---
-		popwin
-		;; --- shell util ---
-		exec-path-from-shell
-		
-		;; --- Major Mode ---
-		;;js2-mode
-		;; --- Minor Mode ---
-		;;nodejs-repl
-		) "Default packages")
+			;; --- Themes ---
+			monokai-theme
+			solarized-theme
+			
+			;; --- Auto-completion ---
+			company
+			;;smex ;; use swiper instead
+			swiper
+			counsel
+			smartparens
+			;; --- Better Editor ---
+			hungry-delete
+			;; --- interactive ---
+			popwin
+			;; --- shell util ---
+			exec-path-from-shell
+
+			;; --- lsp-mode ---
+			lsp-mode
+			lsp-ui
+			flycheck
+			company-lsp
+			lsp-treemacs
+			helm-lsp
+			lsp-ivy
+			;;dap-mode ;; Don't know how to use
+			realgud
+			conda
+
+			;; --- anaconda-mode ---
+			;;anaconda-mode
+			;;company-anaconda
+			;;neotree
+			
+			;; --- Major Mode ---
+			;;js2-mode
+			;; --- Minor Mode ---
+			;;nodejs-repl
+			) "Default packages")
 
 
 (setq package-selected-packages arki/packages)
 
 
 (defun arki/packages-installed-p ()
-     (loop for pkg in arki/packages
-	   when (not (package-installed-p pkg)) do (return nil)
-	   finally (return t)))
+  (loop for pkg in arki/packages
+	when (not (package-installed-p pkg)) do (return nil)
+	finally (return t)))
 
 (unless (arki/packages-installed-p)
   (message "%s" "Refreshing package database...")
@@ -58,8 +77,8 @@
 ;; 开启全局 Company 补全
 (global-company-mode 1)
 
-;; 启用monokai主题
-(load-theme 'monokai t)
+;; 启用monokai、solarized-dark主题
+(load-theme 'solarized-dark t)
 
 ;; 启用hungry-delete
 (require 'hungry-delete)
@@ -87,5 +106,34 @@
 ;; 配置popwin
 (require 'popwin)
 (popwin-mode 1)
+
+
+;; 配置lsp-mode
+(add-hook 'python-mode-hook (lambda ()
+			      (setq lsp-keymap-prefix "C-c l")  ;;Should be set before require
+			      (require 'lsp-mode)
+			      ;; Install pyls by: pip install 'python-language-server[all]' -i https://pypi.tuna.tsinghua.edu.cn/simple/
+			      (setq lsp-pyls-server-command "C:/DevSoft/anaconda/anaconda3_5.3.0/Scripts/pyls") ;; Specify you pyls command path, before or after require
+			      ))
+(add-hook 'python-mode-hook #'lsp-deferred)
+;; 配置realgud，python的debug插件
+(add-hook 'python-mode-hook (lambda () (load-library "realgud")))
+;; 配置conda环境
+(add-hook 'python-mode-hook (lambda ()
+			      (custom-set-variables '(conda-anaconda-home "C:/DevSoft/anaconda/anaconda3_5.3.0"))  ;;Should be set before require, if not the default(~/.anaconda3)
+			      (require 'conda)
+			      (conda-env-initialize-interactive-shells)  ;;interactive shell support
+			      (conda-env-initialize-eshell)  ;;eshell support
+			      ;;(conda-env-autoactivate-mode t)  ;;try and detect the correct conda environment for a buffer,automatically
+			      ))
+
+
+;; 配置anaconda-mode
+;;(add-hook 'python-mode-hook 'anaconda-mode)
+;;(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+;;(eval-after-load "company"
+;;  '(add-to-list 'company-backends 'company-anaconda))
+;;(add-hook 'python-mode-hook 'anaconda-mode)
+
 
 (provide 'init-packages)

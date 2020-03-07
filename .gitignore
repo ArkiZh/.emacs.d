@@ -1,3 +1,22 @@
-/auto-save-list
+# How to write .gitignore? See:  https://git-scm.com/docs/gitignore
+
+# Installed packages
 /elpa
+
+# Temp files
+\#*
+
+# Auto saved info
+/auto-save-list
+
+# eshell history
+/eshell
+
+# Cache for recentf-mode
 recentf
+
+# Cache for treemacs-mode
+/.cache
+
+# Cache for lsp-model: session storage
+.lsp-session*
