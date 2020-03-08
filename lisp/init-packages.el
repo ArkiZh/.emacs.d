@@ -11,6 +11,9 @@
 
 ;; Add Packages
 (defvar arki/packages '(
+			;; basic
+			use-package
+			
 			;; --- Themes ---
 			monokai-theme
 			solarized-theme
@@ -55,12 +58,13 @@
 (setq package-selected-packages arki/packages)
 
 
-(defun arki/packages-installed-p ()
-  (loop for pkg in arki/packages
+;;Check whether the packages have been installed.
+(defun arki/packages-installed-p (packs)
+  (loop for pkg in packs
 	when (not (package-installed-p pkg)) do (return nil)
 	finally (return t)))
 
-(unless (arki/packages-installed-p)
+(unless (arki/packages-installed-p arki/packages)
   (message "%s" "Refreshing package database...")
   (package-refresh-contents)
   (dolist (pkg arki/packages)
