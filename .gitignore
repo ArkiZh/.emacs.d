@@ -20,3 +20,9 @@ recentf
 
 # Cache for lsp-model: session storage
 .lsp-session*
+
+# Custom file generated via the interactive 'customize' interface
+custom.el
+
+# Cache for web browser
+/url

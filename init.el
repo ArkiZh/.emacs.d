@@ -1,3 +1,31 @@
+;;; init.el start
+;; Some config structure learnt from https://github.com/purcell/emacs.d
+
+;; Produce backtraces when errors occur: can be helpful to diagnose startup issues
+;;(setq debug-on-error t)
+
+(let ((minver "24.4"))
+  (when (version< emacs-version minver)
+    (error "Your Emacs is too old -- this config requires v%s or higher" minver)))
+(when (version< emacs-version "25.1")
+  (message "Your Emacs is old, and some functionality in this config will be disabled. Please upgrade if possible."))
+
+
+;;(require 'init-benchmarking)		;Measure startup time
+
+;;----------------------------------------------------------------------------
+;; Adjust garbage collection thresholds during startup, and thereafter
+;;----------------------------------------------------------------------------
+(setq gc-cons-threshold (* 128 1024 1024))
+(add-hook 'emacs-startup-hook
+            (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
+
+
+;;----------------------------------------------------------------------------
+;; Bootstrap config
+;;----------------------------------------------------------------------------
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+
 ;;(pp package-load-list) ;;nil
 ;;(pp package-enable-at-startup) ;; t
 ;;(pp load-path) ;; For now, equal to subdirs of package-directory-list
@@ -8,7 +36,7 @@
 ;;(pp package-load-list) ;; (all)
 ;;(pp package-enable-at-startup) ;; nil
 
-(add-to-list 'load-path "~/.emacs.d/lisp")
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
 (require 'init-custom-functions)
 (require 'init-packages)
@@ -17,5 +45,9 @@
 (require 'init-org)
 (require 'init-key-bindings)
 
-(setq custom-file (expand-file-name "lisp/custom.el" user-emacs-directory))
-(load-file custom-file)
+
+;;----------------------------------------------------------------------------
+;; Load variables configured via the interactive 'customize' interface
+;;----------------------------------------------------------------------------
+(when (file-exists-p custom-file)
+  (load custom-file))
