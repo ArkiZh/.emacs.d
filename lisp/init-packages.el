@@ -19,8 +19,10 @@
 			solarized-theme
 
 			;; --- Better editor ---
-			move-text
+			move-text ;;Move current line or region with M-up or M-down.
 			company
+			ace-window
+
 			;;smex ;; use swiper instead
 			swiper
 			counsel
@@ -83,9 +85,6 @@
 
 ;; 启用monokai、solarized-dark主题
 (load-theme 'solarized-dark t)
-
-;; 配置move-text
-(move-text-default-bindings)
 
 ;; 启用hungry-delete
 (require 'hungry-delete)

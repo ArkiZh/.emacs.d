@@ -137,5 +137,14 @@ The file is named init.el under `user-emacs-directory'."
 	(indent-buffer)
 	(message "Buffer indented.")))))
 
+;;----------------------------------------------------------------------------
+;; 选中当前行
+;;----------------------------------------------------------------------------
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (end-of-line) ; move to end of line
+  (set-mark (line-beginning-position)))
+
 
 (provide 'init-custom-functions)

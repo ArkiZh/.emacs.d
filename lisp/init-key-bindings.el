@@ -30,4 +30,18 @@
 (with-eval-after-load 'dired 
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
+;; 选择当前行
+(global-set-key (kbd "C-q") 'select-current-line)
+
+;; 打开treemmacs导航
+(global-set-key (kbd "M-0") 'treemacs-select-window)
+
+;; 配置ace-windown
+(global-set-key (kbd "M-p") 'ace-window)
+
+;; 配置move-text. Use default bindings for move-text-up and move-text-down (M-up / M-down).
+;; (move-text-default-bindings)
+(global-set-key [M-down] 'move-text-down)
+(global-set-key [M-up]   'move-text-up)
+
 (provide 'init-key-bindings)
