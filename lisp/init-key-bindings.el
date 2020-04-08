@@ -44,4 +44,7 @@
 (global-set-key [M-down] 'move-text-down)
 (global-set-key [M-up]   'move-text-up)
 
+;; 配置magit
+(global-set-key (kbd "C-x g") 'magit-status)
+
 (provide 'init-key-bindings)

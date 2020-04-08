@@ -23,8 +23,10 @@
 (defvar arki/package-contents-refreshed nil
   "Indicate whether the package contents has been refreshed.
 
-If nil: invoke `package-refresh-contents' during `require-package', then set to t.
+If nil: invoke `package-refresh-contents' during `require-package', then set to t, no matter whether the refresh is successful.
 If non-nil: don't invoke `package-refresh-contents' during `require-package.")
+
+(defvar arki/package-installed-info )
 
 (defun require-package (package)
   "Install given PACKAGE"
@@ -32,13 +34,24 @@ If non-nil: don't invoke `package-refresh-contents' during `require-package.")
   (unless (package-installed-p package)
     (unless arki/package-contents-refreshed
       (message "Refreshing package database...")
-      (package-refresh-contents)
-      (message "Refreshing package database...Finished!")
+      (condition-case err (
+			   progn
+			    (package-refresh-contents)
+			    (message "Refreshing package database...Finished!")
+			    )
+	(error
+	 (message "Failed to refresh package database! ERROR: %S" err))
+	)
       (setq arki/package-contents-refreshed t)
       )
     (message "Installing package: %s ..." package)
-    (package-install package)
-    (message "Installing package: %s ...Finished!" package))
+    (condition-case err (progn
+			  (package-install package)			  
+			  (message "Installing package: %s ...Finished!" package))
+      (error
+       (message "Failed to install package `%S'! ERROR: %S" package err))
+      ))
+
   )
 
 ;; https://emacs-china.org/t/require-package-maybe-require-package/8496

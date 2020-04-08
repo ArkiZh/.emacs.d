@@ -22,7 +22,6 @@
 			move-text ;;Move current line or region with M-up or M-down.
 			company
 			ace-window
-
 			;;smex ;; use swiper instead
 			swiper
 			counsel
@@ -32,6 +31,12 @@
 			
 			;; --- shell util ---
 			exec-path-from-shell
+
+			;; --- pdf viewer ---
+			;; pdf-tools
+
+			;; --- project management ---
+			magit
 
 			;; --- lsp-mode ---
 			lsp-mode
