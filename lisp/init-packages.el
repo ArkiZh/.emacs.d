@@ -50,6 +50,9 @@
 			realgud
 			conda
 
+			;; --- markdown editor ---
+			markdown-mode
+
 			;; --- anaconda-mode ---
 			;;anaconda-mode
 			;;company-anaconda
@@ -137,6 +140,12 @@
 			      (conda-env-initialize-eshell)  ;;eshell support
 			      ;;(conda-env-autoactivate-mode t)  ;;try and detect the correct conda environment for a buffer,automatically
 			      ))
+
+;; 配置markdown-mode
+;; 调用markdown-live-preview报错markdown failed with exit code 1解决方案：(参考自https://emacs-china.org/t/markdown/11399)
+;; 安装pandoc，配置markdown-command指向pandoc。下载地址：https://pandoc.org/
+(add-hook 'markdown-mode-hook (lambda ()
+				(setq markdown-command "pandoc")))
 
 
 ;; 配置anaconda-mode

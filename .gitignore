@@ -26,3 +26,7 @@ custom.el
 
 # Cache for web browser
 /url
+
+# Unknown cache
+/server
+/transient
