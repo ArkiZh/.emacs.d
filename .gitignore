@@ -30,3 +30,4 @@ custom.el
 # Unknown cache
 /server
 /transient
+/temp

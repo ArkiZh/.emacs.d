@@ -53,6 +53,9 @@
 			;; --- markdown editor ---
 			markdown-mode
 
+			;; --- orgmode preview ---
+			org-preview-html
+
 			;; --- anaconda-mode ---
 			;;anaconda-mode
 			;;company-anaconda
@@ -124,17 +127,31 @@
 
 ;; 配置lsp-mode
 (add-hook 'python-mode-hook (lambda ()
+			      (interactive)
 			      (setq lsp-keymap-prefix "C-c l")  ;;Should be set before require
 			      (require 'lsp-mode)
 			      ;; Install pyls by: pip install 'python-language-server[all]' -i https://pypi.tuna.tsinghua.edu.cn/simple/
-			      (setq lsp-pyls-server-command "C:/DevSoft/anaconda/anaconda3_5.3.0/Scripts/pyls") ;; Specify you pyls command path, before or after require
+			      ;; Specify you pyls command path, before or after require
+			      (message "=================lsp========")
+			      (if (or (not (boundp 'lsp-pyls-server-command)) (not (file-exists-p lsp-pyls-server-command)))
+				(message "Select python language server: Windows:C:/DevSoft/anaconda/anaconda3_5.3.0/Scripts/pyls Mac:~/dev_tool/miniconda3/envs/ml/bin/pyls")
+				(customize-save-variable 'lsp-pyls-server-command (read-file-name "Select your plys:"))
+				(message "================end lsp")
+				) 
 			      ))
 (add-hook 'python-mode-hook #'lsp-deferred)
 ;; 配置realgud，python的debug插件
 (add-hook 'python-mode-hook (lambda () (load-library "realgud")))
 ;; 配置conda环境
 (add-hook 'python-mode-hook (lambda ()
-			      (custom-set-variables '(conda-anaconda-home "C:/DevSoft/anaconda/anaconda3_5.3.0"))  ;;Should be set before require, if not the default(~/.anaconda3)
+			      (interactive)
+			      (message "================conda")
+			      (if (or (not (boundp 'codna-anaconda-home)) (not (file-exists-p conda-anaconda-home)))
+				(message "Select conda home: Windows:C:/DevSoft/anaconda/anaconda3_5.3.0 Mac:~/dev_tool/miniconda3")
+				(customize-save-variable 'conda-anaconda-home (read-file-name "Select your conda home:"))
+				(message "================conda end")
+				) ;;Should be set before require, if not the default(~/.anaconda3)
+			      ;; (custom-set-variables '(conda-anaconda-home "/Users/Arki/dev_tool/miniconda3"))  
 			      (require 'conda)
 			      (conda-env-initialize-interactive-shells)  ;;interactive shell support
 			      (conda-env-initialize-eshell)  ;;eshell support
