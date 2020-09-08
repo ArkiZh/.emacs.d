@@ -32,6 +32,10 @@
 			;; --- shell util ---
 			exec-path-from-shell
 
+			;; --- htmlize ---
+			;; org-mode needs this
+			htmlize
+
 			;; --- pdf viewer ---
 			;; pdf-tools
 
@@ -53,6 +57,8 @@
 			;; --- markdown editor ---
 			markdown-mode
 
+			;; --- orgmode better view ---
+			;; org-bullets
 			;; --- orgmode preview ---
 			org-preview-html
 
@@ -162,6 +168,10 @@
 (add-hook 'markdown-mode-hook (lambda ()
 				(setq markdown-command "pandoc")))
 
+
+;; 配置org-bullets
+;; https://github.com/sabof/org-bullets
+;; (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
 ;; 配置anaconda-mode
 ;;(add-hook 'python-mode-hook 'anaconda-mode)

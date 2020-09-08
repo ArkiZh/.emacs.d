@@ -1,3 +1,5 @@
+;; 设置utf-8为默认编码格式
+(set-language-environment "UTF-8")
 
 ;; 取消滚动到底部的报警声
 (setq ring-bell-function 'ignore)
