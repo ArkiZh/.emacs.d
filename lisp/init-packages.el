@@ -13,7 +13,10 @@
 (defvar arki/packages '(
 			;; basic
 			use-package
-			
+
+			;; --- set fonts ---
+			cnfonts
+
 			;; --- Themes ---
 			monokai-theme
 			solarized-theme
@@ -57,6 +60,9 @@
 			;; --- markdown editor ---
 			markdown-mode
 
+			;; --- csv model ---
+			csv-mode
+
 			;; --- orgmode better view ---
 			;; org-bullets
 			;; --- orgmode preview ---
@@ -97,6 +103,11 @@
 
 ;; ===============插件配置===============
 
+;; 配置cnfonts https://github.com/tumashu/cnfonts
+(require 'cnfonts)
+;; 让 cnfonts 随着 Emacs 自动生效。
+;; (cnfonts-enable)
+
 ;; 开启全局 Company 补全
 (global-company-mode 1)
 
@@ -116,7 +127,7 @@
 
 ;; 配置swiper
 (ivy-mode 1)
-(setq ivy-use-virtual-buffers t)
+;; (setq ivy-use-virtual-buffers nil) ;I dont't need virtual buffer for now, so commented out.
 (setq enable-recursive-minibuffers t)
 ;; enable this if you want `swiper' to use it
 ;; (setq search-default-mode #'char-fold-to-regexp)
