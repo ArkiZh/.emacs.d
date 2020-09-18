@@ -106,7 +106,7 @@
 ;; 配置cnfonts https://github.com/tumashu/cnfonts
 (require 'cnfonts)
 ;; 让 cnfonts 随着 Emacs 自动生效。
-;; (cnfonts-enable)
+(cnfonts-enable)
 
 ;; 开启全局 Company 补全
 (global-company-mode 1)
@@ -151,7 +151,7 @@
 			      (if (or (not (boundp 'lsp-pyls-server-command)) (not (file-exists-p (car lsp-pyls-server-command))))
 				  (progn 
 				    (message "Select python language server: Windows:C:/DevSoft/anaconda/anaconda3_5.3.0/Scripts/pyls Mac:~/dev_tool/miniconda3/envs/ml/bin/pyls")
-				    (customize-save-variable 'lsp-pyls-server-command (list (read-file-name "Select your plys:")))
+				    ;; (customize-save-variable 'lsp-pyls-server-command (list (read-file-name "Select your plys:")))
 				    )
 				)
 			      ))
@@ -164,7 +164,7 @@
 				  ;; A valid conda-anacodna-home Should be set before require, if not the default(~/.anaconda3)
 				  (progn
 				    (message "Select conda home: Windows:C:/DevSoft/anaconda/anaconda3_5.3.0 Mac:~/dev_tool/miniconda3")
-				    (customize-save-variable 'conda-anaconda-home (read-file-name "Select your conda home:"))
+				    ;; (customize-save-variable 'conda-anaconda-home (read-file-name "Select your conda home:"))
 				    )
 				)
 			      (require 'conda)
