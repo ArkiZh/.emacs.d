@@ -159,5 +159,14 @@ The file is named init.el under `user-emacs-directory'."
   (end-of-line) ; move to end of line
   (set-mark (line-beginning-position)))
 
+;;----------------------------------------------------------------------------
+;; 将多行的段落合并成一行 TODO: 目前不支持选区的合并
+;;----------------------------------------------------------------------------
+(defun unfill-paragraph ()
+  "Takes a multi-line paragraph and makes it into a single line of text."
+  (interactive)
+  (let ((fill-column (point-max)))
+    (fill-paragraph nil)))
+
 
 (provide 'init-custom-functions)

@@ -107,6 +107,8 @@
 (require 'cnfonts)
 ;; 让 cnfonts 随着 Emacs 自动生效。
 (cnfonts-enable)
+(setq cnfonts-use-face-font-rescale t)
+(setq cnfonts-keep-frame-size nil)
 
 ;; 开启全局 Company 补全
 (global-company-mode 1)

@@ -14,6 +14,7 @@
 (menu-bar-mode 0)
 ;; 全屏显示
 (setq initial-frame-alist (quote ((fullscreen . maximized))))
+;; (toggle-frame-maximized)
 
 ;; 高亮显示当前行
 (global-hl-line-mode t)
