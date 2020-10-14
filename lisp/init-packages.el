@@ -25,6 +25,7 @@
 			move-text ;;Move current line or region with M-up or M-down.
 			company
 			ace-window
+			transpose-frame
 			;;smex ;; use swiper instead
 			swiper
 			counsel

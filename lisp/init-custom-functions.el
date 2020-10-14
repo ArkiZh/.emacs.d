@@ -36,8 +36,9 @@ If non-nil: don't invoke `package-refresh-contents' during `require-package.")
       (message "Refreshing package database...")
       (condition-case err (
 			   progn
+			    (message "Refreshing package database...")
 			    (package-refresh-contents)
-			    (message "Refreshing package database...Finished!")
+			    (message "Refreshing package database finished!")
 			    )
 	(error
 	 (message "Failed to refresh package database! ERROR: %S" err))
