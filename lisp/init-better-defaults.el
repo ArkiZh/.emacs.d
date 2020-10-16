@@ -35,6 +35,12 @@
 (recentf-mode 1)
 (setq recentf-max-menu-item 15)
 
+;; 保存桌面布局
+(desktop-save-mode 1)
+
+;; 启用winner mode
+(winner-mode 1)
+
 ;; 调整hippie-expand调用的自动补全功能顺序
 (setq hippie-expand-try-functions-list '(
 					 try-expand-dabbrev

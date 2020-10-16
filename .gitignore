@@ -27,6 +27,9 @@ custom.el
 # Cache for web browser
 /url
 
+# Cache for desktop
+.emacs.desktop*
+
 # Unknown cache
 /server
 /transient
