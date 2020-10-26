@@ -3,7 +3,7 @@
 (setq org-src-fontily-natively t)
 
 (setq org-agenda-files '("~/org"))
-
+(setq org-hide-leading-stars t)
 
 ;; Add markup to text that spans more than two consecutive lines
 ;; https://emacs.stackexchange.com/questions/13820/inline-verbatim-and-code-with-quotes-in-org-mode/13828#13828
