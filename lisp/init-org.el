@@ -2,7 +2,14 @@
 
 (setq org-src-fontily-natively t)
 
-(setq org-agenda-files '("~/org"))
+;; (setq org-agenda-files '("~/org"))
+
+;; (setq org-startup-indented t
+;;       org-pretty-entities t
+;;       ;; org-hide-emphasis-markers t  ;; show actually italicized text instead of /italicized text/
+;;       org-fontify-whole-heading-line t
+;;       org-fontify-done-headline t
+;;       org-fontify-quote-and-verse-blocks t)
 
 
 ;; Add markup to text that spans more than two consecutive lines

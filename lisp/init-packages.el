@@ -20,6 +20,7 @@
 			;; --- Themes ---
 			monokai-theme
 			solarized-theme
+			;; gruvbox-theme
 
 			;; --- Better editor ---
 			move-text ;;Move current line or region with M-up or M-down.
@@ -104,6 +105,10 @@
 
 ;; ===============插件配置===============
 
+;; 启用monokai、solarized-dark主题
+(load-theme 'solarized-dark t)
+;; (load-theme 'gruvbox-light-soft t)
+
 ;; 配置cnfonts https://github.com/tumashu/cnfonts
 (require 'cnfonts)
 ;; 让 cnfonts 随着 Emacs 自动生效。
@@ -113,9 +118,6 @@
 
 ;; 开启全局 Company 补全
 (global-company-mode 1)
-
-;; 启用monokai、solarized-dark主题
-(load-theme 'solarized-dark t)
 
 ;; 启用hungry-delete
 (require 'hungry-delete)
