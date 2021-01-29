@@ -1,9 +1,9 @@
 ;; 设置默认字体为汉字字符集 找到字符类型的方式： M+x describe-font RET RET
-;; (set-frame-font "-outline-新宋体-normal-normal-normal-mono-13-*-*-*-c-*-iso8859-1")
+(set-frame-font "-outline-新宋体-normal-normal-normal-mono-13-*-*-*-c-*-iso8859-1")
 
 ;; 更改显示字体大小 16pt
 ;; http://stackoverflow.com/questions/294664/how-to-set-the-font-size-in-emacs
-;; (set-face-attribute 'default nil :height 125)
+(set-face-attribute 'default nil :height 125)
 
 ;; 关闭启动帮助画面
 (setq inhibit-splash-screen 1)

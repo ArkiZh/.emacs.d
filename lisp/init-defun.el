@@ -7,18 +7,6 @@
 (defgroup arki/config nil
   "Manager for my own confgs.")
 
-;; (defcustom arki/packages nil
-;;   "A list of packages to install."
-;;   :type 'list
-;;   :group 'arki/config)
-
-
-;; (defun arki/packages-installed-p (pkgs)
-;;   "Check whether the packages have been installed."
-;;   (cl-loop for pkg in pkgs
-;; 	   when (not (package-installed-p pkg)) do (return nil)
-;; 	   finally (return t)))
-
 
 (defvar arki/package-contents-refreshed nil
   "Indicate whether the package contents has been refreshed.
@@ -26,34 +14,64 @@
 If nil: invoke `package-refresh-contents' during `require-package', then set to t, no matter whether the refresh is successful.
 If non-nil: don't invoke `package-refresh-contents' during `require-package.")
 
-(defvar arki/package-installed-info )
+(defvar arki/package-installed-info '(("INSTALLED_BEFORE") ("INSTALLED_NOW") ("FAILED"))
+  "Record the installation info of required packages.")
 
-(defun require-package (package)
-  "Install given PACKAGE"
 
-  (unless (package-installed-p package)
-    (unless arki/package-contents-refreshed
-      (message "Refreshing package database...")
-      (condition-case err (
-			   progn
-			    (message "Refreshing package database...")
-			    (package-refresh-contents)
-			    (message "Refreshing package database finished!")
-			    )
-	(error
-	 (message "Failed to refresh package database! ERROR: %S" err))
-	)
-      (setq arki/package-contents-refreshed t)
+(defun arki/alist-push-value (input_alist key value)
+  "Set the given ALIST.
+Operation is done in-place.
+
+If the key exists: push value to the fist position of that key's content.
+If not exists: append the k-v pair to the end of this alist.
+
+Return: the input_alist."
+  (let ((cur_kv (assoc key input_alist)))
+    (if cur_kv (setcdr cur_kv (cons value (cdr cur_kv)))
+      (message "Unknown key: %s. Now add it with value: %s." key value)
+      ;; (setcdr input_alist (copy-alist input_alist))
+      ;; (setcar input_alist (list key value))
+      (setcdr (last input_alist) (list (list key value)))
       )
-    (message "Installing package: %s ..." package)
-    (condition-case err (progn
-			  (package-install package)			  
-			  (message "Installing package: %s ...Finished!" package))
-      (error
-       (message "Failed to install package `%S'! ERROR: %S" package err))
-      ))
+    )
+  input_alist)
 
-  )
+
+(defun refresh-pack-contents ()
+  "Refresh package database. And refresh only once."
+  (unless arki/package-contents-refreshed
+    (message "Refreshing package database...")
+    (condition-case err (
+			 progn
+			 (message "Refreshing package database...")
+			 (package-refresh-contents)
+			 (message "Refreshing package database finished!")
+			 )
+      (error
+       (message "Failed to refresh package database! ERROR: %S" err))
+      )
+    (setq arki/package-contents-refreshed t)
+    ))
+
+
+(defun require-pack (pack)
+  "Install given PACKAGE
+
+If installed, return t, else return nil"
+  (if (package-installed-p pack) (progn (arki/alist-push-value arki/package-installed-info "INSTALLED_BEFORE" pack) t)
+    (refresh-pack-contents)
+    (message "Package: %s installing..." pack)
+    (condition-case err (progn
+			  (package-install pack)
+			  (arki/alist-push-value arki/package-installed-info "INSTALLED_NOW" pack)
+			  (message "Package: %s installed!" pack)
+			  t)
+      (error
+       (arki/alist-push-value arki/package-installed-info "FAILED" pack)
+       (message "Package `%S' failed to install! ERROR: %S" pack err)
+       nil)
+      )
+    ))
 
 ;; https://emacs-china.org/t/require-package-maybe-require-package/8496
 ;; (defun require-package (package &optional min-version)
@@ -170,4 +188,4 @@ The file is named init.el under `user-emacs-directory'."
     (fill-paragraph nil)))
 
 
-(provide 'init-custom-functions)
+(provide 'init-defun)
