@@ -55,9 +55,10 @@ Return: the input_alist."
 
 
 (defun require-pack (pack)
-  "Install given PACKAGE
+  "Install the given PACKAGE.
+And execute require PACKAGE if newly installed, to avoid requiring it manually.
 
-If installed, return t, else return nil"
+If installed successfully, return t, else return nil"
   (if (package-installed-p pack) (progn (arki/alist-push-value arki/package-installed-info "INSTALLED_BEFORE" pack) t)
     (refresh-pack-contents)
     (message "Package: %s installing..." pack)
@@ -65,6 +66,8 @@ If installed, return t, else return nil"
 			  (package-install pack)
 			  (arki/alist-push-value arki/package-installed-info "INSTALLED_NOW" pack)
 			  (message "Package: %s installed!" pack)
+			  (require pack)
+			  (message "Package: %s loaded!" pack)
 			  t)
       (error
        (arki/alist-push-value arki/package-installed-info "FAILED" pack)
@@ -188,4 +191,4 @@ The file is named init.el under `user-emacs-directory'."
     (fill-paragraph nil)))
 
 
-(provide 'init-defun)
+(provide 'init-functions)
