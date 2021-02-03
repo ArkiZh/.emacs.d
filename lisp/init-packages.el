@@ -90,6 +90,12 @@
 
 (when (require-pack 'magit))
 
+(when (require-pack 'treemacs))
+
+(when (require-pack 'projectile)
+  (projectile-mode +1)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+
 (when (require-pack 'markdown-mode)
   ;; 配置markdown-mode
   ;; 调用markdown-live-preview报错markdown failed with exit code 1解决方案：(参考自https://emacs-china.org/t/markdown/11399)
@@ -104,7 +110,7 @@
 ;;---------------------------------------------------------------------------
 ;; CONFIG keymap
 ;;---------------------------------------------------------------------------
-(when (require-pack 'help-fns+))
+(when (require-pack 'which-key))
 
 ;;---------------------------------------------------------------------------
 ;; CONFIG BACKUP

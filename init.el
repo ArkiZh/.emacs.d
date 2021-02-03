@@ -50,7 +50,7 @@
 (require 'init-better-defaults)
 (require 'init-org)
 (require 'init-key-bindings)
-
+(require 'init-input-method)
 
 ;;----------------------------------------------------------------------------
 ;; Load variables configured via the interactive 'customize' interface
