@@ -6,13 +6,17 @@
   ;; (global-set-key (kbd "C-\\") 'toggle-input-method)
   (setq pyim-default-scheme 'ziranma-shuangpin)
   (setq pyim-page-length 9)
-  (setq pyim-page-tooltip 'popup)
+  ;; (setq pyim-page-tooltip 'popup)
   ;; 目前posframe中有的字显示不出来，不知道跟posframe使用的字体有没有关系
-  ;; (when (require-pack 'posframe)
-  ;;   (setq pyim-page-tooltip 'posframe))
+  (when (require-pack 'posframe)
+    (setq pyim-page-tooltip 'posframe))
+  (setq-default pyim-english-input-switch-functions
+                '(pyim-probe-dynamic-english
+		  pyim-probe-auto-english))
+  (global-set-key (kbd "M-i") 'pyim-convert-code-at-point)
   )
 
-provide 'init-input-method
+(provide 'init-input-method)
 
 ;; https://github.com/tumashu/pyim#org300b615
 ;; (use-package pyim
