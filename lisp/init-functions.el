@@ -111,9 +111,30 @@ If installed successfully, return t, else return nil"
 
 
 ;;----------------------------------------------------------------------------
+;; Set key binding
+;;----------------------------------------------------------------------------
+(defvar arki/key-bindings '((global))
+  "Record customize key-bindings.")
+
+(defun arki/define-key (key command &optional keymap)
+  "Set key binding, and record the binding.
+If keymap is not provided, will use global-set-key.
+If keymap is provided, you should add quote before it."
+  (interactive)
+  (if keymap
+      (progn
+	(define-key (eval keymap) (kbd key) command)
+	(arki/alist-push-value arki/key-bindings keymap (list key command))
+	)
+    (global-set-key (kbd key) command)
+    (arki/alist-push-value arki/key-bindings 'global (list key command))
+    )
+  )
+
+;;----------------------------------------------------------------------------
 ;; Delete the current file
 ;;----------------------------------------------------------------------------
-(defun delete-this-file ()
+(defun arki/delete-this-file-and-buffer ()
   "Delete the current file, and kill the buffer."
   (interactive)
   (unless (buffer-file-name)
@@ -123,12 +144,13 @@ If installed successfully, return t, else return nil"
     (delete-file (buffer-file-name))
     (kill-this-buffer)))
 
+(arki/define-key "C-c u k" 'arki/delete-this-file-and-buffer)
 
 ;;----------------------------------------------------------------------------
 ;; Rename the current file
 ;;----------------------------------------------------------------------------
-(defun rename-this-file-and-buffer (new-name)
-  "Renames both current buffer and file it's visiting to NEW-NAME."
+(defun arki/rename-this-file-and-buffer (new-name)
+  "Rename both current buffer and file to NEW-NAME."
   (interactive "sNew name: ")
   (let ((name (buffer-name))
         (filename (buffer-file-name)))
@@ -140,27 +162,24 @@ If installed successfully, return t, else return nil"
       (set-visited-file-name new-name)
       (rename-buffer new-name))))
 
+(arki/define-key "C-c u r" 'arki/rename-this-file-and-buffer)
 
 ;;----------------------------------------------------------------------------
 ;; 快速打开配置文件
 ;;----------------------------------------------------------------------------
-(defun open-init-file()
+(defun arki/open-init-file()
   "Open init file.
 
 The file is named init.el under `user-emacs-directory'."
   (interactive)
   (find-file (expand-file-name "init.el" user-emacs-directory)))
 
+(arki/define-key "<f2>" 'arki/open-init-file)
 
 ;;----------------------------------------------------------------------------
 ;; 调整buffer中的缩进
 ;;----------------------------------------------------------------------------
-(defun indent-buffer()
-  "Indent the current buffer."
-  (interactive)
-  (indent-region (point-min) (point-max)))
-
-(defun indent-region-or-buffer()
+(defun arki/indent-region-or-buffer()
   "Indent the region if selected, otherwise the whole buffer."
   (interactive)
   (save-excursion
@@ -169,26 +188,35 @@ The file is named init.el under `user-emacs-directory'."
 	  (indent-region (region-beginning) (region-end))
 	  (message "Region indented."))
       (progn
-	(indent-buffer)
+	(indent-region (point-min) (point-max))
 	(message "Buffer indented.")))))
+
+(arki/define-key "C-M-\\" 'arki/indent-region-or-buffer)
 
 ;;----------------------------------------------------------------------------
 ;; 选中当前行
 ;;----------------------------------------------------------------------------
-(defun select-current-line ()
+(defun arki/select-current-line ()
   "Select the current line"
   (interactive)
   (end-of-line) ; move to end of line
   (set-mark (line-beginning-position)))
 
-;;----------------------------------------------------------------------------
-;; 将多行的段落合并成一行 TODO: 目前不支持选区的合并
-;;----------------------------------------------------------------------------
-(defun unfill-paragraph ()
-  "Takes a multi-line paragraph and makes it into a single line of text."
-  (interactive)
-  (let ((fill-column (point-max)))
-    (fill-paragraph nil)))
+(arki/define-key "C-c u l" 'arki/select-current-line)
 
+;;----------------------------------------------------------------------------
+;; 将多行的段落合并成一行
+;;----------------------------------------------------------------------------
+;; https://stackoverflow.com/questions/6707758/inverse-of-m-q-an-unfill-paragraph-function
+(defun arki/unfill-paragraph (&optional region)
+  "Takes a multi-line paragraph and makes it into a single line of text."
+  (interactive (progn (barf-if-buffer-read-only) '(t)))
+  (let ((fill-column (point-max))
+        ;; This would override `fill-column' if it's an integer.
+        (emacs-lisp-docstring-fill-column t))
+    (fill-paragraph nil region)))
+
+;; 将多行的段落合并成一行
+(arki/define-key "M-Q" 'arki/unfill-paragraph)
 
 (provide 'init-functions)

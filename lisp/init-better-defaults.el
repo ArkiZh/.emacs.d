@@ -5,7 +5,12 @@
 (setq ring-bell-function 'ignore)
 
 ;; 显示行号
-(global-linum-mode 1)
+(if (version<= "26.0.50" emacs-version )
+    (global-display-line-numbers-mode)
+  (global-linum-mode 1))
+
+;; 在最下面显示光标在行中的位置
+(column-number-mode 1)
 
 ;; 选中一段文字之后输入一个字符会替换掉你选中部分的文字
 (delete-selection-mode 1)
