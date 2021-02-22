@@ -50,18 +50,25 @@
 
 ;; --------------------------------------------------UI--------------------------------------------------
 ;; Config theme
-(when (require-pack 'solarized-theme) ;monokai-theme solarized-theme gruvbox-theme
-  ;; 启用monokai、solarized-dark主题
-  (load-theme 'solarized-dark t)
-  ;; (load-theme 'gruvbox-light-soft t)
+;; Favorite themes: monokai-theme solarized-theme gruvbox-theme
+
+;; https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el
+(when (require-pack 'doom-themes)
+  ;; (load-theme 'doom-dark+)
+  (load-theme 'doom-molokai t)
+  (setq doom-themes-enable-bold t)
+  (setq doom-themes-enable-italic t)
+  (setq doom-themes-treemacs-theme "doom-colors")
+  (doom-themes-treemacs-config)
+  (doom-themes-org-config)
+  ;; https://github.com/domtronn/all-the-icons.el/
+  ;; 需要安装字体文件：M-x all-the-icons-install-fonts
+  (require-pack 'all-the-icons)
   )
 
-;; 设置默认字体为汉字字符集 找到字符类型的方式： M+x describe-font RET RET
-(set-frame-font "-ADBO-Source Han Serif CN-normal-normal-normal-*-17-*-*-*-*-0-iso10646-1")
-
-;; 更改显示字体大小 16pt
-;; http://stackoverflow.com/questions/294664/how-to-set-the-font-size-in-emacs
-(set-face-attribute 'default nil :height 125)
+;; https://github.com/seagle0128/doom-modeline
+(when (require-pack 'doom-modeline)
+  (add-hook 'after-init-hook #'doom-modeline-mode))
 
 ;; 关闭启动帮助画面
 (setq inhibit-splash-screen 1)
@@ -135,17 +142,29 @@
   (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
   )
 
+
+;; 在emacs-lisp模式下括号高亮匹配
 (when (require-pack 'smartparens)
   ;; 配置smartparens
   (add-hook 'emacs-lisp-mode-hook 'smartparens-mode) ;在emacs-lisp-mode模式时加载smartparens
   ;; (smartparens-global-mode t) ;所有模式都加载smartparens
   )
+;; 将函数扩展为光标不在括号上也能显示两侧的括号
+(define-advice show-paren-function (:around (fn) fix-show-paren-function)
+  "Highlight enclosing parens."
+  (cond ((looking-at-p "\\s(") (funcall fn))
+	(t (save-excursion
+	     (ignore-errors (backward-up-list))
+	     (funcall fn)))))
+;; 激活show-paren-mode
+(add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
 
 (when (require-pack 'hungry-delete)
   ;; 启用hungry-delete
   (global-hungry-delete-mode)
   )
 
+;; 执行完命令后，直接使用C-g关闭辅助性的buffer
 (when (require-pack 'popwin)
   ;; 配置popwin
   (popwin-mode 1)
@@ -251,17 +270,6 @@
 ;; 自动加载修改过的文件
 (global-auto-revert-mode t)
 
-;; 在emacs-lisp模式下括号高亮匹配
-;; 先将函数扩展为光标不在括号上也能显示两侧的括号
-(define-advice show-paren-function (:around (fn) fix-show-paren-function)
-  "Highlight enclosing parens."
-  (cond ((looking-at-p "\\s(") (funcall fn))
-	(t (save-excursion
-	     (ignore-errors (backward-up-list))
-	     (funcall fn)))))
-;; 激活show-paren-mode
-(add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
-
 ;; 记录最近打开过的文件
 ;; (require 'recentf)
 (recentf-mode 1)
@@ -300,7 +308,6 @@
 ;; https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
 ;; (add-hook 'dired-mode-hook
 (with-eval-after-load 'dired
-  (message "Config dired mode")
   (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
   (arki/define-key "^"
 		   (lambda () (interactive) (find-alternate-file ".."))
@@ -329,18 +336,21 @@
 
 
 ;; --------------------------------------------------INPUT METHOD--------------------------------------------------
+;; https://github.com/tumashu/pyim
 (when (require-pack 'pyim)
   (require 'pyim)
   (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
   (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
   (setq default-input-method "pyim")
-  ;; (global-set-key (kbd "C-\\") 'toggle-input-method)
   (setq pyim-default-scheme 'ziranma-shuangpin)
   (setq pyim-page-length 9)
-  ;; (setq pyim-page-tooltip 'popup)
-  ;; 目前posframe中有的字显示不出来，不知道跟posframe使用的字体有没有关系
-  (when (require-pack 'posframe)
-    (setq pyim-page-tooltip 'posframe))
+  ;; 设置显示候选词的框是什么形式的
+  (if (memq window-system '(x win32 ns))
+      (when (require-pack 'posframe)
+	(setq pyim-page-tooltip 'posframe))
+    (setq pyim-page-tooltip 'popup)
+    )
+
   (setq-default pyim-english-input-switch-functions
                 '(pyim-probe-dynamic-english
 		  pyim-probe-auto-english))
@@ -348,10 +358,10 @@
   )
 
 
-;; (require 'init-org)
-;; (require 'init-key-bindings)
-;; (require 'init-input-method)
+;; --------------------------------------------------CONFIG FONTS--------------------------------------------------
+(require 'init-fonts)
 
+
 ;;----------------------------------------------------------------------------
 ;; Load variables configured via the interactive 'customize' interface
 ;;----------------------------------------------------------------------------
