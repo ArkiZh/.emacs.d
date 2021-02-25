@@ -131,6 +131,8 @@
   ;; enable this if you want `swiper' to use it
   ;; (setq search-default-mode #'char-fold-to-regexp)
   (arki/define-key "C-s" 'swiper)
+  ;; minibuffer 里面的 M-i 绑定 与输入法的冲突了，解绑掉
+  (arki/define-key "M-i" nil 'ivy-minibuffer-map)
   )
 
 (when (require-pack 'counsel)
@@ -212,7 +214,7 @@
 
 (when (require-pack 'treemacs)
   ;; 打开treemmacs导航
-  (arki/define-key "M-0" 'treemacs-select-window))
+  (arki/define-key "M-0" 'treemacs))
 
 (when (require-pack 'projectile)
   (projectile-mode +1)

@@ -6,8 +6,9 @@
 ;; http://stackoverflow.com/questions/294664/how-to-set-the-font-size-in-emacs
 ;; (set-face-attribute 'default nil :height 125)
 
-
-;;; base on https://gist.github.com/coldnew/7398835
+;; 借鉴自：
+;; https://gist.github.com/Superbil/7113937
+;; base on https://gist.github.com/coldnew/7398835
 (defvar emacs-font-english nil
   "The font name of English.")
 
@@ -30,6 +31,8 @@
 (defun set-font (font-english font-chinese size-pair)
   "Setup emacs English and Chinese font on x window-system."
   (if (font-exist-p font-english)
+      ;; set-frame-font: When called from Lisp, FONT should be a font
+      ;; name (a string), a font object, font entity, or font spec.
       (set-frame-font (format "%s:pixelsize=%d" font-english (car size-pair)) t)
     (warn "Font for English doesn't exist, please install it: %s" font-english))
 
@@ -64,6 +67,7 @@
        "ABCDEFTHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz\n"
        "11223344556677889900       壹貳參肆伍陸柒捌玖零"))
 
+;; Only useful when has window server
 (when window-system
   ;; setup change size font, base on emacs-font-size-pair-list
   (arki/define-key "C-M-=" 'increase-emacs-font-size)
@@ -72,15 +76,18 @@
   ;; setup default  English font and Chinese font
   (setq emacs-font-english "DejaVu Sans Mono") ;Source Code Pro
   (setq emacs-font-chinese "Source Han Serif CN")
-  (setq emacs-font-size-pair '(17 . 18))
+  (setq emacs-font-size-pair '(16 . 20))
   (setq emacs-font-size-pair-list '(( 5 .  6) (10 . 12)
-                                    (13 . 16) (15 . 18) (17 . 20)
+                                    (13 . 16) (15 . 18)
+				    (16 . 20) (17 . 20)
                                     (19 . 22) (20 . 24) (21 . 26)
                                     (24 . 28) (26 . 32) (28 . 34)
                                     (30 . 36) (34 . 40) (36 . 44)))
+  ;; Setup font size based on emacs-font-size-pair
+  (set-font emacs-font-english emacs-font-chinese emacs-font-size-pair)
+  (set-font emacs-font-english emacs-font-chinese '(15 . 15))
   )
-;; Setup font size based on emacs-font-size-pair
-(set-font emacs-font-english emacs-font-chinese emacs-font-size-pair)
+
 
 ;; (when (require-pack 'cnfonts)
 ;;   ;; 配置cnfonts https://github.com/tumashu/cnfonts
@@ -89,5 +96,12 @@
 ;;   (setq cnfonts-use-face-font-rescale t)
 ;;   (setq cnfonts-keep-frame-size nil))
 
+;; +----------------------------------------------------+
+;; | [*9.0-18*] [ 20-24 ] [ 26-28 ] [ -30- ] [ -32- ]   |
+;; | 中英文等宽对齐设置：按加号或减号按钮直至此表格对齐 |
+;; | abcdefjhijklmnoprqstuvwxwyABCDEFJHIJkLMNOPQRSTUVXW |
+;; | 𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄉𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄄𠄅𠄆𠄇𠄇𠄆 |
+;; | 英文字号   中文对齐设置    EXT-B 对齐设置    测试  |
+;; +----------------------------------------------------+
 
 (provide 'init-fonts)
