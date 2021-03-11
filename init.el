@@ -76,7 +76,7 @@
 ;; 关闭工具栏，tool-bar-mode 即为一个 Minor Mode
 (tool-bar-mode 'toggle)
 ;; 关闭菜单栏
-(menu-bar-mode 'toggle)
+;; (menu-bar-mode 'toggle)
 
 ;; 全屏显示
 ;; (setq initial-frame-alist (quote ((fullscreen . maximized))))
@@ -89,10 +89,13 @@
 ;; 关闭文件滑动控件
 (scroll-bar-mode 'toggle)
 
-;; 显示行号
-(if (version<= "26.0.50" emacs-version )
-    (global-display-line-numbers-mode)
-  (global-linum-mode 1))
+;; 显示行号 仅当编程模式时候
+(add-hook 'prog-mode-hook
+	  (lambda nil
+	    (if (version<= "26.0.50" emacs-version )
+		(display-line-numbers-mode)
+	      (linum-mode 1)))
+	  )
 
 ;; 在最下面显示光标在行中的位置
 (column-number-mode 1)
@@ -197,6 +200,11 @@
 	    (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 	    )
 	  )
+(when window-system
+  ;; https://github.com/abo-abo/org-download
+  (require-pack 'org-download)
+  ;; Drag-and-drop to `dired`
+  (add-hook 'dired-mode-hook 'org-download-enable))
 
 ;; (setq org-agenda-files '("~/org"))
 
@@ -260,6 +268,9 @@
 ;; 取消滚动到底部的报警声
 (setq ring-bell-function 'ignore)
 
+;; Enable truncate lines
+(setq-default truncate-lines t)
+
 ;; 选中一段文字之后输入一个字符会替换掉你选中部分的文字
 (delete-selection-mode 1)
 
@@ -313,8 +324,22 @@
   (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
   (arki/define-key "^"
 		   (lambda () (interactive) (find-alternate-file ".."))
-		   'dired-mode-map))
+		   'dired-mode-map)
+  ;; https://emacs.stackexchange.com/questions/33548/how-show-size-in-kb-in-dired-mode
+  (setq dired-listing-switches "-alh")
+  ;; https://emacs.stackexchange.com/questions/36317/dired-first-show-list-of-folders
+  ;; 加这个选项在wsl2 中没有反应：--group-directories-first
+  ;; 在windows 环境可以用这个： (setq ls-lisp-dirs-first t)
 
+
+  (when (memq system-type '(gnu gnu/linux gnu/kfreebsd cygwin))
+    ;; https://gitlab.com/xuhdev/dired-quick-sort#dired-quick-sort
+    (when (require-pack 'dired-quick-sort)
+      (dired-quick-sort-setup)
+      (arki/define-key "S" 'hydra-dired-quick-sort/body 'dired-mode-map)
+      )
+    )
+  )
 (require 'dired-x) ;; Enable <C-x C-j> to open current file's directory
 (setq dired-dwim-target t) 		;当一个frame中存在多个window时，将下一个分屏自动设置成拷贝地址的目标
 

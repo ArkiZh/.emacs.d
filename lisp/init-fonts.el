@@ -77,17 +77,25 @@
   (setq emacs-font-english "DejaVu Sans Mono") ;Source Code Pro
   (setq emacs-font-chinese "Source Han Serif CN")
   (setq emacs-font-size-pair '(16 . 20))
-  (setq emacs-font-size-pair-list '(( 5 .  6) (10 . 12)
-                                    (13 . 16) (15 . 18)
-				    (16 . 20) (17 . 20)
-                                    (19 . 22) (20 . 24) (21 . 26)
-                                    (24 . 28) (26 . 32) (28 . 34)
-                                    (30 . 36) (34 . 40) (36 . 44)))
+  (setq emacs-font-size-pair-list '(( 5 .  6)
+				    (10 . 12)
+                                    (13 . 16)
+				    (15 . 18)
+				    (16 . 20)
+				    (17 . 20)
+                                    (19 . 22)
+				    (20 . 24)
+				    (21 . 26)
+                                    (24 . 28)
+				    (26 . 32)
+				    (28 . 34)
+                                    (30 . 36)))
   ;; Setup font size based on emacs-font-size-pair
   (set-font emacs-font-english emacs-font-chinese emacs-font-size-pair)
-  (set-font emacs-font-english emacs-font-chinese '(15 . 15))
+  (set-font emacs-font-english emacs-font-chinese '(15 . 13))
   )
 
+;; 有空时候看看这个用于org-mode 表格对齐的：https://github.com/chen-chao/zh-align.el
 
 ;; (when (require-pack 'cnfonts)
 ;;   ;; 配置cnfonts https://github.com/tumashu/cnfonts
