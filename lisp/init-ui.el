@@ -24,5 +24,6 @@
 
 ;; 更改光标的样式（不能生效，解决方案见第二集）
 ;; (setq cursor-type 'bar)
+(setq cursor-type 'box)
 
 (provide 'init-ui)

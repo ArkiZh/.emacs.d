@@ -100,6 +100,13 @@
 ;; 在最下面显示光标在行中的位置
 (column-number-mode 1)
 
+;; 启用zone
+(when (require 'zone-timer)
+  (zone-when-idle 60)
+  (setq zone-programs [zone-pgm-timer])
+  (setq zone-timer-rainbow-enable nil)
+  )
+
 ;; --------------------------------------------------NAVIGATION--------------------------------------------------
 ;; Config editor navigation
 
