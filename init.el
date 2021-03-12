@@ -104,7 +104,8 @@
 (when (require 'zone-timer)
   (zone-when-idle 60)
   (setq zone-programs [zone-pgm-timer])
-  (setq zone-timer-rainbow-enable nil)
+  (setq zone-timer-interval 600)
+  (setq zone-timer-rainbow-enable t)
   )
 
 ;; --------------------------------------------------NAVIGATION--------------------------------------------------
@@ -278,6 +279,9 @@
 ;; Enable truncate lines
 (setq-default truncate-lines t)
 
+;; Set cursor type to box or bar
+(setq cursor-type 'box)
+
 ;; 选中一段文字之后输入一个字符会替换掉你选中部分的文字
 (delete-selection-mode 1)
 
@@ -373,8 +377,9 @@
 ;; https://github.com/tumashu/pyim
 (when (require-pack 'pyim)
   (require 'pyim)
-  (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
-  (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
+  ;; (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
+  ;; (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
+  
   (setq default-input-method "pyim")
   (setq pyim-default-scheme 'ziranma-shuangpin)
   (setq pyim-page-length 9)
