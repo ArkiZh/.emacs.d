@@ -4,8 +4,12 @@
   (arki/define-key "C-c u g" 'magit-status))
 
 (when (require-pack 'treemacs)
+  ;; Let treemacs become invisible to commands like ‘other-window’ or ‘evil-window-left’.
+  (setq treemacs-is-never-other-window t)
   ;; 打开treemmacs导航
-  (arki/define-key "M-0" 'treemacs))
+  (arki/define-key "C-<f2>" 'treemacs)
+  (arki/define-key "<f2>" 'treemacs-select-window)
+  )
 
 (when (require-pack 'projectile)
   (projectile-mode +1)

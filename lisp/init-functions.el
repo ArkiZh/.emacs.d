@@ -174,7 +174,7 @@ The file is named init.el under `user-emacs-directory'."
   (interactive)
   (find-file (expand-file-name "init.el" user-emacs-directory)))
 
-(arki/define-key "<f2>" 'arki/open-init-file)
+;; (arki/define-key "<f2>" 'arki/open-init-file)
 
 ;;----------------------------------------------------------------------------
 ;; 调整buffer中的缩进
