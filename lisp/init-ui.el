@@ -1,29 +1,52 @@
-;; 设置默认字体为汉字字符集 找到字符类型的方式： M+x describe-font RET RET
-(set-frame-font "-ADBO-Source Han Serif CN-normal-normal-normal-*-17-*-*-*-*-0-iso10646-1")
+;; Config theme
+;; Favorite themes: monokai-theme solarized-theme gruvbox-theme
 
-;; 更改显示字体大小 16pt
-;; http://stackoverflow.com/questions/294664/how-to-set-the-font-size-in-emacs
-(set-face-attribute 'default nil :height 125)
+;; https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el
+(when (require-pack 'doom-themes)
+  ;; (load-theme 'doom-dark+)
+  (load-theme 'doom-molokai t)
+  (setq doom-themes-enable-bold t)
+  (setq doom-themes-enable-italic t)
+  (setq doom-themes-treemacs-theme "doom-colors")
+  (doom-themes-treemacs-config)
+  (doom-themes-org-config)
+  ;; https://github.com/domtronn/all-the-icons.el/
+  ;; 需要安装字体文件：M-x all-the-icons-install-fonts
+  (require-pack 'all-the-icons)
+  )
+
+;; https://github.com/seagle0128/doom-modeline
+(when (require-pack 'doom-modeline)
+  (add-hook 'after-init-hook #'doom-modeline-mode))
 
 ;; 关闭启动帮助画面
 (setq inhibit-splash-screen 1)
 
 ;; 关闭工具栏，tool-bar-mode 即为一个 Minor Mode
-(tool-bar-mode -1)
+(tool-bar-mode 'toggle)
 ;; 关闭菜单栏
-(menu-bar-mode 0)
+(menu-bar-mode 'toggle)
+
 ;; 全屏显示
 ;; (setq initial-frame-alist (quote ((fullscreen . maximized))))
 (toggle-frame-maximized)
+;; (toggle-frame-fullscreen)
 
 ;; 高亮显示当前行
 (global-hl-line-mode t)
 
 ;; 关闭文件滑动控件
-(scroll-bar-mode -1)
+(scroll-bar-mode 'toggle)
 
-;; 更改光标的样式（不能生效，解决方案见第二集）
-;; (setq cursor-type 'bar)
-(setq cursor-type 'box)
+;; 显示行号 仅当编程模式时候
+(add-hook 'prog-mode-hook
+	  (lambda nil
+	    (if (version<= "26.0.50" emacs-version )
+		(display-line-numbers-mode)
+	      (linum-mode 1)))
+	  )
+
+;; 在最下面显示光标在行中的位置
+(column-number-mode 1)
 
 (provide 'init-ui)

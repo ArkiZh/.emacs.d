@@ -65,6 +65,7 @@
 	  (cl-incf k))
 	(sit-for 0.1)))))
 
+
 ;;;###autoload
 (defun zone-timer ()
   "Zone out with rainbow."
@@ -73,4 +74,11 @@
 	(zone-timer-interval 5))
     (zone)))
 
-(provide 'zone-timer)
+
+;; 启用zone
+(zone-when-idle 60)
+(setq zone-programs [zone-pgm-timer])
+(setq zone-timer-interval 600)
+(setq zone-timer-rainbow-enable t)
+
+(provide 'init-screensaver)

@@ -34,3 +34,6 @@ custom.el
 /server
 /transient
 /temp
+ido.last
+/pyim
+projectile-bookmarks.eld
