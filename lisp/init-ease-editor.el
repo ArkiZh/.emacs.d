@@ -9,6 +9,11 @@
   (arki/define-key "M-<up>"   'move-text-up)
   )
 
+;; https://github.com/magnars/expand-region.el
+(when (require-pack 'expand-region)
+  (arki/define-key "C-=" 'er/expand-region)
+  (arki/define-key "C-+" 'er/contract-region))
+
 ;; --------------------------------------------------WINDOW MANAGER--------------------------------------------------
 (when (require-pack 'ace-window)
   ;; 配置ace-windown

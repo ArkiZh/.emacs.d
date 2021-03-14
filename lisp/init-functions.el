@@ -7,6 +7,8 @@
 (defgroup arki/config nil
   "Manager for my own confgs.")
 
+(defcustom arki/cache-dir (expand-file-name "arki.cache" user-emacs-directory) "Cache for useful files" :group 'arki/config)
+(make-directory arki/cache-dir t)
 
 (defvar arki/package-contents-refreshed nil
   "Indicate whether the package contents has been refreshed.

@@ -25,6 +25,10 @@
 (setq recentf-max-menu-item 15)
 (arki/define-key "C-c u o" 'recentf-open-files)
 
+;; Bookmarks
+(setq bookmark-default-file (expand-file-name "bookmarks" arki/cache-dir))
+(setq bookmark-save-flag 1)
+
 ;; 保存桌面布局
 (desktop-save-mode 1)
 
