@@ -78,6 +78,19 @@ If installed successfully, return t, else return nil"
       )
     ))
 
+(defun require-packs (pack &rest packs)
+  "Insall the given packs.
+
+If all installed successfully, return t, else return nil"
+  (if (not packs)
+      (require-pack pack)
+    (push pack packs)
+    (let ((all-installed t))
+      (dolist (cur-pack packs)
+	(setq all-installed (and all-installed (require-pack cur-pack))))
+      all-installed))
+  )
+
 ;; https://emacs-china.org/t/require-package-maybe-require-package/8496
 ;; (defun require-package (package &optional min-version)
 ;;   "Install PACKAGE if it's not installed.

@@ -16,6 +16,7 @@
 (defcustom zone-timer-start-column -1 "The start column number from where to print time. -1 means the middle of window." :group 'zone-timer)
 (defun zone-pgm-timer ()
   "Show current time."
+  (delete-other-windows)
   (let* ((start-column (if (= zone-timer-start-column -1)
 			   (- (/ (window-width) 2) (/ (length (format-time-string zone-timer-format-string)) 2))
 			 zone-timer-start-column

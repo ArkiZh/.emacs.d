@@ -3,11 +3,49 @@
 (setq ido-enable-flex-matching t)
 
 
-;; ;; Config auto complete
-;; (when (require-pack 'company)
-;;   ;; 开启全局 Company 补全
-;;   (global-company-mode 1)
-;;   )
+;; Config auto complete
+
+;; https://www.youtube.com/watch?v=zSPraaX2524
+;; https://github.com/tonyaldon/emacs.d/blob/master/settings/settings/setup-completion.el
+
+;; https://www.youtube.com/watch?v=oyockkWcHp0
+;; https://github.com/jerryhsieh/Emacs-config/blob/company/init.el
+(when (require-pack 'company)
+  ;; 开启全局 Company 补全
+  (global-company-mode 1)
+
+  (setq company-idle-delay 0.1)
+  (setq company-selection-wrap-around t)
+  (setq company-tooltip-limit 9)
+  (arki/define-key ">" 'company-filter-candidates 'company-active-map)
+
+  (setq company-minimum-prefix-length 1)
+  (make-variable-buffer-local 'company-minimum-prefix-length)
+
+  (setq company-backends
+        '((company-files company-keywords company-capf company-yasnippet)
+          (company-abbrev company-dabbrev))
+  ;; (make-variable-buffer-local 'company-backends)
+  
+  (setq company-transformers '(company-sort-by-backend-importance))
+
+  (defun company-emacs-lisp-mode()
+    "Set up `company-mode'  for `emacs-lisp-model'."
+    (set (make-local-variable 'company-backends)
+	 '((company-yasnippet
+	    company-elisp
+	    company-dabbrev-code
+	    company-files))))
+  (add-hook 'emacs-lisp-mode-hook 'company-emacs-lisp-mode)
+
+  (defun company-text-mode ()
+    "Set up `company-mode' for `text-mode'."
+    (set (make-local-variable 'company-backends)
+	 '((company-files) company-dabbrev))
+    (setq company-minimum-prefix-length 3))
+  (add-hook 'text-mode-hook 'company-text-mode)
+  )
+
 ;; ;; 调整hippie-expand调用的自动补全功能顺序
 ;; (setq hippie-expand-try-functions-list '(
 ;; 					 try-expand-dabbrev
