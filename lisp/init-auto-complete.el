@@ -23,6 +23,8 @@
   (global-company-mode 1)
 
   (setq company-idle-delay 0.1)
+  (make-variable-buffer-local 'company-idle-delay)
+  
   (setq company-selection-wrap-around t)
   (setq company-tooltip-limit 9)
   (arki/define-key ">" 'company-filter-candidates 'company-active-map)
@@ -54,6 +56,14 @@
     (setq company-minimum-prefix-length 3))
   (add-hook 'text-mode-hook 'company-text-mode)
 
+  (defun company-shell-mode ()
+    "Set up `company-mode' for `shell-mode'"
+    (message "SHELL mode company")
+    (set (make-local-variable 'company-backends)
+	 '((company-files)))
+	 (setq company-minimum-prefix-length 1)
+	 (setq company-idle-delay 0.1))
+  (add-hook 'shell-mode-hook 'company-shell-mode)
   )
 
 

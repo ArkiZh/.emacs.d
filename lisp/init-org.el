@@ -1,8 +1,12 @@
 (require 'org)
 
 ;; org-mode needs this
-(when (require-pack 'htmlize))
-(when (require-pack 'org-preview-html))
+(require-pack 'htmlize)
+(require-pack 'org-preview-html)
+
+(when (require-pack 'org-bullets)
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+  )
 
 (add-hook 'org-mode-hook
 	  (lambda ()
