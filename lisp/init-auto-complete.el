@@ -3,7 +3,15 @@
 (setq ido-enable-flex-matching t)
 
 
-;; Config auto complete
+;; https://github.com/joaotavora/yasnippet
+(when (require-pack 'yasnippet)
+  (yas-global-mode 1)
+  ;; https://github.com/AndreaCrotti/yasnippet-snippets
+  (require-pack 'yasnippet-snippets)
+  )
+
+
+;; Config company
 
 ;; https://www.youtube.com/watch?v=zSPraaX2524
 ;; https://github.com/tonyaldon/emacs.d/blob/master/settings/settings/setup-completion.el
@@ -22,12 +30,13 @@
   (setq company-minimum-prefix-length 1)
   (make-variable-buffer-local 'company-minimum-prefix-length)
 
+  ;; company-yasnippet must work with yasnippet and yasnippet-snippets
   (setq company-backends
         '((company-files company-keywords company-capf company-yasnippet)
-          (company-abbrev company-dabbrev))
+          (company-abbrev company-dabbrev)))
   ;; (make-variable-buffer-local 'company-backends)
   
-  (setq company-transformers '(company-sort-by-backend-importance))
+  ;; (setq company-transformers '(company-sort-by-backend-importance))
 
   (defun company-emacs-lisp-mode()
     "Set up `company-mode'  for `emacs-lisp-model'."
@@ -44,7 +53,9 @@
 	 '((company-files) company-dabbrev))
     (setq company-minimum-prefix-length 3))
   (add-hook 'text-mode-hook 'company-text-mode)
+
   )
+
 
 ;; ;; 调整hippie-expand调用的自动补全功能顺序
 ;; (setq hippie-expand-try-functions-list '(
@@ -58,8 +69,6 @@
 ;; 					 try-expand-line
 ;; 					 try-complete-lisp-symbol-partially
 ;; 					 try-complete-lisp-symbol))
-
-
 ;; ;; 使用hippie-expand增强自动补全
 ;; (arki/define-key "M-RET" 'hippie-expand)
 
@@ -76,14 +85,14 @@
 ;;   (arki/define-key "M-i" nil 'ivy-minibuffer-map)
 ;;   )
 
-;; (when (require-pack 'counsel)
-;;   ;; 配置counsel
-;;   (arki/define-key "M-x" 'counsel-M-x)
-;;   ;; (arki/define-key "C-x C-f" 'counsel-find-file)
-;;   (arki/define-key "C-h f" 'counsel-describe-function)
-;;   (arki/define-key "C-h v" 'counsel-describe-variable)
-;;   ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
-;;   )
+(when (require-pack 'counsel)
+  ;; 配置counsel
+  (arki/define-key "M-x" 'counsel-M-x)
+  ;; (arki/define-key "C-x C-f" 'counsel-find-file)
+  ;; (arki/define-key "C-h f" 'counsel-describe-function)
+  ;; (arki/define-key "C-h v" 'counsel-describe-variable)
+  ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
+  )
 
 
 (provide 'init-auto-complete)
