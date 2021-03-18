@@ -1,6 +1,27 @@
 ;; --------------------------------------------------NAVIGATION--------------------------------------------------
 ;; Config editor navigation
 
+;; ;; https://github.com/winterTTr/ace-jump-mode
+;; ;; https://www.emacswiki.org/emacs/AceJump
+;; (when (require-pack 'ace-jump-mode)
+;;   (arki/define-key "C-c SPC" 'ace-jump-mode)
+;;   (eval-after-load "ace-jump-mode"
+;;     '(ace-jump-mode-enable-mark-sync))
+;;   (arki/define-key "C-x SPC" 'ace-jump-mode-pop-mark))
+
+;; https://github.com/abo-abo/avy
+(when (require-pack 'avy)
+  (arki/define-key "C-s" 'avy-goto-char-timer)
+  (setq avy-timeout-seconds 1)
+  (eval-after-load "isearch"
+    '(arki/define-key "C-'" 'avy-isearch 'isearch-mode-map))
+  ;; (global-set-key (kbd "C-:") 'avy-goto-char)
+  ;; (global-set-key (kbd "C-'") 'avy-goto-char-2)
+  ;; (global-set-key (kbd "M-g f") 'avy-goto-line)
+  ;; (global-set-key (kbd "M-g w") 'avy-goto-word-1)
+  ;; (global-set-key (kbd "M-g e") 'avy-goto-word-0)
+  )
+
 ;; Move current line or region with M-up or M-down.
 (when (require-pack 'move-text)
   ;; 配置move-text. Use default bindings for move-text-up and move-text-down (M-up / M-down).

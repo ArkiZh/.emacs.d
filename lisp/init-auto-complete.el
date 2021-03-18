@@ -61,8 +61,8 @@
     (message "SHELL mode company")
     (set (make-local-variable 'company-backends)
 	 '((company-files)))
-	 (setq company-minimum-prefix-length 1)
-	 (setq company-idle-delay 0.1))
+    (setq company-minimum-prefix-length 1)
+    (setq company-idle-delay 0.1))
   (add-hook 'shell-mode-hook 'company-shell-mode)
   )
 
@@ -83,17 +83,20 @@
 ;; (arki/define-key "M-RET" 'hippie-expand)
 
 
-;; (when (require-pack 'swiper)
-;;   ;; 配置swiper
-;;   (ivy-mode 1)
-;;   ;; (setq ivy-use-virtual-buffers nil) ;I dont't need virtual buffer for now, so commented out.
-;;   (setq enable-recursive-minibuffers t)
-;;   ;; enable this if you want `swiper' to use it
-;;   ;; (setq search-default-mode #'char-fold-to-regexp)
-;;   (arki/define-key "C-s" 'swiper)
-;;   ;; minibuffer 里面的 M-i 绑定 与输入法的冲突了，解绑掉
-;;   (arki/define-key "M-i" nil 'ivy-minibuffer-map)
-;;   )
+;; 配置swiper
+(when (require-pack 'swiper)
+  ;; (ivy-mode 1)
+  ;; ;; minibuffer 里面的 M-i 绑定 与输入法的冲突了，解绑掉
+  ;; (arki/define-key "M-i" nil 'ivy-minibuffer-map)
+  ;; (setq ivy-use-virtual-buffers nil) ;I dont't need virtual buffer for now, so commented out.
+  ;; (setq enable-recursive-minibuffers nil)
+  
+  ;; enable this if you want `swiper' to use it
+  ;; (setq search-default-mode #'char-fold-to-regexp)
+  (setq search-default-mode t)
+  (arki/define-key "C-S-s" 'swiper)
+
+  )
 
 (when (require-pack 'counsel)
   ;; 配置counsel

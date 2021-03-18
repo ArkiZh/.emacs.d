@@ -22,7 +22,7 @@
 ;; 记录最近打开过的文件
 ;; (require 'recentf)
 (recentf-mode 1)
-(setq recentf-max-menu-item 15)
+(setq recentf-max-menu-item 36)
 (arki/define-key "C-c u o" 'recentf-open-files)
 
 ;; Bookmarks
@@ -35,5 +35,7 @@
 ;; Less typing when emacs asks yes or no
 (fset 'yes-or-no-p 'y-or-n-p)
 
+;; Enable function
+(put 'narrow-to-region 'disabled nil)
 
 (provide 'init-better-defaults)
