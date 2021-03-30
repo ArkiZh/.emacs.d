@@ -29,6 +29,15 @@
   (setq company-tooltip-limit 9)
   (arki/define-key ">" 'company-filter-candidates 'company-active-map)
 
+
+  ;; change C-n C-p
+  (with-eval-after-load 'company
+    (arki/define-key "C-n" 'company-select-next 'company-active-map)
+    (arki/define-key "C-p" 'company-select-previous 'company-active-map)
+    (arki/define-key "M-n" nil 'company-active-map)
+    (arki/define-key "M-p" nil 'company-active-map))
+
+
   (setq company-minimum-prefix-length 1)
   (make-variable-buffer-local 'company-minimum-prefix-length)
 
@@ -52,15 +61,15 @@
   (defun company-text-mode ()
     "Set up `company-mode' for `text-mode'."
     (set (make-local-variable 'company-backends)
-	 '((company-files) company-dabbrev))
-    (setq company-minimum-prefix-length 3))
+	 '((company-files company-yasnippet) company-dabbrev))
+    (setq company-minimum-prefix-length 2))
   (add-hook 'text-mode-hook 'company-text-mode)
 
   (defun company-shell-mode ()
     "Set up `company-mode' for `shell-mode'"
     (message "SHELL mode company")
     (set (make-local-variable 'company-backends)
-	 '((company-files)))
+	 '((company-files company-yasnippet)))
     (setq company-minimum-prefix-length 1)
     (setq company-idle-delay 0.1))
   (add-hook 'shell-mode-hook 'company-shell-mode)
