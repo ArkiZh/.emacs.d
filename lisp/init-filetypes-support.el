@@ -22,6 +22,8 @@
     (setq imenu-list-size 36)
     (setq imenu-list-focus-after-activation nil)
     (setq imenu-list-auto-resize nil)
+    (setq imenu-list-after-jump-hook nil)
+    (add-hook 'imenu-list-after-jump-hook (lambda () (recenter-top-bottom 0)))
     )
   )
 
