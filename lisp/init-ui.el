@@ -15,6 +15,18 @@
   (require-pack 'all-the-icons)
   )
 
+
+(when (equal window-system 'x)
+  ;; Set mouse-color
+  (set-frame-parameter nil 'mouse-color "white")
+  )
+
+;; (when (require-pack 'on-screen)
+;;   (on-screen-global-mode +1))
+
+;; Set cursor type to box or bar
+(setq cursor-type 'box)
+
 ;; https://github.com/seagle0128/doom-modeline
 (when (require-pack 'doom-modeline)
   (add-hook 'after-init-hook #'doom-modeline-mode))

@@ -7,9 +7,6 @@
 ;; Enable truncate lines
 (setq-default truncate-lines t)
 
-;; Set cursor type to box or bar
-(setq cursor-type 'box)
-
 ;; 禁止 Emacs 自动生成备份文件
 (setq make-backup-files nil)
 
@@ -30,7 +27,7 @@
 (setq bookmark-save-flag 1)
 
 ;; 保存桌面布局
-(desktop-save-mode 1)
+(desktop-save-mode -1)
 
 ;; Less typing when emacs asks yes or no
 (fset 'yes-or-no-p 'y-or-n-p)

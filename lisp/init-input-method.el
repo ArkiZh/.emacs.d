@@ -65,6 +65,11 @@
                 '(pyim-probe-dynamic-english
 		  pyim-probe-auto-english))
   (arki/define-key "M-i" 'pyim-convert-code-at-point)
+
+  (setq pyim-dicts
+      '((:name "dict1" :file "~/.emacs.d/arki.cache/ciku/pyim_sure.pyim")
+        (:name "dict2" :file "~/.emacs.d/arki.cache/ciku/pyim_ok.pyim")))
+  (setq pyim-fuzzy-pinyin-alist nil)
   )
 
 (provide 'init-input-method)

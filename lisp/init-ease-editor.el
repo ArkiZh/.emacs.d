@@ -64,5 +64,30 @@
   (global-hungry-delete-mode)
   )
 
+(put 'upcase-region 'disabled nil)
+
+
+
+;; --------------------------------------------------SHOW OUTLINE--------------------------------------------------
+
+;; https://github.com/bmag/imenu-list
+(when (require-pack 'imenu-list)
+  (add-hook 'markdown-mode-hook
+	    (lambda ()
+	      (arki/define-key "C-'" 'imenu-list-smart-toggle 'markdown-mode-map)
+	      ))
+  (add-hook 'org-mode-hook
+	    (lambda ()
+	      ;; (arki/define-key "C-'" nil 'org-mode-map)
+	      (arki/define-key "C-'" 'imenu-list-smart-toggle 'org-mode-map)
+	      ))
+  (setq imenu-list-position 'left)
+  (setq imenu-list-size 36)
+  (setq imenu-list-focus-after-activation nil)
+  (setq imenu-list-auto-resize nil)
+  (setq imenu-list-after-jump-hook nil)
+  (add-hook 'imenu-list-after-jump-hook (lambda () (recenter-top-bottom 0)))
+  )
+
 
 (provide 'init-ease-editor)

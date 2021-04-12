@@ -12,25 +12,16 @@
 	      ;; M-p 与跳转 ace window 冲突了，禁用掉
 	      (arki/define-key "M-p" nil 'markdown-mode-map))
 	    )
-  ;; https://github.com/bmag/imenu-list
-  (when (require-pack 'imenu-list)
-    (add-hook 'markdown-mode-hook
-	      (lambda ()
-		(arki/define-key "C-'" 'imenu-list-smart-toggle 'markdown-mode-map)
-		))
-    (setq imenu-list-position 'left)
-    (setq imenu-list-size 36)
-    (setq imenu-list-focus-after-activation nil)
-    (setq imenu-list-auto-resize nil)
-    (setq imenu-list-after-jump-hook nil)
-    (add-hook 'imenu-list-after-jump-hook (lambda () (recenter-top-bottom 0)))
-    )
   )
 
 
 ;; Json
 ;; https://github.com/gongo/json-reformat
 (require-pack 'json-reformat)
+
+;; Yaml
+;;
+(require-pack 'yaml)
 
 
 (provide 'init-filetypes-support)
