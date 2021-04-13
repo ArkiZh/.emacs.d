@@ -39,7 +39,6 @@
   "Chinese extra font size"
   :group 'arki/font)
 
-
 (defcustom arki/font-symbol "FontAwesome"
   "Symbol font"
   :group 'arki/font)
@@ -47,6 +46,19 @@
 (defcustom arki/font-symbol-size 16
   "Symbol font size"
   :group 'arki/font)
+
+(defcustom arki/font-size-min 5
+  "Min font size"
+  :group 'arki/font)
+
+(defcustom arki/font-size-max 50
+  "Min font size"
+  :group 'arki/font)
+
+(defcustom arki/font-size-step 0.5
+  "Step size for font adjust"
+  :group 'arki/font)
+
 
 
 (defun font-exist-p (fontname)
@@ -56,14 +68,19 @@
     (if (not (x-list-fonts fontname))
         nil t)))
 
+
 (defun arki/set-font-english (font-name font-size)
   "Set English font"
   (if (not (font-exist-p font-name))
       (warn "Font for English doesn't exist, please install it: %s" font-name)
-    ;; (set-face-attribute 'default nil :font (font-spec :family font-name :size font-size))
-    (set-frame-font (font-spec :family font-name :size font-size) t nil)
-    (setq arki/font-english font-name)
-    (setq arki/font-english-size font-size)
+    (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+	(message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+      ;; (set-face-attribute 'default nil :font (font-spec :family font-name :size font-size))
+      (set-frame-font (font-spec :family font-name :size font-size) t nil)      
+      (setq arki/font-english font-name)
+      (setq arki/font-english-size font-size)
+      (message "Set English font to: %S Size: %S" font-name font-size)
+      )
     )
   )
 
@@ -166,12 +183,5 @@ font-type 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
 ;;   (setq cnfonts-use-face-font-rescale t)
 ;;   (setq cnfonts-keep-frame-size nil))
 
-;; +----------------------------------------------------+
-;; | [*9.0-18*] [ 20-24 ] [ 26-28 ] [ -30- ] [ -32- ]   |
-;; | 中英文等宽对齐设置：按加号或减号按钮直至此表格对齐 |
-;; | abcdefjhijklmnoprqstuvwxwyABCDEFJHIJkLMNOPQRSTUVXW |
-;; | 𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄉𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄄𠄅𠄆𠄇𠄇𠄆 |
-;; | 英文字号   中文对齐设置    EXT-B 对齐设置    测试  |
-;; +----------------------------------------------------+
 
 (provide 'init-fonts)
