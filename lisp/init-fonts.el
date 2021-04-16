@@ -55,7 +55,7 @@
   "Min font size"
   :group 'arki/font)
 
-(defcustom arki/font-size-step 0.5
+(defcustom arki/font-size-step 1
   "Step size for font adjust"
   :group 'arki/font)
 
@@ -83,6 +83,7 @@
       )
     )
   )
+
 
 (defun arki/set-font-chinese (font-name font-size)
   "Set Chinese font"
@@ -135,55 +136,117 @@
 (defun arki/font-step (step-size font-type)
   "Set font size by step.
 
-font-type 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
+font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
+  
   (cond
    ((equal font-type 1) (arki/set-font-english arki/font-english (+ arki/font-english-size step-size)))
    ((equal font-type 2) (arki/set-font-chinese arki/font-chinese (+ arki/font-chinese-size step-size)))
    ((equal font-type 3) (arki/set-font-chinese-extra arki/font-chinese-extra (+ arki/font-chinese-extra-size step-size)))
    ((equal font-type 4) (arki/set-font-symbol arki/font-symbol (+ arki/font-symbol-size step-size)))
-   (t (message "Unsupported font-type: %s" font-type))
+   (t (warn "Unsupported font-type: %s" font-type))
    )
   )
 
+
+(defun arki/font-family-suggest (&optional font-type)
+  "Suggest font families available in minibuffer.
+
+font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
+  (interactive)
+  (let* ((font-type-name (cond
+			  ((equal font-type 1) " for English")
+			  ((equal font-type 2) " for Chinese")
+			  ((equal font-type 3) " for Chinese extra")
+			  ((equal font-type 4) " for symbol")
+			  (t "")
+			  ))
+	 (font-selected (ido-completing-read (format "Select font%s:" font-type-name) (font-family-list))))
+    (if (equal font-selected "nil")
+	nil
+      font-selected)
+    )
+  )
+
+(defun arki/font-family-select (font-type)
+  "Set font family.
+
+font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
+  (if (not (memq font-type '(1 2 3 4)))
+      (warn "Unsupported font-type: %s" font-type)
+    (let ((suggested-font (arki/font-family-suggest font-type)))
+      (cond
+       ((equal font-type 1) (arki/set-font-english suggested-font arki/font-english-size))
+       ((equal font-type 2) (arki/set-font-chinese suggested-font arki/font-chinese-size))
+       ((equal font-type 3) (arki/set-font-chinese-extra suggested-font arki/font-chinese-extra-size))
+       ((equal font-type 4) (arki/set-font-symbol suggested-font arki/font-symbol-size))
+       )
+      )))
+
+
+
+
 (defun arki/set-font ()
+  "Set all the font families and sizes"
   (arki/set-font-english arki/font-english arki/font-english-size)
   (arki/set-font-chinese arki/font-chinese arki/font-chinese-size)
   (arki/set-font-chinese-extra arki/font-chinese-extra arki/font-chinese-extra-size)
   (arki/set-font-symbol arki/font-symbol arki/font-symbol-size)
   )
 
-(defun arki/font-size-adjust ()
+(defun arki/save-font ()
+  (message "Fonts config saving...")
+  (customize-save-variable 'arki/font-english arki/font-english)
+  (customize-save-variable 'arki/font-english-size arki/font-english-size)
+  (customize-save-variable 'arki/font-chinese arki/font-chinese)
+  (customize-save-variable 'arki/font-chinese-size arki/font-chinese-size)
+  (customize-save-variable 'arki/font-chinese-extra arki/font-chinese-extra)
+  (customize-save-variable 'arki/font-chinese-extra-size arki/font-chinese-extra-size)
+  (customize-save-variable 'arki/font-symbol arki/font-symbol)
+  (customize-save-variable 'arki/font-symbol-size arki/font-symbol-size)
+  (message "Fonts config saved." )
+  )
+
+(defun arki/font-adjust ()
   (interactive)
   ;; (unless (zerop step)
-  (message "Adjust font size: 1(ENG +) 2(汉 +) 3(生僻 +) 4(Symbol +). Add SHIFT to decrease. ")
+  (message "Set font: ENG(q+ a- 1set) ZH(w+ s- 2set) EXT(e+ d- 3set) Symbol(r+ f- 4set). Save(0)")
   (set-transient-map
    (let ((map (make-sparse-keymap)))
      (define-key map (vector (list ?1))
-       (lambda () (interactive) (arki/font-step arki/font-size-step 1) (arki/font-size-adjust)))
-     (define-key map (vector (list ?!))
-       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 1) (arki/font-size-adjust)))
+       (lambda () (interactive) (arki/font-family-select 1) (arki/font-adjust)))
+     (define-key map (vector (list ?q))
+       (lambda () (interactive) (arki/font-step arki/font-size-step 1) (arki/font-adjust)))
+     (define-key map (vector (list ?a))
+       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 1) (arki/font-adjust)))
 
      (define-key map (vector (list ?2))
-       (lambda () (interactive) (arki/font-step arki/font-size-step 2) (arki/font-size-adjust)))
-     (define-key map (vector (list ?@))
-       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 2) (arki/font-size-adjust)))
-
+       (lambda () (interactive) (arki/font-family-select 2) (arki/font-adjust)))
+     (define-key map (vector (list ?w))
+       (lambda () (interactive) (arki/font-step arki/font-size-step 2) (arki/font-adjust)))
+     (define-key map (vector (list ?s))
+       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 2) (arki/font-adjust)))
 
      (define-key map (vector (list ?3))
-       (lambda () (interactive) (arki/font-step arki/font-size-step 3) (arki/font-size-adjust)))
-     (define-key map (vector (list ?#))
-       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 3) (arki/font-size-adjust)))
+       (lambda () (interactive) (arki/font-family-select 3) (arki/font-adjust)))
+     (define-key map (vector (list ?e))
+       (lambda () (interactive) (arki/font-step arki/font-size-step 3) (arki/font-adjust)))
+     (define-key map (vector (list ?d))
+       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 3) (arki/font-adjust)))
 
      (define-key map (vector (list ?4))
-       (lambda () (interactive) (arki/font-step arki/font-size-step 4) (arki/font-size-adjust)))
-     (define-key map (vector (list ?$))
-       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 4) (arki/font-size-adjust)))
-     
+       (lambda () (interactive) (arki/font-family-select 4) (arki/font-adjust)))
+     (define-key map (vector (list ?r))
+       (lambda () (interactive) (arki/font-step arki/font-size-step 4) (arki/font-adjust)))
+     (define-key map (vector (list ?f))
+       (lambda () (interactive) (arki/font-step (- arki/font-size-step) 4) (arki/font-adjust)))
+
+     (define-key map (vector (list ?0))
+       (lambda () (interactive) (arki/save-font) (arki/font-adjust)))     
+
      map))
   )
-(arki/define-key "C-c u f" 'arki/font-size-adjust)
+(arki/define-key "C-c u f" 'arki/font-adjust)
 (add-hook 'after-init-hook (lambda () (interactive) (arki/set-font)))
-
 
 ;; +----------------------------------------------------+
 ;; | [*9.0-18*] [ 20-24 ] [ 26-28 ] [ -30- ] [ -32- ]   |

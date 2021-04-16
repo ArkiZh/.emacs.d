@@ -212,12 +212,34 @@ The file is named init.el under `user-emacs-directory'."
 ;; 选中当前行
 ;;----------------------------------------------------------------------------
 (defun arki/select-current-line ()
-  "Select the current line"
+  "Select current line"
   (interactive)
-  (end-of-line) ; move to end of line
-  (set-mark (line-beginning-position)))
+  (beginning-of-line)
+  (set-mark-command nil)
+  (end-of-line)
+  )
 
-(arki/define-key "C-c u l" 'arki/select-current-line)
+(defun arki/copy-current-line ()
+  "Copy current line"
+  (interactive)
+  (save-mark-and-excursion ;; else
+    (arki/select-current-line)
+    (kill-ring-save (region-beginning) (region-end))
+    (pop-mark)
+    )
+  )
+(defun arki/kill-current-line ()
+  "Copy current line"
+  (interactive)
+  (save-mark-and-excursion ;; else
+    (arki/select-current-line)
+    (kill-region (region-beginning) (region-end))
+    (pop-mark)
+    )
+  )
+
+(arki/define-key "C-c u a" 'arki/copy-current-line)
+(arki/define-key "C-c u w" 'arki/kill-current-line)
 
 ;;----------------------------------------------------------------------------
 ;; 将多行的段落合并成一行

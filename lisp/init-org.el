@@ -30,7 +30,7 @@
 (setcar (nthcdr 4 org-emphasis-regexp-components) 3)
 (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 
-(arki/define-key "C-c u a" 'org-agenda)
+;; (arki/define-key "C-c u a" 'org-agenda)
 
 ;; (setq org-agenda-files '("~/org"))
 
