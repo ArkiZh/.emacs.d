@@ -160,7 +160,7 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
 			  ((equal font-type 4) " for symbol")
 			  (t "")
 			  ))
-	 (font-selected (ido-completing-read (format "Select font%s:" font-type-name) (font-family-list))))
+	 (font-selected (ido-completing-read (format "Select font%s:" font-type-name) (delete-dups (font-family-list)))))
     (if (equal font-selected "nil")
 	nil
       font-selected)
@@ -208,8 +208,7 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
 
 (defun arki/font-adjust ()
   (interactive)
-  ;; (unless (zerop step)
-  (message "Set font: ENG(q+ a- 1set) ZH(w+ s- 2set) EXT(e+ d- 3set) Symbol(r+ f- 4set). Save(0)")
+  (message "Set font: ENG(1 q+ a-) ZH(2 w+ s-) EXT(3 e+ d-) Symbol(4 r+ f-). Save(0)")
   (set-transient-map
    (let ((map (make-sparse-keymap)))
      (define-key map (vector (list ?1))
