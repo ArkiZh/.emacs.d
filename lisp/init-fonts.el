@@ -15,7 +15,7 @@
   :group 'arki/config)
 
 
-(defcustom arki/font-english "DejaVu Sans Mono"
+(defcustom arki/font-english nil
   "English font"
   :group 'arki/font)
 
@@ -23,7 +23,7 @@
   "English font size"
   :group 'arki/font)
 
-(defcustom arki/font-chinese "Source Han Serif CN"
+(defcustom arki/font-chinese nil
   "Chinese font"
   :group 'arki/font)
 
@@ -31,7 +31,7 @@
   "Chinese font size"
   :group 'arki/font)
 
-(defcustom arki/font-chinese-extra "ZhongHuaSongPlane02"
+(defcustom arki/font-chinese-extra nil
   "Chinese extra font"
   :group 'arki/font)
 
@@ -39,7 +39,7 @@
   "Chinese extra font size"
   :group 'arki/font)
 
-(defcustom arki/font-symbol "FontAwesome"
+(defcustom arki/font-symbol nil
   "Symbol font"
   :group 'arki/font)
 
@@ -71,66 +71,62 @@
 
 (defun arki/set-font-english (font-name font-size)
   "Set English font"
-  (if (not (font-exist-p font-name))
-      (warn "Font for English doesn't exist, please install it: %s" font-name)
-    (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
-	(message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
-      ;; (set-face-attribute 'default nil :font (font-spec :family font-name :size font-size))
-      (set-frame-font (font-spec :family font-name :size font-size) t nil)      
-      (setq arki/font-english font-name)
-      (setq arki/font-english-size font-size)
-      (message "Set English font to: %S Size: %S" font-name font-size)
-      )
-    )
-  )
+  (when font-name
+    (if (not (font-exist-p font-name))
+	(warn "Font for English doesn't exist, please install it: %s" font-name)
+      (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+	  (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+	;; (set-face-attribute 'default nil :font (font-spec :family font-name :size font-size))
+	(set-frame-font (font-spec :family font-name :size font-size) t nil)      
+	(setq arki/font-english font-name)
+	(setq arki/font-english-size font-size)
+	(message "Set English font to: %S Size: %S" font-name font-size)
+	))))
 
 
 (defun arki/set-font-chinese (font-name font-size)
   "Set Chinese font"
-  (if (not (font-exist-p font-name))
-      (warn "Font for Chinese doesn't exist, please install it: %s" font-name)
-    (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
-	(message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
-      ;; 设置中文字体，注意，不要使用 'unicode charset,否则上面的英文字体设置将会失效。
-      (dolist (charset '(kana han cjk-misc bopomofo gb18030))
-	(set-fontset-font "fontset-default" charset (font-spec :family font-name :size font-size)))
-      (setq arki/font-chinese font-name)
-      (setq arki/font-chinese-size font-size)
-      (message "Set Chinese font to: %S Size: %S" font-name font-size)
-      )
-    )
-  )
+  (when font-name
+    (if (not (font-exist-p font-name))
+	(warn "Font for Chinese doesn't exist, please install it: %s" font-name)
+      (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+	  (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+	;; 设置中文字体，注意，不要使用 'unicode charset,否则上面的英文字体设置将会失效。
+	(dolist (charset '(kana han cjk-misc bopomofo gb18030))
+	  (set-fontset-font "fontset-default" charset (font-spec :family font-name :size font-size)))
+	(setq arki/font-chinese font-name)
+	(setq arki/font-chinese-size font-size)
+	(message "Set Chinese font to: %S Size: %S" font-name font-size)
+	))))
 
 (defun arki/set-font-chinese-extra (font-name font-size)
   "Set Chinese extra font
 
 设置 fallback 字体，用于显示不常用的字符"
-  (if (not (font-exist-p font-name))
-      (warn "Font for Chinese extra doesn't exist, please install it: %s" font-name)
-    (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
-	(message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
-      (set-fontset-font "fontset-default" nil (font-spec :family font-name :size font-size) nil 'prepend)
-      (setq arki/font-chinese-extra font-name)
-      (setq arki/font-chinese-extra-size font-size)
-      (message "Set Chinese extra font to: %S Size: %S" font-name font-size)
-      )
-    )
-  )
+  (when font-name
+    (if (not (font-exist-p font-name))
+	(warn "Font for Chinese extra doesn't exist, please install it: %s" font-name)
+      (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+	  (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+	(set-fontset-font "fontset-default" nil (font-spec :family font-name :size font-size) nil 'prepend)
+	(setq arki/font-chinese-extra font-name)
+	(setq arki/font-chinese-extra-size font-size)
+	(message "Set Chinese extra font to: %S Size: %S" font-name font-size)
+	))))
 
 
 (defun arki/set-font-symbol (font-name font-size)
   "Set symbol font"
-  (if (not (font-exist-p font-name))
-      (warn "Font for symbol doesn't exist, please install it: %s" font-name)
-    (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
-	(message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
-      (set-fontset-font "fontset-default" 'symbol (font-spec :family font-name :size font-size))
-      (setq arki/font-symbol font-name)
-      (setq arki/font-symbol-size font-size)
-      (message "Set symbol font to: %S Size: %S" font-name font-size)      
-      )
-    )
-  )
+  (when font-name
+    (if (not (font-exist-p font-name))
+	(warn "Font for symbol doesn't exist, please install it: %s" font-name)
+      (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+	  (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+	(set-fontset-font "fontset-default" 'symbol (font-spec :family font-name :size font-size))
+	(setq arki/font-symbol font-name)
+	(setq arki/font-symbol-size font-size)
+	(message "Set symbol font to: %S Size: %S" font-name font-size)      
+	))))
 
 
 (defun arki/font-step (step-size font-type)
@@ -167,6 +163,7 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
     )
   )
 
+
 (defun arki/font-family-select (font-type)
   "Set font family.
 
@@ -183,8 +180,6 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
       )))
 
 
-
-
 (defun arki/set-font ()
   "Set all the font families and sizes"
   (arki/set-font-english arki/font-english arki/font-english-size)
@@ -192,6 +187,7 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
   (arki/set-font-chinese-extra arki/font-chinese-extra arki/font-chinese-extra-size)
   (arki/set-font-symbol arki/font-symbol arki/font-symbol-size)
   )
+
 
 (defun arki/save-font ()
   (message "Fonts config saving...")
@@ -244,8 +240,14 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
 
      map))
   )
-(arki/define-key "C-c u f" 'arki/font-adjust)
-(add-hook 'after-init-hook (lambda () (interactive) (arki/set-font)))
+
+
+(when (display-graphic-p)
+  (arki/define-key "C-c u f" 'arki/font-adjust)
+  (add-hook 'after-init-hook (lambda () (interactive) (arki/set-font)))
+  )
+
+
 
 ;; +----------------------------------------------------+
 ;; | [*9.0-18*] [ 20-24 ] [ 26-28 ] [ -30- ] [ -32- ]   |
