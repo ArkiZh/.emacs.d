@@ -156,7 +156,18 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
 			  ((equal font-type 4) " for symbol")
 			  (t "")
 			  ))
-	 (font-selected (ido-completing-read (format "Select font%s:" font-type-name) (delete-dups (font-family-list)))))
+	 (prev-font-name (cond
+			  ((equal font-type 1) arki/font-english)
+			  ((equal font-type 2) arki/font-chinese)
+			  ((equal font-type 3) arki/font-chinese-extra)
+			  ((equal font-type 4) arki/font-symbol)
+			  (t "")
+			  ))
+	 (font-selected (ido-completing-read
+			 (format "Select font%s: " font-type-name)
+			 (delete-dups (font-family-list))
+			 nil nil prev-font-name
+			 )))
     (if (equal font-selected "nil")
 	nil
       font-selected)
