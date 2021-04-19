@@ -18,7 +18,7 @@
 	    (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 	    )
 	  )
-(when window-system
+(when (display-graphic-p)
   ;; https://github.com/abo-abo/org-download
   (require-pack 'org-download)
   ;; Drag-and-drop to `dired`
