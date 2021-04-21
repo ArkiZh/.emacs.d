@@ -13,16 +13,6 @@
 ;; 禁止默认的自动保存
 (setq auto-save-default nil)
 
-;; 使用新的自动保存
-;; https://github.com/bbatsov/super-save/blob/2a905b8bdfc93bee16e2d62a61c6211bbe009331/super-save.el
-;; https://www.emacswiki.org/emacs/auto-save.el
-(when (require-pack 'super-save)
-  (super-save-mode t)
-  (setq super-save-auto-save-when-idle t)
-  (setq super-save-idle-duration 2)
-  (setq super-save-remote-files nil)
-  )
-
 ;; 保存桌面布局
 (desktop-save-mode -1)
 

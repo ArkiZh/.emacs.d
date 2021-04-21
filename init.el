@@ -72,6 +72,7 @@
 (require 'init-filetypes-support)
 (require 'init-input-method)
 (require 'init-fonts)
+(require 'init-auto-save)
 
 
 ;;----------------------------------------------------------------------------
