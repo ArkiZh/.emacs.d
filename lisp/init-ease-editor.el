@@ -12,7 +12,7 @@
 ;; https://github.com/abo-abo/avy
 (when (require-pack 'avy)
   (arki/define-key "C-s" 'avy-goto-char-timer)
-  (setq avy-timeout-seconds 0.2)
+  (setq avy-timeout-seconds 0.35)
   (eval-after-load "isearch"
     '(arki/define-key "C-'" 'avy-isearch 'isearch-mode-map))
   ;; (global-set-key (kbd "C-:") 'avy-goto-char)

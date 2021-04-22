@@ -31,7 +31,7 @@
   :group 'arki/auto-save
   :type 'boolean)
 
-(defcustom arki/auto-save-idle-duration 1
+(defcustom arki/auto-save-idle-duration 5
   "The number of seconds Emacs has to be idle, before auto-saving the current buffer.
 See `arki/auto-save-auto-save-when-idle'."
   :group 'arki/auto-save
@@ -113,6 +113,8 @@ When a buffer-file-name matches any of the regexps it is ignored."
 
 (defun arki/auto-save-initialize ()
   "Setup arki/auto-save's advices and hooks."
+  ;; (arki/auto-save-remove-advice-from-trigger-commands)
+  ;; (arki/auto-save-stop-idle-timer)
   (arki/auto-save-advice-trigger-commands)
   (arki/auto-save-initialize-idle-timer)
   (dolist (hook arki/auto-save-hook-triggers)
