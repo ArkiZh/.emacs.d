@@ -23,5 +23,15 @@
 ;;
 (require-pack 'yaml)
 
+;; Support epub ebooks
+(when (require-pack 'nov)
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+  )
+
+;; Support large files
+;; https://github.com/m00natic/vlfi
+(when (require-pack 'vlf)
+  (custom-set-variables '(large-file-warning-threshold 20971520))
+  (require 'vlf-setup))
 
 (provide 'init-filetypes-support)
