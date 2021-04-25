@@ -6,6 +6,7 @@
 
 (when (require-pack 'org-bullets)
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+  ;; When font is Hack, use this config: '(org-bullets-bullet-list '("◉" "◇" "⊛" "⬙" "○" "◈"))
   )
 
 (add-hook 'org-mode-hook
