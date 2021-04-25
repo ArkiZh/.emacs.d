@@ -5,7 +5,7 @@
   (setq dashboard-startup-banner 'official)
   (setq dashboard-banner-logo-title "Nice day, isn't it?")
   (setq dashboard-center-content t)
-  (setq dashboard-items '((recents . 5)
+  (setq dashboard-items '((recents . 15)
 			  (projects . 5)
 			  (bookmarks . 5)
 			  ))
