@@ -189,6 +189,16 @@ The file is named init.el under `user-emacs-directory'."
   (interactive)
   (find-file (expand-file-name "init.el" user-emacs-directory)))
 
+(defun arki/open-alias()
+  "Open alias files.
+
+If the alias is defined, open it.
+Else, define it now, then open it."
+  (interactive)
+  ;; TODO
+  )
+
+
 ;; (arki/define-key "<f2>" 'arki/open-init-file)
 
 ;;----------------------------------------------------------------------------

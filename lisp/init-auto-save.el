@@ -90,8 +90,9 @@ When a buffer-file-name matches any of the regexps it is ignored."
   (if arki/auto-save-max-filesize
       (if arki/auto-save--cur-file-size
 	  (<= arki/auto-save--cur-file-size arki/auto-save-max-filesize)
-	(let* ((file-size-bytes (file-attribute-size (file-attributes buffer-file-name)))
-	       (file-size-mega-bytes (/ file-size-bytes 1024.0 1024.0)))
+	(let* ((file-size-bytes (file-attribute-size (file-attributes (buffer-file-name))))
+	       ;; When the file is newly created, file--attributes is nil, so let file-size be 0 now.
+	       (file-size-mega-bytes (if file-size-bytes (/ file-size-bytes 1024.0 1024.0) 0)))
 	  (setq arki/auto-save--cur-file-size file-size-mega-bytes))
 	(arki/auto-save--check-file-size)
 	)
@@ -100,26 +101,32 @@ When a buffer-file-name matches any of the regexps it is ignored."
 
 (defun arki/auto-save-command ()
   "Save the current buffer if needed."
-  (when (and buffer-file-name
-	     ;; And not file name not excluded
-             (arki/auto-save--include-p buffer-file-name)
-	     ;; And (if is remote: should allow remote save)
-             (if (file-remote-p buffer-file-name) arki/auto-save-remote-files t)
-	     ;; And is not readonly
-	     (not buffer-read-only)
-	     ;; And modified
-             (buffer-modified-p (current-buffer))
-	     ;; And writable
-             (file-writable-p buffer-file-name)
-	     ;; Check buffer status: And Yassnippet is not active And  Company is not active
-	     (arki/auto-save--check-buffer-status)
-	     ;; And file is not too large
-	     (arki/auto-save--check-file-size)
-	     )
-    (if arki/auto-save-silent
-	(with-temp-message (format "Saving %S" buffer-file-name) (save-buffer))
-      (save-buffer))
-    ))
+  ;; Use (buffer-file-name) instead of buffer-file-name-variable to
+  ;; avoid error when the file is new created.
+  ;; The ERROR: Wrong type argument: number-or-marker-p, nil
+  (let ((file-name (buffer-file-name)))
+    (when (and file-name
+	       ;; And not file name not excluded
+               (arki/auto-save--include-p file-name)
+	       ;; And (if is remote: should allow remote save)
+               (if (file-remote-p file-name) arki/auto-save-remote-files t)
+	       ;; And is not readonly
+	       (not buffer-read-only)
+	       ;; And modified
+               (buffer-modified-p (current-buffer))
+	       ;; And writable
+               (file-writable-p file-name)
+	       ;; Check buffer status: And Yassnippet is not active And  Company is not active
+	       (arki/auto-save--check-buffer-status)
+	       ;; And file is not too large
+	       (arki/auto-save--check-file-size)
+	       )
+      (if arki/auto-save-silent
+	  (with-temp-message (format "Saving %S" file-name) (save-buffer))
+	(save-buffer))
+      )
+    )
+  )
 
 (defvar arki/auto-save--idle-timer nil)
 
