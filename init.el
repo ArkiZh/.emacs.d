@@ -73,7 +73,7 @@
 (require 'init-input-method)
 (require 'init-fonts)
 (require 'init-auto-save)
-
+(require 'init-layout)
 
 ;;----------------------------------------------------------------------------
 ;; Load variables configured via the interactive 'customize' interface

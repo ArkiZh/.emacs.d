@@ -35,24 +35,6 @@
   (arki/define-key "C-=" 'er/expand-region)
   (arki/define-key "C-+" 'er/contract-region))
 
-;; --------------------------------------------------WINDOW MANAGER--------------------------------------------------
-(when (require-pack 'ace-window)
-  ;; 配置ace-windown
-  (arki/define-key "M-p" 'ace-window)
-  )
-
-(require-pack 'transpose-frame)
-
-;; 启用winner mode
-(winner-mode 1)
-
-
-;; 执行完命令后，直接使用C-g关闭辅助性的buffer
-(when (require-pack 'popwin)
-  ;; 配置popwin
-  (popwin-mode 1)
-  )
-
 
 ;; --------------------------------------------------EDIT TEXT--------------------------------------------------
 ;; 选中一段文字之后输入一个字符会替换掉你选中部分的文字
@@ -66,7 +48,20 @@
 
 (put 'upcase-region 'disabled nil)
 
+;; browse-kill-ring
+;; https://github.com/browse-kill-ring/browse-kill-ring
+(when (require-pack 'browse-kill-ring)
+  (browse-kill-ring-default-keybindings)
+  (setq browse-kill-ring-highlight-inserted-item t)
+  (setq browse-kill-ring-highlight-current-entry t)
+  (setq browse-kill-ring-show-preview nil))
 
+;; bbyac
+;; https://github.com/baohaojun/bbyac
+(when (require-pack 'browse-kill-ring)
+  (when (require-pack 'bbyac)
+    ;; Type a little bit and press M-g <return> to complete a word or M-s <return> to complete an arbitrary string.
+    (bbyac-global-mode 1)))
 
 ;; --------------------------------------------------SHOW OUTLINE--------------------------------------------------
 
