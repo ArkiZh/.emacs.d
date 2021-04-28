@@ -10,7 +10,7 @@
   "arki/auto-save mode's keymap.")
 
 (defcustom arki/auto-save-triggers
-  '(switch-to-buffer other-window windmove-up windmove-down windmove-left windmove-right next-buffer previous-buffer)
+  '(switch-to-buffer other-window windmove-up windmove-down windmove-left windmove-right next-buffer previous-buffer revert-buffer revert-buffer-with-coding-system)
   "A list of commands which would trigger `arki/auto-save-command'."
   :group 'arki/auto-save
   :type '(repeat symbol))
