@@ -24,13 +24,13 @@ If non-nil: don't invoke `package-refresh-contents' during `require-package.")
   "Set the given ALIST.
 Operation is done in-place.
 
-If the key exists: push value to the fist position of that key's content.
+If the key exists: push value to the first position of that key's content.
 If not exists: append the k-v pair to the end of this alist.
 
 Return: the input_alist."
   (let ((cur_kv (assoc key input_alist)))
     (if cur_kv (setcdr cur_kv (cons value (cdr cur_kv)))
-      (message "Unknown key: %s. Now add it with value: %s." key value)
+      ;; (message "Unknown key: %s. Now add it with value: %s." key value)
       ;; (setcdr input_alist (copy-alist input_alist))
       ;; (setcar input_alist (list key value))
       (setcdr (last input_alist) (list (list key value)))

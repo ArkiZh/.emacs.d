@@ -4,10 +4,11 @@
 (require-pack 'htmlize)
 (require-pack 'org-preview-html)
 
-(when (require-pack 'org-bullets)
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  ;; When font is Hack, use this config: '(org-bullets-bullet-list '("◉" "◇" "⊛" "⬙" "○" "◈" "◌"))
-  )
+;; https://github.com/integral-dw/org-superstar-mode
+(when (require-pack 'org-superstar)
+  (add-hook 'org-mode-hook 'org-superstar-mode)
+  (with-eval-after-load "org-superstar"
+    (setq org-superstar-headline-bullets-list '("☰" "☱" "☲" "☳" "☴" "☵" "☶" "☷"))))
 
 (add-hook 'org-mode-hook
 	  (lambda ()

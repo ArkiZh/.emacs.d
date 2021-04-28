@@ -69,12 +69,11 @@
 (when (require-pack 'imenu-list)
   (add-hook 'markdown-mode-hook
 	    (lambda ()
-	      (arki/define-key "C-'" 'imenu-list-smart-toggle 'markdown-mode-map)
+	      (arki/define-key "C-'" #'imenu-list-smart-toggle 'markdown-mode-map)
 	      ))
   (add-hook 'org-mode-hook
 	    (lambda ()
-	      ;; (arki/define-key "C-'" nil 'org-mode-map)
-	      (arki/define-key "C-'" 'imenu-list-smart-toggle 'org-mode-map)
+	      (arki/define-key "C-'" #'imenu-list-smart-toggle 'org-mode-map)
 	      ))
   (setq imenu-list-position 'left)
   (setq imenu-list-size 36)
