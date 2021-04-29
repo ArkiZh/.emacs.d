@@ -9,8 +9,11 @@
 (defvar arki/auto-save-mode-map (make-sparse-keymap)
   "arki/auto-save mode's keymap.")
 
-(defcustom arki/auto-save-triggers
-  '(switch-to-buffer other-window windmove-up windmove-down windmove-left windmove-right next-buffer previous-buffer revert-buffer revert-buffer-with-coding-system)
+(defcustom arki/auto-save-triggers '(
+				     switch-to-buffer next-buffer previous-buffer
+				     other-window windmove-up windmove-down windmove-left windmove-right
+				     revert-buffer revert-buffer-with-coding-system
+				     ace-window) ; TODO Need to check (fboundp 'ace-window)
   "A list of commands which would trigger `arki/auto-save-command'."
   :group 'arki/auto-save
   :type '(repeat symbol))
@@ -186,6 +189,8 @@ When a buffer-file-name matches any of the regexps it is ignored."
 ;;   (cond
 ;;    (arki/auto-save-mode (arki/auto-save-init))
 ;;    (t (arki/auto-save-stop))))
+
+
 (add-hook 'emacs-startup-hook 'arki/auto-save-init)
 
 (provide 'init-auto-save)
