@@ -61,7 +61,10 @@ Return: the input_alist."
 And execute require PACKAGE if newly installed, to avoid requiring it manually.
 
 If installed successfully, return t, else return nil"
-  (if (package-installed-p pack) (progn (arki/alist-push-value arki/package-installed-info "INSTALLED_BEFORE" pack) t)
+  (if (package-installed-p pack) (progn
+				   (arki/alist-push-value arki/package-installed-info "INSTALLED_BEFORE" pack)
+				   (require pack)
+				   t)
     (refresh-pack-contents)
     (message "Package: %s installing..." pack)
     (condition-case err (progn
