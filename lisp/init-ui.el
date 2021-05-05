@@ -16,14 +16,26 @@
   (require-pack 'all-the-icons)
   )
 
+;; 高亮显示当前行
+;; (global-hl-line-mode 1)
+;; 使用beacon替代
+;; https://github.com/Malabarba/beacon
+(when (require-pack 'beacon)
+  (beacon-mode 1)
+  (custom-set-variables
+   '(beacon-size 25)
+   '(beacon-blink-delay 0.3)		;Time, in seconds, before starting to fade the beacon.
+   '(beacon-blink-duration 0.3)		;Time, in seconds, that the blink should last.
+   '(beacon-blink-when-point-moves-horizontally 12)
+   '(beacon-blink-when-point-moves-vertically 2))
+  )
 
+;; Set mouse-color
 (when (equal window-system 'x)
-  ;; Set mouse-color
   (if (equal (frame-parameter nil 'background-mode) 'light)
       (set-frame-parameter nil 'mouse-color "black")
     (set-frame-parameter nil 'mouse-color "white")
-      )
-  )
+    ))
 
 ;; (when (require-pack 'on-screen)
 ;;   (on-screen-global-mode +1))
@@ -47,9 +59,6 @@
 ;; (setq initial-frame-alist (quote ((fullscreen . maximized))))
 (toggle-frame-maximized)
 ;; (toggle-frame-fullscreen)
-
-;; 高亮显示当前行
-(global-hl-line-mode t)
 
 ;; 关闭文件滑动控件
 (scroll-bar-mode 'toggle)
