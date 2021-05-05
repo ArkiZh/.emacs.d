@@ -19,7 +19,10 @@
 
 (when (equal window-system 'x)
   ;; Set mouse-color
-  (set-frame-parameter nil 'mouse-color "white")
+  (if (equal (frame-parameter nil 'background-mode) 'light)
+      (set-frame-parameter nil 'mouse-color "black")
+    (set-frame-parameter nil 'mouse-color "white")
+      )
   )
 
 ;; (when (require-pack 'on-screen)
