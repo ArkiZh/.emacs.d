@@ -22,9 +22,9 @@
   (persp-mode)
   (when (require 'bs)
     (arki/define-key "C-x C-b" (lambda (arg) (interactive "P")
-				 (if (fboundp 'persp-bs-show)
-                                     (persp-bs-show arg)
-                                   (bs-show "all")))))
+				 (if (fboundp 'persp-ibuffer)
+                                     (persp-ibuffer arg)
+                                   (ibuffer)))))
   (setq persp-state-default-file (expand-file-name "perspective.save" arki/cache-dir))
   (add-hook 'kill-emacs-hook (lambda () (interactive "P")
 			       ;; Kill gpg buffers before save persp, to avoid password input when restart emacs.

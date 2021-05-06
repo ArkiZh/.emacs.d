@@ -73,6 +73,7 @@
 (require 'init-input-method)
 (require 'init-fonts)
 (require 'init-auto-save)
+(require 'init-ibuffer)
 (require 'init-layout)
 
 ;;----------------------------------------------------------------------------
