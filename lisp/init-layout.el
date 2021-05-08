@@ -28,7 +28,7 @@
   (setq persp-state-default-file (expand-file-name "perspective.save" arki/cache-dir))
   (add-hook 'kill-emacs-hook (lambda () (interactive "P")
 			       ;; Kill gpg buffers before save persp, to avoid password input when restart emacs.
-			       (kill-matching-buffers ".*\\.gpg$" nil nil)
+			       (kill-matching-buffers ".*\\.gpg$" nil t)
 			       (persp-state-save persp-state-default-file)))
   (add-hook 'emacs-startup-hook (lambda () (interactive "P") (persp-state-load persp-state-default-file)))
   )

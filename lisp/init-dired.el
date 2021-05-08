@@ -1,7 +1,14 @@
 ;; https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
 ;; https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
 ;; (add-hook 'dired-mode-hook
+
 (with-eval-after-load 'dired
+
+  ;; https://github.com/purcell/diredfl
+  ;; This is adapted from the extra font lock rules provided by Drew Adams' `dired+' package
+  (when (require-pack 'diredfl)
+    (add-hook 'dired-mode-hook 'diredfl-mode))
+  
   ;; Dired config
   (setq dired-recursive-deletes 'always)	;Always delete recursively
   (setq dired-recursive-copies 'always)	;Always copy recursively

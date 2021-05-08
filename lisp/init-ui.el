@@ -5,7 +5,7 @@
 (when (require-pack 'doom-themes)
   ;; (load-theme 'doom-dark+)
   ;; (load-theme 'doom-molokai t)
-  (load-theme 'doom-one-light t)
+  (load-theme 'doom-one t)		; doom-one-light
   (setq doom-themes-enable-bold t)
   (setq doom-themes-enable-italic t)
   (setq doom-themes-treemacs-theme "doom-colors")

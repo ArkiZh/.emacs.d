@@ -27,7 +27,7 @@
 ;; mark modified read-only locked name size mode process filename
 (setq ibuffer-formats
       '((mark "(" modified vc-status-mini "|" read-only locked ") "
-              (size-h 5 -1 :right)
+              (size-h 10 -1 :right)
               "   "
 	      (name 15 15 :left :elide)
               "   "
@@ -35,7 +35,7 @@
               "   "
               vc-relative-file)
         (mark "(" modified vc-status-mini "|" read-only locked ") "
-              (size-h 5 -1 :right)
+              (size-h 10 -1 :right)
               "   "
 	      (name 15 -1 :left)
               "   "
