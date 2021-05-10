@@ -46,7 +46,6 @@
 
 ;; https://github.com/tumashu/pyim
 (when (require-pack 'pyim)
-  (require 'pyim)
   ;; (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
   ;; (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
   (setq default-input-method "pyim")
@@ -64,11 +63,13 @@
   (setq-default pyim-english-input-switch-functions
                 '(pyim-probe-dynamic-english
 		  pyim-probe-auto-english))
-  (arki/define-key "M-i" 'pyim-convert-code-at-point)
+  ;; https://github.com/tumashu/pyim/issues/397
+  ;; pyim-convert-code-at-point 已废弃
+  (arki/define-key "M-i" 'pyim-convert-string-at-point)
 
-  (setq pyim-dicts
-      '((:name "dict1" :file "~/.emacs.d/arki.cache/ciku/pyim_sure.pyim")
-        (:name "dict2" :file "~/.emacs.d/arki.cache/ciku/pyim_ok.pyim")))
+  ;; (setq pyim-dicts
+  ;;     '((:name "dict1" :file "~/.emacs.d/arki.cache/ciku/pyim_sure.pyim")
+  ;;       (:name "dict2" :file "~/.emacs.d/arki.cache/ciku/pyim_ok.pyim")))
   (setq pyim-fuzzy-pinyin-alist nil)
   )
 
