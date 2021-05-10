@@ -7,9 +7,9 @@
   (when dashboard-startup-banner
     (setq dashboard-banner-logo-title "Nice day, isn't it?"))
   (setq dashboard-center-content t)
-  (setq dashboard-items '((recents . 15)
-			  (projects . 5)
-			  (bookmarks . 5)
+  (setq dashboard-items '((recents . 25)
+			  (projects . 25)
+			  (bookmarks . 25)
 			  ))
   (setq dashboard-show-shortcuts nil)
   (setq dashboard-set-file-icons t)

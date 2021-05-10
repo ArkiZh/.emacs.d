@@ -77,7 +77,7 @@
 
 
 ;; 启用zone
-(zone-when-idle 60)
+(zone-when-idle 300)
 (setq zone-programs [zone-pgm-timer])
 (setq zone-timer-interval 600)
 (setq zone-timer-rainbow-enable t)

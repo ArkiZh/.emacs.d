@@ -23,11 +23,18 @@
 (when (require-pack 'beacon)
   (beacon-mode 1)
   (custom-set-variables
+   '(beacon-color "#CD5C5C")
    '(beacon-size 25)
    '(beacon-blink-delay 0.3)		;Time, in seconds, before starting to fade the beacon.
    '(beacon-blink-duration 0.3)		;Time, in seconds, that the blink should last.
    '(beacon-blink-when-point-moves-horizontally 12)
    '(beacon-blink-when-point-moves-vertically 2))
+  )
+
+;; A simple visible bell which works in all terminal types
+;; https://github.com/purcell/mode-line-bell
+(when (require-pack 'mode-line-bell)
+  (add-hook 'after-init-hook 'mode-line-bell-mode)
   )
 
 ;; Set mouse-color
