@@ -5,7 +5,10 @@
   (defun arki/push-current-branch-to-all-remotes ()
     (interactive)
     (let* ((cur-branch (magit-get-current-branch))
-	   (remote-names (magit-list-remote-branch-names))
+	   ;; Avoid pushing to different remote branches.
+	   ;; Or ensure pushing to the remote branch with the same name, create it if not exist.
+	   ;; (remote-names (magit-list-remote-branch-names))
+	   (remote-names (--map (concat it "/" cur-branch) (magit-list-remotes)))
 	   (success-push '())
 	   (failed-push '()))
       (dolist (remote-name remote-names)
