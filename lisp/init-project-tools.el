@@ -12,11 +12,11 @@
 	(condition-case err (progn
 			      (message "Pushing %S to %S" cur-branch remote-name)
 			      (magit-git-push cur-branch remote-name nil)
-			      (setq success-push (append success-push '(remote-name)))
+			      (setq success-push (append success-push (list remote-name)))
 			      )
 	  (error
 	   (message "Failed to push %S to %S, due to ERROR: %S" cur-branch remote-name err)
-	   (setq failed-push (append failed-push '(remote-name))))
+	   (setq failed-push (append failed-push (list remote-name))))
 	  ))
       (message "Push %s finished. Success: %s Failed: %s" cur-branch success-push failed-push)
       t
