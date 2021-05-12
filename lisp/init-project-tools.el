@@ -21,7 +21,7 @@
 	   (message "Failed to push %S to %S, due to ERROR: %S" cur-branch remote-name err)
 	   (setq failed-push (append failed-push (list remote-name))))
 	  ))
-      (message "Push %s finished. Success: %s Failed: %s" cur-branch success-push failed-push)
+      (message "Push %s invoked. Success: %s Failed: %s. Wait magit to finish it." cur-branch success-push failed-push)
       t
       ))
   (arki/define-key "H" 'arki/push-current-branch-to-all-remotes 'magit-status-mode-map)
