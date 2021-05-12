@@ -31,7 +31,10 @@
 ;; Support large files
 ;; https://github.com/m00natic/vlfi
 (when (require-pack 'vlf)
-  (custom-set-variables '(large-file-warning-threshold 20971520))
+  (custom-set-variables '(large-file-warning-threshold 20971520)
+			'(vlf-batch-size 1048576) ; in bytes 1MB
+			'(vlf-tune-step 1048576)
+			'(vlf-tune-enabled nil))
   (require 'vlf-setup))
 
 (provide 'init-filetypes-support)
