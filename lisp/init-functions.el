@@ -134,6 +134,9 @@ If all installed successfully, return t, else return nil"
 (defvar arki/key-bindings '((global))
   "Record customize key-bindings.")
 
+(define-prefix-command 'arki/prefix-keymap)
+(global-set-key (kbd "M-SPC") 'arki/prefix-keymap)
+
 (defun arki/define-key (key command &optional keymap)
   "Set key binding, and record the binding.
 If keymap is not provided, will use global-set-key.
@@ -162,7 +165,7 @@ If keymap is provided, you should add quote before it."
     (delete-file (buffer-file-name))
     (kill-this-buffer)))
 
-(arki/define-key "C-c u k" 'arki/delete-this-file-and-buffer)
+(arki/define-key "k" 'arki/delete-this-file-and-buffer 'arki/prefix-keymap)
 
 ;;----------------------------------------------------------------------------
 ;; Rename the current file
@@ -180,7 +183,7 @@ If keymap is provided, you should add quote before it."
       (set-visited-file-name new-name)
       (rename-buffer new-name))))
 
-(arki/define-key "C-c u r" 'arki/rename-this-file-and-buffer)
+(arki/define-key "r" 'arki/rename-this-file-and-buffer 'arki/prefix-keymap)
 
 ;;----------------------------------------------------------------------------
 ;; 快速打开配置文件
@@ -251,8 +254,8 @@ Else, define it now, then open it."
     )
   )
 
-(arki/define-key "C-c u a" 'arki/copy-current-line)
-(arki/define-key "C-c u w" 'arki/kill-current-line)
+(arki/define-key "a" 'arki/copy-current-line 'arki/prefix-keymap)
+(arki/define-key "w" 'arki/kill-current-line 'arki/prefix-keymap)
 
 ;;----------------------------------------------------------------------------
 ;; 将多行的段落合并成一行
