@@ -26,7 +26,7 @@
 	       (message "Failed to push %s to %s, due to ERROR: %S" cur-branch remote-name err)
 	       (setq failed-push (append failed-push (list remote-name))))
 	      ))
-	  (message "Push %s invoked. Success: %s Failed: %s. Wait magit to finish it." cur-branch success-push failed-push)
+	  (message "Repo %s: Push %s invoked. Success: %s Failed: %s. Wait magit to finish it." repo-path cur-branch success-push failed-push)
 	  )
 	)))
   
