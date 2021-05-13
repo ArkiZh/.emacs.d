@@ -45,7 +45,7 @@
 
 (when (require-pack 'projectile)
   (projectile-mode +1)
-  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+  (arki/define-key "C-c p" 'projectile-command-map 'projectile-mode-map))
 
 (when (require-packs 'treemacs 'projectile)
   (require-pack 'treemacs-projectile))
