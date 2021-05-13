@@ -1,7 +1,7 @@
 ;; --------------------------------------------------PROJECT UTILS--------------------------------------------------
 (when (require-pack 'magit)
   ;; 配置magit
-  (arki/define-key "C-c u g" 'magit-status)
+  (arki/define-key "g" 'magit-status 'arki/prefix-keymap)
   (defun arki/push-current-branch-to-all-remotes ()
     (interactive)
     (let* ((cur-branch (magit-get-current-branch))

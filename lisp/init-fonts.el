@@ -254,7 +254,7 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
 
 
 (when (display-graphic-p)
-  (arki/define-key "C-c u f" 'arki/font-adjust)
+  (arki/define-key "f" 'arki/font-adjust 'arki/prefix-keymap)
   (add-hook 'after-init-hook (lambda () (interactive) (arki/set-font)))
   )
 

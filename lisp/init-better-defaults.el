@@ -23,7 +23,7 @@
 ;; (require 'recentf)
 (recentf-mode 1)
 (setq recentf-max-menu-item 36)
-(arki/define-key "C-c u o" 'recentf-open-files)
+(arki/define-key "o" 'recentf-open-files 'arki/prefix-keymap)
 
 ;; Bookmarks
 (setq bookmark-default-file (expand-file-name "bookmarks" arki/cache-dir))
