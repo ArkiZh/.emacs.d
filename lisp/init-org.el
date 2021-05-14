@@ -35,6 +35,11 @@
 	    ;; Config export options
 	    (setq org-export-with-sub-superscripts '{})		  ;设置导出时候，限定_或者^后面跟着{}时候才渲染上角标、下角标
 	    (setq org-export-with-emphasis t)			  ;设置导出时候，渲染斜体、加粗之类的字体
+
+	    ;; Config agenda related
+	    (setq org-log-done 'time)
+	    (setq org-log-done-with-time t)
+	    
 	    ))
 
 (when (display-graphic-p)
