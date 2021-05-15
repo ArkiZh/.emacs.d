@@ -45,23 +45,15 @@
 
 (require 'init-functions)
 
-;; --------------------------------------------------SHELL ENVIRONMENT--------------------------------------------------
-;; let emacs could find the executable
-(when (memq window-system '(mac ns))
-  (when (require-pack 'exec-path-from-shell)
-    (exec-path-from-shell-initialize))
-  )
-
-
 ;; Import new GNU ELPA keys (if any) into package.el’s keyring.
 (require-pack 'gnu-elpa-keyring-update)
-
 
 
 (require 'init-better-defaults)
 (require 'init-ease-editor)
 (require 'init-dired)
 (require 'init-ui)
+(require 'init-env)
 (require 'init-dashboard)
 (require 'init-screensaver)
 (require 'init-which-key)
@@ -75,7 +67,9 @@
 (require 'init-auto-save)
 (require 'init-ibuffer)
 (require 'init-layout)
+(require 'init-help-info)
 
+
 ;;----------------------------------------------------------------------------
 ;; Load variables configured via the interactive 'customize' interface
 ;;----------------------------------------------------------------------------

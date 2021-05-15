@@ -4,11 +4,21 @@
 (setq package-archives '(("gnu"   . "http://elpa.emacs-china.org/gnu/")
 			 ("melpa" . "http://elpa.emacs-china.org/melpa/")))
 
+
 (defgroup arki/config nil
   "Manager for my own confgs.")
 
+
 (defcustom arki/cache-dir (expand-file-name "arki.cache" user-emacs-directory) "Cache for useful files" :group 'arki/config)
 (make-directory arki/cache-dir t)
+
+
+(defcustom arki/site-lisp-dir (expand-file-name "site-lisp" user-emacs-directory)
+  "Directory for site lisp. If changed, should add the new value to `load-path' manually."
+  :group 'arki/config)
+(make-directory arki/site-lisp-dir t)
+(add-to-list 'load-path arki/site-lisp-dir)
+
 
 (defvar arki/package-contents-refreshed nil
   "Indicate whether the package contents has been refreshed.
@@ -271,5 +281,75 @@ Else, define it now, then open it."
 
 ;; 将多行的段落合并成一行
 (arki/define-key "M-Q" 'arki/unfill-paragraph)
+
+
+;;----------------------------------------------------------------------------
+;; Site lisp utils
+;;----------------------------------------------------------------------------
+;; Learnt from purcel's config.
+;; https://github.com/purcell/emacs.d
+
+;; It seems only need to add site-lisp root dir to load-path, so comment this function out.
+;; (defun arki/add-subdirs-to-load-path (parent-dir)
+;;   "Add every non-hidden subdir of PARENT-DIR to `load-path'."
+;;   (let ((default-directory parent-dir))
+;;     (dolist (cur-dir (directory-files (expand-file-name user-emacs-directory) t "^[^\\.]"))
+;;       (when (file-directory-p cur-dir)
+;; 	(setq load-path (append (list cur-dir) load-path))))))
+
+
+;; Utilities for grabbing upstream libs
+(defun arki/site-lisp-dir-for (name)
+  (expand-file-name (symbol-name name) arki/site-lisp-dir))
+
+
+(defun arki/site-lisp-library-el-path (name)
+  "Locate el file path in site lisp directory.
+
+First search file in `arki/site-lisp-dir', if not found here, give the path in subdir."
+  (let* ((el-name (format "%s.el" name))
+	 (first-file (expand-file-name el-name arki/site-lisp-dir)))
+    (if (file-exists-p first-file)
+	first-file
+      (expand-file-name el-name (arki/site-lisp-dir-for name)))))
+
+
+(defun arki/download-site-lisp-el-file (name url)
+  (let ((dir (arki/site-lisp-dir-for name)))
+    (message "Downloading %s from %s" name url)
+    (unless (file-directory-p dir)
+      (make-directory dir t))
+    (add-to-list 'load-path dir)
+    (let ((el-file (arki/site-lisp-library-el-path name)))
+      (url-copy-file url el-file t nil)
+      el-file)))
+
+
+(defun site-lisp-library-loadable-p (name)
+  "Return whether or not the library `name' can be loaded from a
+source file under ~/.emacs.d/site-lisp/name/"
+  (file-exists-p (arki/site-lisp-library-el-path name)))
+
+
+(defun require-pack-local (name &optional ensure url)
+  "Install package from url.
+
+If it's already downloaded before, compile it if necessary, then require it.
+If not found, download it if `ensure' is t, otherwise ignore this package."
+  (if (site-lisp-library-loadable-p name)
+      (let ((el-file (arki/site-lisp-library-el-path name)))
+	(if (file-exists-p (byte-compile-dest-file el-file))
+	    (load (byte-compile-dest-file el-file))
+	  (message "Compile file: " el-file)
+	  (byte-compile-file el-file t)))
+    (if ensure
+	(if url
+	    (progn (message "Local package not found: %s, download now." name)
+		   (byte-compile-file (arki/download-site-lisp-el-file name url)))
+	  (warn "Local package not found: %s, and no download url is provided!" name)
+	  t)
+      (message "Local package is not found: %s, ignore it." name)
+      nil)))
+
 
 (provide 'init-functions)

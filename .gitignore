@@ -3,6 +3,9 @@
 # Installed packages
 /elpa
 
+# Compiled files
+*.elc
+
 # Temp files
 \#*
 
@@ -38,3 +41,4 @@ ido.last
 /pyim
 projectile-bookmarks.eld
 /arki.cache
+
