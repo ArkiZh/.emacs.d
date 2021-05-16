@@ -315,19 +315,26 @@ First search file in `arki/site-lisp-dir', if not found here, give the path in s
 
 
 (defun arki/download-site-lisp-el-file (name url)
-  (let ((dir (arki/site-lisp-dir-for name)))
+  "Dowload el file from url.
+
+Return file path if success, else return nil."
+  (let* ((dir (arki/site-lisp-dir-for name))
+	 (dir-exists (file-directory-p dir)))
     (message "Downloading %s from %s" name url)
-    (unless (file-directory-p dir)
-      (make-directory dir t))
-    (add-to-list 'load-path dir)
+    (unless dir-exists (make-directory dir t))
     (let ((el-file (arki/site-lisp-library-el-path name)))
-      (url-copy-file url el-file t nil)
-      el-file)))
+      (condition-case err (progn
+			    (url-copy-file url el-file t nil)
+			    el-file)
+	(error
+	 (warn "Failed to download %s! ERROR: %S" name err)
+	 (unless dir-exists (delete-directory dir t))
+	 nil)))))
 
 
 (defun site-lisp-library-loadable-p (name)
   "Return whether or not the library `name' can be loaded from a
-source file under ~/.emacs.d/site-lisp/name/"
+source file under `arki/site-lisp-dir'"
   (file-exists-p (arki/site-lisp-library-el-path name)))
 
 
@@ -345,9 +352,12 @@ If not found, download it if `ensure' is t, otherwise ignore this package."
     (if ensure
 	(if url
 	    (progn (message "Local package not found: %s, download now." name)
-		   (byte-compile-file (arki/download-site-lisp-el-file name url)))
+		   (if (arki/download-site-lisp-el-file name url)
+		       (require-pack-local name)
+		     (warn "Require local pack failed for %s" name)
+		     nil))
 	  (warn "Local package not found: %s, and no download url is provided!" name)
-	  t)
+	  nil)
       (message "Local package is not found: %s, ignore it." name)
       nil)))
 
