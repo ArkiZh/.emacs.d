@@ -13,8 +13,8 @@
 (when (require-pack 'avy)
   (arki/define-key "C-s" 'avy-goto-char-timer)
   (setq avy-timeout-seconds 0.35)
-  (eval-after-load "isearch"
-    '(arki/define-key "C-'" 'avy-isearch 'isearch-mode-map))
+  (with-eval-after-load "isearch"
+    (arki/define-key "C-'" 'avy-isearch 'isearch-mode-map))
   ;; (global-set-key (kbd "C-:") 'avy-goto-char)
   ;; (global-set-key (kbd "C-'") 'avy-goto-char-2)
   ;; (global-set-key (kbd "M-g f") 'avy-goto-line)

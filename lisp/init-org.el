@@ -41,7 +41,43 @@
 	    (setq org-log-done-with-time t)
 	    
 	    ))
+
+;; Config org-capture
 
+
+(defgroup arki/org nil
+  "Org mode config variables."
+  :group 'arki/config)
+
+
+(defcustom arki/org-capture-file-default "~/org/capture.org"
+  "The default file location for `org-capture'"
+  :group 'arki/org)
+
+(defcustom arki/org-capture-file-thoughts "~/org/thoughts.org"
+  "File location for `org-capture', usage: record thoughts."
+  :group 'arki/org)
+
+
+(defun init-org-capture ()
+  "Init org capture config."
+
+  (require 'org-capture)
+  
+  (setq org-default-notes-file arki/org-capture-file-default)
+  
+  (arki/define-key "C-c a" 'org-agenda)
+  (arki/define-key "C-c c" 'org-capture)
+  (add-to-list 'org-capture-templates
+	       '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
+	       "* %U - %^{heading}\n  %?"))
+  
+  )
+
+
+(add-hook 'after-init-hook (lambda () (interactive) (init-org-capture)))
+
+
 (when (display-graphic-p)
   ;; https://github.com/abo-abo/org-download
   (require-pack 'org-download)

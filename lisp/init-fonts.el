@@ -52,7 +52,7 @@
   :group 'arki/font)
 
 (defcustom arki/font-size-max 50
-  "Min font size"
+  "Max font size"
   :group 'arki/font)
 
 (defcustom arki/font-size-step 1
