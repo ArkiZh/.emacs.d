@@ -66,8 +66,8 @@
   
   (setq org-default-notes-file arki/org-capture-file-default)
   
-  (arki/define-key "C-c a" 'org-agenda)
-  (arki/define-key "C-c c" 'org-capture)
+  (arki/define-key "a" 'org-agenda 'arki/prefix-keymap)
+  (arki/define-key "c" 'org-capture 'arki/prefix-keymap)
   (add-to-list 'org-capture-templates
 	       '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
 	       "* %U - %^{heading}\n  %?"))

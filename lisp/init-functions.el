@@ -245,27 +245,20 @@ Else, define it now, then open it."
   (end-of-line)
   )
 
-(defun arki/copy-current-line ()
-  "Copy current line"
-  (interactive)
-  (save-mark-and-excursion ;; else
+(defun arki/copy-or-kill-current-line (arg)
+  "If arg equals 4, kill.
+Else copy."
+  (interactive "p")
+  (save-mark-and-excursion
     (arki/select-current-line)
-    (kill-ring-save (region-beginning) (region-end))
-    (pop-mark)
-    )
-  )
-(defun arki/kill-current-line ()
-  "Copy current line"
-  (interactive)
-  (save-mark-and-excursion ;; else
-    (arki/select-current-line)
-    (kill-region (region-beginning) (region-end))
+    (if (= arg 4)
+	(kill-region (region-beginning) (region-end))
+      (kill-ring-save (region-beginning) (region-end)))
     (pop-mark)
     )
   )
 
-(arki/define-key "a" 'arki/copy-current-line 'arki/prefix-keymap)
-(arki/define-key "w" 'arki/kill-current-line 'arki/prefix-keymap)
+(arki/define-key "l" 'arki/copy-or-kill-current-line 'arki/prefix-keymap)
 
 ;;----------------------------------------------------------------------------
 ;; 将多行的段落合并成一行
@@ -289,7 +282,12 @@ Else, define it now, then open it."
 ;; Learnt from purcel's config.
 ;; https://github.com/purcell/emacs.d
 
+
 ;; It seems only need to add site-lisp root dir to load-path, so comment this function out.
+;; But it turns out that I'm wrong. If not append the subdir path to load path,
+;; the el file in it won't compile successfully.
+;; Now I add this logic into require-pack-local, only add the subdir which is needed.
+
 ;; (defun arki/add-subdirs-to-load-path (parent-dir)
 ;;   "Add every non-hidden subdir of PARENT-DIR to `load-path'."
 ;;   (let ((default-directory parent-dir))
@@ -345,6 +343,9 @@ If it's already downloaded before, compile it if necessary, then require it.
 If not found, download it if `ensure' is t, otherwise ignore this package."
   (if (site-lisp-library-loadable-p name)
       (let ((el-file (arki/site-lisp-library-el-path name)))
+	;; Add this file's parent dir to load-path, to avoid compiling error.
+	(add-to-list 'load-path (file-name-directory el-file))
+	;; Compile this el file if it hasn't been compiled.
 	(if (file-exists-p (byte-compile-dest-file el-file))
 	    (load (byte-compile-dest-file el-file))
 	  (message "Compile file: " el-file)

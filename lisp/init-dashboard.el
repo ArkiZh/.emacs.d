@@ -2,7 +2,7 @@
 ;; https://github.com/emacs-dashboard/emacs-dashboard
 (when (require-pack 'dashboard)
   ;; (dashboard-setup-startup-hook)
-  (arki/define-key "d" 'dashboard-refresh-buffer 'arki/prefix-keymap)
+  (arki/define-key "o" 'dashboard-refresh-buffer 'arki/prefix-keymap)
   (setq dashboard-startup-banner nil) ;'official
   (when dashboard-startup-banner
     (setq dashboard-banner-logo-title "Nice day, isn't it?"))

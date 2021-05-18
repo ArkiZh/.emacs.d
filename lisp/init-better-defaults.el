@@ -22,8 +22,10 @@
 ;; 记录最近打开过的文件
 ;; (require 'recentf)
 (recentf-mode 1)
-(setq recentf-max-menu-item 36)
-(arki/define-key "o" 'recentf-open-files 'arki/prefix-keymap)
+(setq recentf-max-menu-item 300)
+
+;; Comment this keybinding. Use dashboard instead.
+;; (arki/define-key "o" 'recentf-open-files 'arki/prefix-keymap)
 
 ;; Bookmarks
 (setq bookmark-default-file (expand-file-name "bookmarks" arki/cache-dir))
