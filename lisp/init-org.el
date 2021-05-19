@@ -32,10 +32,6 @@
 	    (setcar (nthcdr 4 org-emphasis-regexp-components) 3)
 	    (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 
-	    ;; Config image view
-	    (setq org-image-actual-width (/ (display-pixel-width) 6))
-	    (setq org-startup-with-inline-images t)
-
 	    ;; Config export options
 	    (setq org-export-with-sub-superscripts '{})		  ;设置导出时候，限定_或者^后面跟着{}时候才渲染上角标、下角标
 	    (setq org-export-with-emphasis t)			  ;设置导出时候，渲染斜体、加粗之类的字体
@@ -118,6 +114,48 @@
 
 
 (add-hook 'after-init-hook (lambda () (interactive) (init-org-capture)))
+
+
+;; Config org image insertion
+(with-eval-after-load 'org
+  (setq arki/org-insert-image--previous-dir nil)
+  (defun arki/org-insert-image ()
+    (interactive)
+    (let* ((file-path (buffer-file-name)))
+      (if file-path
+          (let* ((cur-dir (file-name-directory file-path))
+		 (dir-name (concat (file-name-nondirectory file-path) ".file"))
+		 (dir-path (expand-file-name dir-name cur-dir))
+		 (origin-file (ido-read-file-name "Image location: " arki/org-insert-image--previous-dir))
+		 (img-name (file-name-nondirectory origin-file))
+		 (new-name (concat (read-from-minibuffer "Rename image: " (file-name-base img-name)) (file-name-extension img-name t)))
+		 (img-width (ido-completing-read "Image width in pixel: " (list "500" "origin" "300" "600") nil nil nil))
+		 (target-file (expand-file-name new-name dir-path))
+		 (target-file-relative (concat (file-name-as-directory ".") (file-name-as-directory dir-name) new-name))
+		 )
+	    ;; TODO Validate whether it's an image, using `image-file-name-regexp'.
+	    ;; TODO Add support for download image from url.
+            (make-directory dir-path t)
+            (copy-file origin-file target-file 1)
+	    (setq arki/org-insert-image--previous-dir (file-name-directory origin-file))
+	    (if (equal img-width "origin")
+		(insert (format "[[%s]]" target-file-relative))
+              (insert (format "#+ATTR_ORG: :width %s\n[[%s]]" img-width target-file-relative)))
+	    (org-display-inline-images t)
+	    )
+	(message "This buffer hasn't been saved. Can't decide target image path."))
+      )
+    )
+
+  ;; Config image view
+  ;; (setq org-image-actual-width (/ (display-pixel-width) 6))
+  (setq org-image-actual-width nil)
+  ;; TODO How to display image link like: [[./img.png][image-describe]]
+  (setq org-startup-with-inline-images t)
+
+  (arki/define-key "C-c i" 'arki/org-insert-image 'org-mode-map)
+  )
+
 
 
 (when (display-graphic-p)
