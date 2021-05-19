@@ -32,6 +32,10 @@
 	    (setcar (nthcdr 4 org-emphasis-regexp-components) 3)
 	    (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 
+	    ;; Config image view
+	    (setq org-image-actual-width (/ (display-pixel-width) 6))
+	    (setq org-startup-with-inline-images t)
+
 	    ;; Config export options
 	    (setq org-export-with-sub-superscripts '{})		  ;设置导出时候，限定_或者^后面跟着{}时候才渲染上角标、下角标
 	    (setq org-export-with-emphasis t)			  ;设置导出时候，渲染斜体、加粗之类的字体
@@ -41,6 +45,44 @@
 	    (setq org-log-done-with-time t)
 	    
 	    ))
+
+;; Config org todos
+(with-eval-after-load 'org
+  ;; Set keywords. Need to invoke org-mode-restart after set.
+  (setq org-todo-keywords
+        '((sequence "TODO(1!)" "READY(2!)" "DOING(3!)" "STUCK(4@)" "PAUSE(4!)" "|" "DONE(5!)")
+          (sequence "|" "CANCELED(0@/!)")))
+  ;; Insert "CLOSED: [timestamp]" when entering DONE states.
+  (setq org-log-done 'time)
+  ;; Keep the line when remove todo keywords
+  (setq org-closed-keep-when-no-todo t)
+  ;; Set todo keywords faces
+  (setq org-todo-keyword-faces
+        '(("READY" . "green") ("STUCK" . "red") ("PAUSE" . (:underline t))
+          ("CANCELLED" . (:foreground "gray" :weigth bold))))
+  ;; Tracking todo state changes
+  (setq org-log-into-drawer "LOGBOOK")
+  ;; Set priorities to A-E
+  (setq org-priority-highest 65 org-priority-default 67 org-priority-lowest 69)
+  )
+
+
+;; Config org agenda
+(with-eval-after-load 'org
+  (setq org-agenda-time-grid (quote ((daily today require-timed)
+                                     (800
+                                      1000
+                                      1200
+                                      1330
+                                      1530
+                                      1730
+				      1930
+				      2100)
+                                     " ..."
+                                     " ...................................."
+                                     )))
+  )
+
 
 ;; Config org-capture
 
@@ -70,7 +112,7 @@
   (arki/define-key "c" 'org-capture 'arki/prefix-keymap)
   (add-to-list 'org-capture-templates
 	       '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
-	       "* %U - %^{heading}\n  %?"))
+		 "* %U - %^{heading}\n  %?"))
   
   )
 
