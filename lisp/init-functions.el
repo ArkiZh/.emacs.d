@@ -235,28 +235,19 @@ Else, define it now, then open it."
 (arki/define-key "C-M-\\" 'arki/indent-region-or-buffer)
 
 ;;----------------------------------------------------------------------------
-;; 选中当前行
+;; 复制或剪切当前行
 ;;----------------------------------------------------------------------------
-(defun arki/select-current-line ()
-  "Select current line"
-  (interactive)
-  (beginning-of-line)
-  (set-mark-command nil)
-  (end-of-line)
-  )
-
 (defun arki/copy-or-kill-current-line (arg)
   "If arg equals 4, kill.
 Else copy."
   (interactive "p")
   (save-mark-and-excursion
-    (arki/select-current-line)
     (if (= arg 4)
-	(kill-region (region-beginning) (region-end))
-      (kill-ring-save (region-beginning) (region-end)))
-    (pop-mark)
-    )
-  )
+	(progn
+	  (kill-region (line-beginning-position) (line-end-position))
+	  (message "Current line killed."))
+      (kill-ring-save (line-beginning-position) (line-end-position))
+      (message "Current line copied."))))
 
 (arki/define-key "l" 'arki/copy-or-kill-current-line 'arki/prefix-keymap)
 
