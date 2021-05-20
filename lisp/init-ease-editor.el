@@ -63,6 +63,19 @@
     ;; Type a little bit and press M-g <return> to complete a word or M-s <return> to complete an arbitrary string.
     (bbyac-global-mode 1)))
 
+;; Multiple cursors
+(when (require-pack 'multiple-cursors)
+  (arki/define-key "C-S-c C-S-c" 'mc/edit-lines)
+  (arki/define-key "C->" 'mc/mark-next-like-this)
+  (arki/define-key "C-<" 'mc/mark-previous-like-this)
+  (arki/define-key "C-c C-<" 'mc/mark-all-like-this)
+  (arki/define-key "C-S-<mouse-1>" 'mc/add-cursor-on-click)
+  (when (featurep 'hungry-delete)
+    (when (boundp 'mc/cmds-to-run-for-all)
+      (add-to-list 'mc/cmds-to-run-for-all 'hungry-delete-backward)
+      (add-to-list 'mc/cmds-to-run-for-all 'hungry-delete-forward)))
+  )
+
 ;; --------------------------------------------------SHOW OUTLINE--------------------------------------------------
 
 ;; https://github.com/bmag/imenu-list
