@@ -48,7 +48,7 @@
 ;;   (on-screen-global-mode +1))
 
 ;; Set cursor type to box or bar
-(setq cursor-type 'box)
+(setq cursor-type 'bar)
 
 ;; https://github.com/seagle0128/doom-modeline
 (when (require-pack 'doom-modeline)
