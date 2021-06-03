@@ -29,6 +29,8 @@ If non-nil: don't invoke `package-refresh-contents' during `require-package.")
 (defvar arki/package-installed-info '(("INSTALLED_BEFORE") ("INSTALLED_NOW") ("FAILED"))
   "Record the installation info of required packages.")
 
+
+;; Common functions
 
 (defun arki/alist-push-value (input_alist key value)
   "Set the given ALIST.
@@ -48,6 +50,13 @@ Return: the input_alist."
     )
   input_alist)
 
+(defun arki/directory-parent (file-name n)
+  "Get parent directory of `file-name' by `n' times"
+  (let ((result (directory-file-name (expand-file-name file-name))))
+    (dotimes (i n)
+      (setq result (directory-file-name (file-name-directory result))))
+    result))
+
 
 (defun refresh-pack-contents ()
   "Refresh package database. And refresh only once."
