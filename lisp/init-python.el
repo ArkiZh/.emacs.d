@@ -38,12 +38,14 @@ May be here: {CONDA_HOME}/Scripts/pyls {PYTHON_ENV_HOME}/bin/pyls
 	  (if (and (string-prefix-p conda-anaconda-home conda-path) (string-match-p "conda" conda-anaconda-home))
 	      ;; Activate conda env
 	      (progn (conda-env-activate conda-env-name-for-buffer)
-		     (if (executable-find "python") t nil))
+		     (if (string-prefix-p conda-env-current-path  (executable-find "python")) t
+		       (message "Broken conda env: [%s] Python executable not found here!" conda-env-current-path)
+		       nil))
 	    ;; Config conda home
 	    (let* ((prompt-message (format "Conda home [%s] is not valid, while conda is [%s]. Now select conda home: " conda-anaconda-home conda-path))
 		   (conda-home (ido-read-directory-name prompt-message (arki/directory-parent conda-path 2))))
 	      (customize-save-variable 'conda-anaconda-home conda-home)
-	      (arki/python--check-conda-home))
+	      (arki/python--prepare-conda-env))
 	    )
 	(message "Warning: Conda executable is not available. Stop configing conda related things.")
 	nil
