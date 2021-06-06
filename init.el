@@ -69,6 +69,7 @@
 (require 'init-layout)
 (require 'init-help-info)
 (require 'init-dictionary)
+(require 'init-python)
 
 
 ;;----------------------------------------------------------------------------
