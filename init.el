@@ -70,6 +70,7 @@
 (require 'init-help-info)
 (require 'init-dictionary)
 (require 'init-python)
+(require 'init-eaf)
 
 
 ;;----------------------------------------------------------------------------

@@ -339,6 +339,12 @@ source file under `arki/site-lisp-dir'"
 (defun require-pack-local (name &optional ensure url)
   "Install package from url.
 
+TODO: Need to add feature: 
+1. Need to support the case: url is a git repo.
+2. In the case el file's name is different from its dir: need to specify the target dir, and load specific el file. 
+2. The switch to skip compile stage.
+
+
 If it's already downloaded before, compile it if necessary, then require it.
 If not found, download it if `ensure' is t, otherwise ignore this package."
   (if (site-lisp-library-loadable-p name)
