@@ -16,9 +16,10 @@
 ;; (setq debug-on-error t)
 
 ;; Adjust garbage collection thresholds during startup, and thereafter
-(setq gc-cons-threshold (* 128 1024 1024))
+;; In bytes
+(setq gc-cons-threshold (* 1024 1024 1024))
 (add-hook 'emacs-startup-hook
-          (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
+          (lambda () (setq gc-cons-threshold (* 1024 1024 1024))))
 
 ;; Setup mirror from https://elpa.emacs-china.org/
 (require 'package)
