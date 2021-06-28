@@ -226,6 +226,23 @@ Else, define it now, then open it."
 
 ;; (arki/define-key "<f2>" 'arki/open-init-file)
 
+
+;;----------------------------------------------------------------------------
+;; 根据需要以sudo打开文件
+;;----------------------------------------------------------------------------
+(defun arki/sudo-open-file()
+  "Open file with sudo privilege"
+  (interactive)
+  (if (memq system-type '(cygwin darwin gnu gnu/linux))
+      (let* ((cur-file (buffer-file-name))
+	     (file-path (ido-read-file-name "Sudo open: " nil (buffer-file-name))))
+	(find-file (concat "/sudo::" file-path))
+	)
+    (message "Can't execute sudo for system: [%s]" system-type)
+    )
+  )
+
+
 ;;----------------------------------------------------------------------------
 ;; 调整buffer中的缩进
 ;;----------------------------------------------------------------------------
