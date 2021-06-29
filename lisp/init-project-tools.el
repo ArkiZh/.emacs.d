@@ -37,7 +37,7 @@
 ;; https://github.com/Alexander-Miller/treemacs
 (when (require-pack 'treemacs)
   ;; Let treemacs become invisible to commands like ‘other-window’ or ‘evil-window-left’.
-  (setq treemacs-is-never-other-window t)
+  (setq treemacs-is-never-other-window nil)
   ;; 打开treemmacs导航
   (arki/define-key "C-<f2>" 'treemacs-select-window)
   (arki/define-key "<f2>" 'treemacs)
