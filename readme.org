@@ -1,12 +1,15 @@
 * 安装依赖
   
 ** 字体文件
-*** doom-themes 需要安装字体文件：
+*** doom-themes 需要安装字体文件
+可以直接下载安装，也可以使用命令 ~all-the-icons-install-fonts~ 安装，但
+是这个命令可能没有自己下载快，有时候因为网络原因会卡住。
     #+begin_src elisp
       ;; https://github.com/domtronn/all-the-icons.el/
       ;; 需要安装字体文件：M-x all-the-icons-install-fonts
       (require-pack 'all-the-icons)
     #+end_src
+
 ** 程序
 *** markdown preview 时候需要pandoc
     #+begin_src elisp
@@ -23,3 +26,6 @@
 		  )
 	)
     #+end_src
+** 词库文件
+使用的是 pyim 输入法框架，词库文件格式要与这个框架要求的一致。放在
+~.emacs.d/arki.cache/ciku~ 下面，会自动扫描加载以 ~.pyim~ 结尾的文件。

@@ -1,3 +1,10 @@
+(defgroup arki/input-method nil
+  "Input method config, only for read."
+  :group 'arki/config)
+
+
+(defcustom arki/input-method-ciku (expand-file-name "ciku" arki/cache-dir) "Ciku directory for pyim." :group 'arki/input-method)
+
 (setq arki/ziranma-scheme '(arki/ziranma-shuangpin
 			    :document "自然码双拼方案。"
 			    :class shuangpin
@@ -67,9 +74,15 @@
   ;; pyim-convert-code-at-point 已废弃
   (arki/define-key "M-i" 'pyim-convert-string-at-point)
 
-  ;; (setq pyim-dicts
-  ;;     '((:name "dict1" :file "~/.emacs.d/arki.cache/ciku/pyim_sure.pyim")
-  ;;       (:name "dict2" :file "~/.emacs.d/arki.cache/ciku/pyim_ok.pyim")))
+  (defun arki/input-method--get-ciku-files ()
+    "Get pyim ciku files from directory `arki/input-method-ciku'`"
+    (interactive)
+    (when (file-exists-p arki/input-method-ciku)
+      (directory-files-recursively arki/input-method-ciku ".pyim$")))
+
+  (dolist (cur-file (arki/input-method--get-ciku-files))
+    (add-to-list 'pyim-dicts (list :name (file-name-base cur-file) :file cur-file)))
+
   (setq pyim-fuzzy-pinyin-alist nil)
   )
 

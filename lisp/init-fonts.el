@@ -215,7 +215,14 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
 
 (defun arki/font-adjust ()
   (interactive)
-  (message "Set font: ENG(1 q+ a-) ZH(2 w+ s-) EXT(3 e+ d-) Symbol(4 r+ f-). Save(0)")
+  (message "
+ +---------------------------------------------------------------+
+ | 使用方法 | 按根据提示对中英文字体进行加减，使表格线对齐       |
+ | 英文字   | 0123456789 abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLM|
+ | 扩展字   | 𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄉𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄄𠄅𠄆𠄇𠄇𠄆 |
+ +---------------------------------------------------------------+
+
+Set font: ENG(1 q+ a-) ZH(2 w+ s-) EXT(3 e+ d-) Symbol(4 r+ f-). Save(0)")
   (set-transient-map
    (let ((map (make-sparse-keymap)))
      (define-key map (vector (list ?1))
@@ -257,16 +264,6 @@ font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
   (arki/define-key "f" 'arki/font-adjust 'arki/prefix-keymap)
   (add-hook 'after-init-hook (lambda () (interactive) (arki/set-font)))
   )
-
-
-
-;; +----------------------------------------------------+
-;; | [*9.0-18*] [ 20-24 ] [ 26-28 ] [ -30- ] [ -32- ]   |
-;; | 中英文等宽对齐设置：按加号或减号按钮直至此表格对齐 |
-;; | abcdefjhijklmnoprqstuvwxwyABCDEFJHIJkLMNOPQRSTUVXW |
-;; | 𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄉𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄄𠄅𠄆𠄇𠄇𠄆 |
-;; | 英文字号   中文对齐设置    EXT-B 对齐设置    测试  |
-;; +----------------------------------------------------+
 
 ;; 有空时候看看这个用于org-mode 表格对齐的：https://github.com/chen-chao/zh-align.el
 
