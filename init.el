@@ -71,6 +71,7 @@
 (require 'init-help-info)
 (require 'init-dictionary)
 (require 'init-python)
+(require 'init-wsl)
 (require 'init-eaf)
 
 
