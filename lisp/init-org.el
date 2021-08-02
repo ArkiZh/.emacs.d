@@ -182,9 +182,6 @@
 (when (require-pack 'auctex t)
   (when (require-pack 'cdlatex)
     (add-hook 'org-mode-hook 'turn-on-org-cdlatex))
-  (load "auctex.el" nil t t)
-  ;;Load error: Debugger entered--Lisp error: (file-missing "Cannot open load file" "No such file or directory" "preview-latex.el")
-  ;; (load "preview-latex.el" nil t t)
   )
 
 
