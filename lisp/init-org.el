@@ -118,6 +118,13 @@
 
 ;; Config org image insertion
 (with-eval-after-load 'org
+
+  ;; Config image view
+  ;; (setq org-image-actual-width (/ (display-pixel-width) 6))
+  (setq org-image-actual-width nil)
+  ;; TODO How to display image link like: [[./img.png][image-describe]]
+  (setq org-startup-with-inline-images t)
+  
   (setq arki/org-insert-image--previous-dir nil)
   (defun arki/org-insert-image ()
     (interactive)
@@ -138,7 +145,8 @@
 		 (new-name (concat (read-from-minibuffer "Rename image: " (file-name-base img-name)) (file-name-extension img-name t)))
 		 (img-width (ido-completing-read "Image width in pixel: " (list "500" "origin" "300" "600") nil nil nil))
 		 (target-file (expand-file-name new-name dir-path))
-		 (target-file-relative (concat (file-name-as-directory ".") (file-name-as-directory dir-name) new-name))
+		 ;; (target-file-relative (concat (file-name-as-directory ".") (file-name-as-directory dir-name) new-name))
+		 (target-file-relative (concat (file-name-as-directory dir-name) new-name))
 		 )
 	    ;; TODO Validate whether it's an image, using `image-file-name-regexp'.
 	    ;; TODO Add support for download image from url.
@@ -149,8 +157,8 @@
 		  (copy-file origin-file target-file 1)
 		  (setq arki/org-insert-image--previous-dir (file-name-directory origin-file))
 		  (if (equal img-width "origin")
-		      (insert (format "[[%s]]" target-file-relative))
-		    (insert (format "#+ATTR_ORG: :width %s\n[[%s]]" img-width target-file-relative)))
+		      (insert (format "[[file:%s]]" target-file-relative))
+		    (insert (format "#+ATTR_ORG: :width %s\n[[file:%s]]" img-width target-file-relative)))
 		  (org-display-inline-images t))
 	      (message (concat "Failed! The input file not exists or is a directory: " origin-file))
 	      )
@@ -159,13 +167,74 @@
       )
     )
 
-  ;; Config image view
-  ;; (setq org-image-actual-width (/ (display-pixel-width) 6))
-  (setq org-image-actual-width nil)
-  ;; TODO How to display image link like: [[./img.png][image-describe]]
-  (setq org-startup-with-inline-images t)
+  (setq arki/org-insert-file--previous-dir nil)
+  (defun arki/org-insert-file ()
+    (interactive)
+    (let* ((file-path (buffer-file-name)))
+      (if file-path
+          (let* ((cur-dir (file-name-directory file-path))
+		 (dir-name (concat (file-name-nondirectory file-path) ".file"))
+		 (dir-path (expand-file-name dir-name cur-dir))
+		 (origin-file (let* ((input-path (ido-read-file-name "File location: " arki/org-insert-file--previous-dir))
+				     (win2linux-path (arki/wsl-path-win2linux input-path)))
+				(when win2linux-path
+				  (setq input-path win2linux-path))
+				(if (file-directory-p input-path)
+				    (ido-read-file-name (concat "Select file in " win2linux-path " :") input-path)
+				  input-path)))
+		 (file-name (file-name-nondirectory origin-file))
+		 (new-name (concat (read-from-minibuffer "Rename file: " (file-name-base file-name)) (file-name-extension file-name t)))
+		 (target-file (expand-file-name new-name dir-path))
+		 (target-file-relative (concat (file-name-as-directory dir-name) new-name)))
+	    ;; TODO Add support for download file from url.
+	    (if (and (file-exists-p origin-file)
+		     (not (file-directory-p origin-file)))
+		(progn
+		  (make-directory dir-path t)
+		  (copy-file origin-file target-file 1)
+		  (setq arki/org-insert-file--previous-dir (file-name-directory origin-file))
+		  (insert (format "[[file:%s][%s]]" target-file-relative new-name)))
+	      (message (concat "Failed! The input file not exists or is a directory: " origin-file))))
+	(message "This buffer hasn't been saved. Can't decide target image path."))))
 
-  (arki/define-key "C-c i" 'arki/org-insert-image 'org-mode-map)
+  (defun arki/org-delete-file-link()
+    "Delete the link at cursor, along with the associated file."
+    (interactive)
+    (let ((cur-file (buffer-file-name))
+	  (cur-element (org-element-context)))
+      (if (and (equal (car cur-element) 'link)
+	       (file-exists-p cur-file))
+	  (progn
+	    (let* ((f-path (org-element-property :path cur-element))
+		   (f-path-abs (expand-file-name f-path (file-name-directory cur-file)))
+		   (begin (org-element-property :begin cur-element))
+		   (end (org-element-property :end cur-element)))
+	      (if (file-regular-p f-path-abs)
+		  (when (yes-or-no-p (format "Delete file [%s] ?" f-path-abs))
+		    (message "Deleting file: %s" f-path-abs)
+		    (delete-file f-path-abs)
+		    (message "File deleted: %s" f-path-abs)
+		    (delete-region begin end))
+		(message "Failed to delete file link: It's not a regular file: %s" f-path-abs))))
+	(message "Failed to delete file link: Not a link here or this buffer file not exists."))))
+
+
+  (defun arki/org-insert-file-link()
+    (interactive)
+
+    (message "Insert link: Image(i) File(f)     |     Delete file and link: (k)")
+    (set-transient-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map (vector (list ?i))
+	 (lambda () (interactive) (arki/org-insert-image)))
+       (define-key map (vector (list ?f))
+	 (lambda () (interactive) (arki/org-insert-file)))
+       (define-key map (vector (list ?k))
+	 (lambda () (interactive) (arki/org-delete-file-link)))
+       map)))
+
+  (arki/define-key "C-c i" 'arki/org-insert-file-link 'org-mode-map)
+  
   )
 
 
@@ -184,5 +253,16 @@
     (add-hook 'org-mode-hook 'turn-on-org-cdlatex))
   )
 
+
+(require-pack 'org-ref)
 
+
+;; Config org-roam
+(when (require-pack 'org-roam)
+  (org-roam-setup)
+  (arki/define-key "q" 'org-roam-buffer-display-dedicated 'arki/prefix-keymap)
+  (arki/define-key "C-c q" 'org-roam-node-insert 'org-mode-map)
+  )
+
+
 (provide 'init-org)
