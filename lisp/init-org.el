@@ -263,6 +263,8 @@
   (arki/define-key "q" 'org-roam-buffer-display-dedicated 'arki/prefix-keymap)
   (arki/define-key "C-c q" 'org-roam-node-insert 'org-mode-map)
   )
-
+
+;; Config org-web-tools
+(when (require-pack 'org-web-tools))
 
 (provide 'init-org)

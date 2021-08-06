@@ -11,7 +11,8 @@
     #+end_src
 
 ** 程序
-*** markdown preview 时候需要pandoc
+*** pandoc
+****  markdown preview 时候需要
     #+begin_src elisp
       ;; Markdown
       ;; https://github.com/jrblevin/markdown-mode
@@ -26,6 +27,7 @@
 		  )
 	)
     #+end_src
+**** org-web-tools需要用它将html转成org文挡
 ** 词库文件
 使用的是 pyim 输入法框架，词库文件格式要与这个框架要求的一致。放在
 ~.emacs.d/arki.cache/ciku~ 下面，会自动扫描加载以 ~.pyim~ 结尾的文件。
