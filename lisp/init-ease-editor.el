@@ -40,6 +40,11 @@
 ;; 选中一段文字之后输入一个字符会替换掉你选中部分的文字
 (delete-selection-mode 1)
 
+;; 缩进不使用TAB
+;; Indentation can insert tabs if this is non-nil. Default is t.
+(setq-default indent-tabs-mode nil)
+;; Distance between tab stops (for display of tab characters), in columns. Default is 8.
+(setq-default tab-width 4)
 
 (when (require-pack 'hungry-delete)
   ;; 启用hungry-delete

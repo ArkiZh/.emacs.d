@@ -258,12 +258,12 @@
 
 
 ;; Config org-roam
-(when (require-pack 'org-roam)
-  (org-roam-setup)
-  (arki/define-key "q" 'org-roam-buffer-display-dedicated 'arki/prefix-keymap)
-  (arki/define-key "C-c q" 'org-roam-node-insert 'org-mode-map)
-  (setq org-roam-v2-ack t) 		;Disable the warning about updating from v1 to v2.
-  )
+;; (when (require-pack 'org-roam)
+;;   (org-roam-setup)
+;;   (arki/define-key "q" 'org-roam-buffer-display-dedicated 'arki/prefix-keymap)
+;;   (arki/define-key "C-c q" 'org-roam-node-insert 'org-mode-map)
+;;   (setq org-roam-v2-ack t) 		;Disable the warning about updating from v1 to v2.
+;;   )
 
 ;; Config org-web-tools
 (when (require-pack 'org-web-tools))
