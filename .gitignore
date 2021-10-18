@@ -45,3 +45,7 @@ projectile-bookmarks.eld
 /tramp
 /.dap-breakpoints
 /eaf/
+/.mc-lists.el
+/.org-id-locations
+/nov-places
+/org-roam.db
