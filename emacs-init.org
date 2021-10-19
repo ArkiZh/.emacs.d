@@ -1,0 +1,189 @@
+* Abount
+This is arki's emacs init config.
+
+I learnt from [[https://github.com/purcell/emacs.d][purcell]] much about how to structure the init files.
+
+* Precondition
+#+begin_src emacs-lisp
+  ;; Check emacs version
+  (let ((minver "26.1"))
+    (when (version< emacs-version minver)
+      (error "Your Emacs is too old -- this config requires v%s or higher" minver)))
+  (let ((tested-ver "27.1"))
+    (when (version< emacs-version tested-ver)
+      (message "This config has been tested under version %s. But yours is %s. Upgrade if possible." tested-ver emacs-version)))
+#+end_src
+
+* Set the most basic default options
+** Load packages, and activate them.
+#+begin_src emacs-lisp
+  ;; Adjust garbage collection thresholds during startup, and thereafter
+  ;; In bytes
+  (setq gc-cons-threshold (* 1024 1024 1024))
+  (add-hook 'emacs-startup-hook
+            (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
+
+  ;; Produce backtraces when errors occur: can be helpful to diagnose startup issues
+  ;; (setq debug-on-error t)
+
+  ;; Setup mirror from https://elpa.emacs-china.org/
+  (require 'package)
+
+  ;;(pp package-enable-at-startup) ;; t
+  ;;(pp load-path) ;; For now, equal to subdirs of package-directory-list
+  ;; See: the last 6 paragraphs of https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html#Package-Installation
+  ;; your init file should call the function package-initialize. It is up to you to ensure that relevant user options, such as package-load-list (see below), are set up prior to the package-initialize call. This will automatically set package-enable-at-startup to nil, to avoid loading the packages again after processing the init file. 
+  (package-initialize)
+  ;;(pp load-path) ;; At this time, add subdirs of  package-user-dir to package-directory-list
+  ;;(pp package-load-list) ;; (all)
+  ;;(pp package-enable-at-startup) ;; nil
+#+end_src
+
+** Setup ~custom-file~ location. 
+#+begin_src emacs-lisp
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+#+end_src
+
+** Behaviours
+#+begin_src emacs-lisp
+  ;; 设置utf-8为默认编码格式
+  (set-language-environment "UTF-8")
+
+  ;; 取消滚动到底部的报警声
+  (setq ring-bell-function 'ignore)
+
+  ;; Enable truncate lines
+  (setq-default truncate-lines t)
+
+  ;; 禁止 Emacs 自动生成备份文件
+  (setq make-backup-files nil)
+
+  ;; 禁止默认的自动保存
+  (setq auto-save-default nil)
+
+  ;; 保存桌面布局
+  (desktop-save-mode -1)
+
+  ;; 自动加载修改过的文件
+  (global-auto-revert-mode t)
+
+  ;; 记录最近打开过的文件
+  ;; (require 'recentf)
+  (recentf-mode 1)
+  (setq recentf-max-menu-item 300)
+
+  ;; Less typing when emacs asks yes or no
+  (fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+** UI
+#+begin_src emacs-lisp
+  ;; Set cursor type to box or bar
+  (setq-default cursor-type 'bar)  	;Doesn't take effect by: (setq cursor-type 'bar)
+
+  ;; 关闭启动帮助画面
+  (setq inhibit-splash-screen 1)
+
+  ;; 关闭工具栏，tool-bar-mode 即为一个 Minor Mode
+  (tool-bar-mode 'toggle)
+  ;; 关闭菜单栏
+  (menu-bar-mode 'toggle)
+
+  ;; 全屏显示
+  ;; (setq initial-frame-alist (quote ((fullscreen . maximized))))
+  (toggle-frame-maximized)
+  ;; (toggle-frame-fullscreen)
+
+  ;; 关闭文件滑动控件
+  (scroll-bar-mode 'toggle)
+
+  ;; 显示行号 仅当编程模式时候
+  (add-hook 'prog-mode-hook
+            (lambda nil
+              (if (version<= "26.0.50" emacs-version )
+                  (display-line-numbers-mode)
+                (linum-mode 1)))
+            )
+
+  ;; 在最下面显示光标在行中的位置
+  (column-number-mode 1)
+
+  ;; Set mouse-color
+  (when (equal window-system 'x)
+    (if (equal (frame-parameter nil 'background-mode) 'light)
+        (set-frame-parameter nil 'mouse-color "black")
+      (set-frame-parameter nil 'mouse-color "white")
+      ))
+#+end_src
+** Editor
+#+begin_src emacs-lisp
+  ;; 选中一段文字之后输入一个字符会替换掉你选中部分的文字
+  (delete-selection-mode 1)
+
+  ;; 缩进不使用TAB
+  ;; Indentation can insert tabs if this is non-nil. Default is t.
+  (setq-default indent-tabs-mode nil)
+  ;; Distance between tab stops (for display of tab characters), in columns. Default is 8.
+  (setq-default tab-width 4)
+#+end_src
+** Enable disabled things
+#+begin_src emacs-lisp
+  (put 'narrow-to-region 'disabled nil)
+  (put 'narrow-to-page 'disabled nil)
+  (put 'upcase-region 'disabled nil)
+#+end_src
+
+* Define my custom common functions
+
+* Basic config without any extra packages
+** Config as a text editor
+
+** Config font
+
+* Setup extra packages or features
+** Set melpa and mirror
+#+begin_src emacs-lisp
+  (setq package-archives '(("gnu"   . "https://elpa.emacs-china.org/gnu/")
+                           ("melpa" . "https://elpa.emacs-china.org/melpa/")))
+
+  ;; Import new GNU ELPA keys (if any) into package.el’s keyring.
+  (require-pack 'gnu-elpa-keyring-update)
+#+end_src
+** dired
+** ui
+** env
+** dashboard
+** screensaver
+** which-key
+** auto-complete
+** elisp
+** org
+** project-tools
+** filetypes-support
+** input-method
+** fonts
+** auto-save
+** ibuffer
+** layout
+** help-info
+** dictionary
+** python
+** wsl
+** eaf
+
+* Need review
+#+begin_src emacs-lisp
+  ;; Bookmarks
+  (setq bookmark-default-file (expand-file-name "bookmarks" arki/cache-dir))
+  (setq bookmark-save-flag 1)
+#+end_src
+* Load customized configuritions
+#+begin_src emacs-lisp
+  ;;----------------------------------------------------------------------------
+  ;; Load variables configured via the interactive 'customize' interface
+  ;;----------------------------------------------------------------------------
+  (when (file-exists-p custom-file)
+    (load custom-file))
+
+  (message "My init file ends here!")
+#+end_src
