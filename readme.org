@@ -4,30 +4,2307 @@
 *** doom-themes 需要安装字体文件
 可以直接下载安装，也可以使用命令 ~all-the-icons-install-fonts~ 安装，但
 是这个命令可能没有自己下载快，有时候因为网络原因会卡住。
-    #+begin_src elisp
-      ;; https://github.com/domtronn/all-the-icons.el/
-      ;; 需要安装字体文件：M-x all-the-icons-install-fonts
-      (require-pack 'all-the-icons)
-    #+end_src
+#+begin_src emacs-lisp :tangle no
+  ;; https://github.com/domtronn/all-the-icons.el/
+  ;; 需要安装字体文件：M-x all-the-icons-install-fonts
+  (require-pack 'all-the-icons)
+#+end_src
 
 ** 程序
 *** pandoc
 ****  markdown preview 时候需要
-    #+begin_src elisp
-      ;; Markdown
-      ;; https://github.com/jrblevin/markdown-mode
-      (when (require-pack 'markdown-mode)
-	;; 配置markdown-mode
-	;; 调用markdown-live-preview报错markdown failed with exit code 1解决方案：(参考自https://emacs-china.org/t/markdown/11399)
-	;; 安装pandoc，配置markdown-command指向pandoc。下载地址：https://pandoc.org/
-	(add-hook 'markdown-mode-hook
-		  (lambda () (setq markdown-command "pandoc")
-		    ;; M-p 与跳转 ace window 冲突了，禁用掉
-		    (arki/define-key "M-p" nil 'markdown-mode-map))
-		  )
-	)
-    #+end_src
+#+begin_src emacs-lisp :tangle no
+  ;; Markdown
+  ;; https://github.com/jrblevin/markdown-mode
+  (when (require-pack 'markdown-mode)
+    ;; 配置markdown-mode
+    ;; 调用markdown-live-preview报错markdown failed with exit code 1解决方案：(参考自https://emacs-china.org/t/markdown/11399)
+    ;; 安装pandoc，配置markdown-command指向pandoc。下载地址：https://pandoc.org/
+    (add-hook 'markdown-mode-hook
+	      (lambda () (setq markdown-command "pandoc")
+		;; M-p 与跳转 ace window 冲突了，禁用掉
+		(arki/define-key "M-p" nil 'markdown-mode-map))
+	      )
+    )
+#+end_src
 **** org-web-tools需要用它将html转成org文挡
 ** 词库文件
 使用的是 pyim 输入法框架，词库文件格式要与这个框架要求的一致。放在
 ~.emacs.d/arki.cache/ciku~ 下面，会自动扫描加载以 ~.pyim~ 结尾的文件。
+
+* Abount
+This is arki's emacs init config.
+
+I learnt from [[https://github.com/purcell/emacs.d][purcell]] much about how to structure the init files.
+
+How to use: Add the code below to ~init.el~.
+#+begin_src emacs-lisp :tangle no
+  (require 'org)
+  (org-babel-load-file (expand-file-name "settings.org" user-emacs-directory) t)
+#+end_src
+* Precondition
+#+begin_src emacs-lisp :tangle yes
+  ;; Check emacs version
+  (let ((minver "26.1"))
+    (when (version< emacs-version minver)
+      (error "Your Emacs is too old -- this config requires v%s or higher" minver)))
+  (let ((tested-ver "27.1"))
+    (when (version< emacs-version tested-ver)
+      (message "This config has been tested under version %s. But yours is %s. Upgrade if possible." tested-ver emacs-version)))
+#+end_src
+
+* Set the most basic default options
+** Setup ~custom-file~ location. 
+#+begin_src emacs-lisp :tangle yes
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+#+end_src
+** Load packages, and activate them.
+#+begin_src emacs-lisp :tangle yes
+  (message "OK")
+  ;; Adjust garbage collection thresholds during startup, and thereafter. In bytes.
+  (setq gc-cons-threshold (* 1024 1024 1024))
+  (add-hook 'emacs-startup-hook
+            (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
+
+  (require 'package)
+
+
+  (package-initialize)
+
+#+end_src
+
+* Define my custom common functions
+#+begin_src emacs-lisp
+  ;;----------------------------------------------------------------------------
+  ;; Install package
+  ;;----------------------------------------------------------------------------
+
+  (defgroup arki/config nil
+    "Manager for my own confgs.")
+
+
+  (defcustom arki/cache-dir (expand-file-name "arki.cache" user-emacs-directory) "Cache for useful files" :group 'arki/config)
+  (make-directory arki/cache-dir t)
+
+
+  (defcustom arki/site-lisp-dir (expand-file-name "site-lisp" user-emacs-directory)
+    "Directory for site lisp. If changed, should add the new value to `load-path' manually."
+    :group 'arki/config)
+  (make-directory arki/site-lisp-dir t)
+  (add-to-list 'load-path arki/site-lisp-dir)
+
+
+  (defvar arki/package-contents-refreshed nil
+    "Indicate whether the package contents has been refreshed.
+
+  If nil: invoke `package-refresh-contents' during `require-package', then set to t, no matter whether the refresh is successful.
+  If non-nil: don't invoke `package-refresh-contents' during `require-package.")
+
+  (defvar arki/package-installed-info '(("INSTALLED_BEFORE") ("INSTALLED_NOW") ("FAILED"))
+    "Record the installation info of required packages.")
+
+  
+  ;; Common functions
+
+  (defun arki/alist-push-value (input_alist key value)
+    "Set the given ALIST.
+  Operation is done in-place.
+
+  If the key exists: push value to the first position of that key's content.
+  If not exists: append the k-v pair to the end of this alist.
+
+  Return: the input_alist."
+    (let ((cur_kv (assoc key input_alist)))
+      (if cur_kv (setcdr cur_kv (cons value (cdr cur_kv)))
+        ;; (message "Unknown key: %s. Now add it with value: %s." key value)
+        ;; (setcdr input_alist (copy-alist input_alist))
+        ;; (setcar input_alist (list key value))
+        (setcdr (last input_alist) (list (list key value)))
+        )
+      )
+    input_alist)
+
+  (defun arki/directory-parent (file-name n)
+    "Get parent directory of `file-name' by `n' times"
+    (let ((result (directory-file-name (expand-file-name file-name))))
+      (dotimes (i n)
+        (setq result (directory-file-name (file-name-directory result))))
+      result))
+  
+
+  (defun refresh-pack-contents ()
+    "Refresh package database. And refresh only once."
+    (unless arki/package-contents-refreshed
+      (message "Refreshing package database...")
+      (condition-case err (
+                           progn
+                           (message "Refreshing package database...")
+                           (package-refresh-contents)
+                           (message "Refreshing package database finished!")
+                           )
+        (error
+         (message "Failed to refresh package database! ERROR: %S" err))
+        )
+      (setq arki/package-contents-refreshed t)
+      ))
+
+
+  (defun require-pack (pack &optional skip-load)
+    "Install the given PACKAGE.
+  And execute require PACKAGE if newly installed, to avoid requiring it manually.
+
+  If installed successfully, return t, else return nil"
+    (if (package-installed-p pack) (progn
+                                     (arki/alist-push-value arki/package-installed-info "INSTALLED_BEFORE" pack)
+                                     (when (not skip-load)
+                                       (require pack))
+                                     t)
+      (refresh-pack-contents)
+      (message "Package: %s installing..." pack)
+      (condition-case err (progn
+                            (package-install pack)
+                            (arki/alist-push-value arki/package-installed-info "INSTALLED_NOW" pack)
+                            (message "Package: %s installed!" pack)
+                            (when (not skip-load)
+                              (require pack)
+                              (message "Package: %s loaded!" pack))
+                            t)
+        (error
+         (arki/alist-push-value arki/package-installed-info "FAILED" pack)
+         (message "Package `%S' failed to install! ERROR: %S" pack err)
+         nil)
+        )
+      ))
+
+  (defun require-packs (pack &rest packs)
+    "Insall the given packs.
+
+  If all installed successfully, return t, else return nil"
+    (if (not packs)
+        (require-pack pack)
+      (push pack packs)
+      (let ((all-installed t))
+        (dolist (cur-pack packs)
+          (setq all-installed (and all-installed (require-pack cur-pack))))
+        all-installed))
+    )
+
+  ;;----------------------------------------------------------------------------
+  ;; Set key binding
+  ;;----------------------------------------------------------------------------
+  (defvar arki/key-bindings '((global))
+    "Record customize key-bindings.")
+
+  (define-prefix-command 'arki/prefix-keymap)
+  (global-set-key (kbd "M-SPC") 'arki/prefix-keymap)
+
+  (defun arki/define-key (key command &optional keymap)
+    "Set key binding, and record the binding.
+  If keymap is not provided, will use global-set-key.
+  If keymap is provided, you should add quote before it."
+    (interactive)
+    (if keymap
+        (progn
+          (define-key (eval keymap) (kbd key) command)
+          (arki/alist-push-value arki/key-bindings keymap (list key command))
+          )
+      (global-set-key (kbd key) command)
+      (arki/alist-push-value arki/key-bindings 'global (list key command))
+      )
+    )
+
+  ;;----------------------------------------------------------------------------
+  ;; Delete the current file
+  ;;----------------------------------------------------------------------------
+  (defun arki/delete-this-file-and-buffer ()
+    "Delete the current file, and kill the buffer."
+    (interactive)
+    (unless (buffer-file-name)
+      (error "No file is currently being edited"))
+    (when (yes-or-no-p (format "Really delete '%s'?"
+                               (file-name-nondirectory buffer-file-name)))
+      (delete-file (buffer-file-name))
+      (kill-this-buffer)))
+
+  (arki/define-key "k" 'arki/delete-this-file-and-buffer 'arki/prefix-keymap)
+
+  ;;----------------------------------------------------------------------------
+  ;; Rename the current file
+  ;;----------------------------------------------------------------------------
+  (defun arki/rename-this-file-and-buffer (new-name)
+    "Rename both current buffer and file to NEW-NAME."
+    (interactive "sNew name: ")
+    (let ((name (buffer-name))
+          (filename (buffer-file-name)))
+      (unless filename
+        (error "Buffer '%s' is not visiting a file!" name))
+      (progn
+        (when (file-exists-p filename)
+          (rename-file filename new-name 1))
+        (set-visited-file-name new-name)
+        (rename-buffer new-name))))
+
+  (arki/define-key "r" 'arki/rename-this-file-and-buffer 'arki/prefix-keymap)
+
+  ;;----------------------------------------------------------------------------
+  ;; 快速打开配置文件
+  ;;----------------------------------------------------------------------------
+  (defun arki/open-init-file()
+    "Open init file.
+
+  The file is named init.el under `user-emacs-directory'."
+    (interactive)
+    (find-file (expand-file-name "init.el" user-emacs-directory)))
+
+  (defun arki/open-alias()
+    "Open alias files.
+
+  If the alias is defined, open it.
+  Else, define it now, then open it."
+    (interactive)
+    ;; TODO
+    )
+
+
+  ;; (arki/define-key "<f2>" 'arki/open-init-file)
+
+
+  ;;----------------------------------------------------------------------------
+  ;; 根据需要以sudo打开文件
+  ;;----------------------------------------------------------------------------
+  (defun arki/sudo-open-file()
+    "Open file with sudo privilege"
+    (interactive)
+    (if (memq system-type '(cygwin darwin gnu gnu/linux))
+        (let* ((cur-file (buffer-file-name))
+               (file-path (ido-read-file-name "Sudo open: " nil (buffer-file-name))))
+          (find-file (concat "/sudo::" file-path))
+          )
+      (message "Can't execute sudo for system: [%s]" system-type)
+      )
+    )
+
+
+  ;;----------------------------------------------------------------------------
+  ;; 调整buffer中的缩进
+  ;;----------------------------------------------------------------------------
+  (defun arki/indent-region-or-buffer()
+    "Indent the region if selected, otherwise the whole buffer."
+    (interactive)
+    (save-excursion
+      (if (region-active-p)
+          (progn
+            (indent-region (region-beginning) (region-end))
+            (message "Region indented."))
+        (progn
+          (indent-region (point-min) (point-max))
+          (message "Buffer indented.")))))
+
+  (arki/define-key "C-M-\\" 'arki/indent-region-or-buffer)
+
+  ;;----------------------------------------------------------------------------
+  ;; 复制或剪切当前行
+  ;;----------------------------------------------------------------------------
+  (defun arki/copy-or-kill-current-line (arg)
+    "If arg equals 4, kill.
+  Else copy."
+    (interactive "p")
+    (save-mark-and-excursion
+      (if (= arg 4)
+          (progn
+            (kill-region (line-beginning-position) (line-end-position))
+            (message "Current line killed."))
+        (kill-ring-save (line-beginning-position) (line-end-position))
+        (message "Current line copied."))))
+
+  (arki/define-key "l" 'arki/copy-or-kill-current-line 'arki/prefix-keymap)
+
+  ;;----------------------------------------------------------------------------
+  ;; 将多行的段落合并成一行
+  ;;----------------------------------------------------------------------------
+  ;; https://stackoverflow.com/questions/6707758/inverse-of-m-q-an-unfill-paragraph-function
+  (defun arki/unfill-paragraph (&optional region)
+    "Takes a multi-line paragraph and makes it into a single line of text."
+    (interactive (progn (barf-if-buffer-read-only) '(t)))
+    (let ((fill-column (point-max))
+          ;; This would override `fill-column' if it's an integer.
+          (emacs-lisp-docstring-fill-column t))
+      (fill-paragraph nil region)))
+
+  ;; 将多行的段落合并成一行
+  (arki/define-key "M-Q" 'arki/unfill-paragraph)
+
+  
+  ;;----------------------------------------------------------------------------
+  ;; Site lisp utils
+  ;;----------------------------------------------------------------------------
+  ;; Learnt from purcel's config.
+  ;; https://github.com/purcell/emacs.d
+
+
+  ;; It seems only need to add site-lisp root dir to load-path, so comment this function out.
+  ;; But it turns out that I'm wrong. If not append the subdir path to load path,
+  ;; the el file in it won't compile successfully.
+  ;; Now I add this logic into require-pack-local, only add the subdir which is needed.
+
+  ;; (defun arki/add-subdirs-to-load-path (parent-dir)
+  ;;   "Add every non-hidden subdir of PARENT-DIR to `load-path'."
+  ;;   (let ((default-directory parent-dir))
+  ;;     (dolist (cur-dir (directory-files (expand-file-name user-emacs-directory) t "^[^\\.]"))
+  ;;       (when (file-directory-p cur-dir)
+  ;; 	(setq load-path (append (list cur-dir) load-path))))))
+
+
+  ;; Utilities for grabbing upstream libs
+  (defun arki/site-lisp-dir-for (name)
+    (expand-file-name (symbol-name name) arki/site-lisp-dir))
+
+
+  (defun arki/site-lisp-library-el-path (name)
+    "Locate el file path in site lisp directory.
+
+  First search file in `arki/site-lisp-dir', if not found here, give the path in subdir."
+    (let* ((el-name (format "%s.el" name))
+           (first-file (expand-file-name el-name arki/site-lisp-dir)))
+      (if (file-exists-p first-file)
+          first-file
+        (expand-file-name el-name (arki/site-lisp-dir-for name)))))
+
+
+  (defun arki/download-site-lisp-el-file (name url)
+    "Dowload el file from url.
+
+  Return file path if success, else return nil."
+    (let* ((dir (arki/site-lisp-dir-for name))
+           (dir-exists (file-directory-p dir)))
+      (message "Downloading %s from %s" name url)
+      (unless dir-exists (make-directory dir t))
+      (let ((el-file (arki/site-lisp-library-el-path name)))
+        (condition-case err (progn
+                              (url-copy-file url el-file t nil)
+                              el-file)
+          (error
+           (warn "Failed to download %s! ERROR: %S" name err)
+           (unless dir-exists (delete-directory dir t))
+           nil)))))
+
+
+  (defun site-lisp-library-loadable-p (name)
+    "Return whether or not the library `name' can be loaded from a
+  source file under `arki/site-lisp-dir'"
+    (file-exists-p (arki/site-lisp-library-el-path name)))
+
+
+  (defun require-pack-local (name &optional ensure url)
+    "Install package from url.
+
+  TODO: Need to add feature: 
+  1. Need to support the case: url is a git repo.
+  2. In the case el file's name is different from its dir: need to specify the target dir, and load specific el file. 
+  2. The switch to skip compile stage.
+
+
+  If it's already downloaded before, compile it if necessary, then require it.
+  If not found, download it if `ensure' is t, otherwise ignore this package."
+    (if (site-lisp-library-loadable-p name)
+        (let ((el-file (arki/site-lisp-library-el-path name)))
+          ;; Add this file's parent dir to load-path, to avoid compiling error.
+          (add-to-list 'load-path (file-name-directory el-file))
+          ;; Compile this el file if it hasn't been compiled.
+          (if (file-exists-p (byte-compile-dest-file el-file))
+              (load (byte-compile-dest-file el-file))
+            (message "Compile file: " el-file)
+            (byte-compile-file el-file t)))
+      (if ensure
+          (if url
+              (progn (message "Local package not found: %s, download now." name)
+                     (if (arki/download-site-lisp-el-file name url)
+                         (require-pack-local name)
+                       (warn "Require local pack failed for %s" name)
+                       nil))
+            (warn "Local package not found: %s, and no download url is provided!" name)
+            nil)
+        (message "Local package is not found: %s, ignore it." name)
+        nil)))
+#+end_src
+* Setup extra packages or features
+** Set melpa and mirror
+#+begin_src emacs-lisp :tangle yes
+  (setq package-archives '(("gnu"   . "https://elpa.emacs-china.org/gnu/")
+                           ("melpa" . "https://elpa.emacs-china.org/melpa/")))
+
+  ;; Import new GNU ELPA keys (if any) into package.el’s keyring.
+  (require-pack 'gnu-elpa-keyring-update)
+#+end_src
+** better-defaults
+#+begin_src emacs-lisp :tangle yes
+  ;; 设置utf-8为默认编码格式
+  (set-language-environment "UTF-8")
+
+  ;; 取消滚动到底部的报警声
+  (setq ring-bell-function 'ignore)
+
+  ;; Enable truncate lines
+  (setq-default truncate-lines t)
+
+  ;; 禁止 Emacs 自动生成备份文件
+  (setq make-backup-files nil)
+
+  ;; 禁止默认的自动保存
+  (setq auto-save-default nil)
+
+  ;; 保存桌面布局
+  (desktop-save-mode -1)
+
+  ;; 自动加载修改过的文件
+  (global-auto-revert-mode t)
+
+  ;; 记录最近打开过的文件
+  ;; (require 'recentf)
+  (recentf-mode 1)
+  (setq recentf-max-menu-item 300)
+
+  ;; Comment this keybinding. Use dashboard instead.
+  ;; (arki/define-key "o" 'recentf-open-files 'arki/prefix-keymap)
+
+  ;; Bookmarks
+  (setq bookmark-default-file (expand-file-name "bookmarks" arki/cache-dir))
+  (setq bookmark-save-flag 1)
+
+  ;; Less typing when emacs asks yes or no
+  (fset 'yes-or-no-p 'y-or-n-p)
+
+  ;; Enable function
+  (put 'narrow-to-region 'disabled nil)
+  (put 'narrow-to-page 'disabled nil)
+
+#+end_src
+** ease-editor
+#+begin_src emacs-lisp :tangle yes
+  ;; --------------------------------------------------NAVIGATION--------------------------------------------------
+  ;; Config editor navigation
+
+  ;; ;; https://github.com/winterTTr/ace-jump-mode
+  ;; ;; https://www.emacswiki.org/emacs/AceJump
+  ;; (when (require-pack 'ace-jump-mode)
+  ;;   (arki/define-key "C-c SPC" 'ace-jump-mode)
+  ;;   (eval-after-load "ace-jump-mode"
+  ;;     '(ace-jump-mode-enable-mark-sync))
+  ;;   (arki/define-key "C-x SPC" 'ace-jump-mode-pop-mark))
+
+  ;; https://github.com/abo-abo/avy
+  (when (require-pack 'avy)
+    (arki/define-key "C-s" 'avy-goto-char-timer)
+    (setq avy-timeout-seconds 0.6)
+    (with-eval-after-load "isearch"
+      (arki/define-key "C-'" 'avy-isearch 'isearch-mode-map))
+    ;; (global-set-key (kbd "C-:") 'avy-goto-char)
+    ;; (global-set-key (kbd "C-'") 'avy-goto-char-2)
+    ;; (global-set-key (kbd "M-g f") 'avy-goto-line)
+    ;; (global-set-key (kbd "M-g w") 'avy-goto-word-1)
+    ;; (global-set-key (kbd "M-g e") 'avy-goto-word-0)
+    )
+
+  ;; Move current line or region with M-up or M-down.
+  (when (require-pack 'move-text)
+    ;; 配置move-text. Use default bindings for move-text-up and move-text-down (M-up / M-down).
+    ;; (move-text-default-bindings)
+    (arki/define-key "M-<down>" 'move-text-down)
+    (arki/define-key "M-<up>"   'move-text-up)
+    )
+
+  ;; https://github.com/magnars/expand-region.el
+  (when (require-pack 'expand-region)
+    (arki/define-key "C-=" 'er/expand-region)
+    (arki/define-key "C-+" 'er/contract-region))
+
+
+  ;; --------------------------------------------------EDIT TEXT--------------------------------------------------
+  ;; 选中一段文字之后输入一个字符会替换掉你选中部分的文字
+  (delete-selection-mode 1)
+
+  ;; 缩进不使用TAB
+  ;; Indentation can insert tabs if this is non-nil. Default is t.
+  (setq-default indent-tabs-mode nil)
+  ;; Distance between tab stops (for display of tab characters), in columns. Default is 8.
+  (setq-default tab-width 4)
+
+  (when (require-pack 'hungry-delete)
+    ;; 启用hungry-delete
+    (global-hungry-delete-mode)
+    )
+
+  (put 'upcase-region 'disabled nil)
+
+  ;; browse-kill-ring
+  ;; https://github.com/browse-kill-ring/browse-kill-ring
+  (when (require-pack 'browse-kill-ring)
+    (browse-kill-ring-default-keybindings)
+    (setq browse-kill-ring-highlight-inserted-item t)
+    (setq browse-kill-ring-highlight-current-entry t)
+    (setq browse-kill-ring-show-preview nil))
+
+  ;; bbyac
+  ;; https://github.com/baohaojun/bbyac
+  (when (require-pack 'browse-kill-ring)
+    (when (require-pack 'bbyac)
+      ;; Type a little bit and press M-g <return> to complete a word or M-s <return> to complete an arbitrary string.
+      (bbyac-global-mode 1)))
+
+  ;; Multiple cursors
+  (when (require-pack 'multiple-cursors)
+    (arki/define-key "C-S-c C-S-c" 'mc/edit-lines)
+    (arki/define-key "C->" 'mc/mark-next-like-this)
+    (arki/define-key "C-<" 'mc/mark-previous-like-this)
+    (arki/define-key "C-c C-<" 'mc/mark-all-like-this)
+    (arki/define-key "C-S-<mouse-1>" 'mc/add-cursor-on-click)
+    (when (featurep 'hungry-delete)
+      (when (boundp 'mc/cmds-to-run-for-all)
+        (add-to-list 'mc/cmds-to-run-for-all 'hungry-delete-backward)
+        (add-to-list 'mc/cmds-to-run-for-all 'hungry-delete-forward)))
+    )
+
+  ;; --------------------------------------------------SHOW OUTLINE--------------------------------------------------
+
+  ;; https://github.com/bmag/imenu-list
+  (when (require-pack 'imenu-list)
+    (add-hook 'markdown-mode-hook
+              (lambda ()
+                (arki/define-key "C-'" #'imenu-list-smart-toggle 'markdown-mode-map)
+                ))
+    (add-hook 'org-mode-hook
+              (lambda ()
+                (arki/define-key "C-'" #'imenu-list-smart-toggle 'org-mode-map)
+                ))
+    (setq imenu-list-position 'left)
+    (setq imenu-list-size 36)
+    (setq imenu-list-focus-after-activation nil)
+    (setq imenu-list-auto-resize nil)
+    (setq imenu-list-after-jump-hook nil)
+    (add-hook 'imenu-list-after-jump-hook (lambda () (recenter-top-bottom 0)))
+    )
+
+#+end_src
+** dired
+#+begin_src emacs-lisp :tangle yes
+  ;; https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
+  ;; https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
+  ;; (add-hook 'dired-mode-hook
+
+  (with-eval-after-load 'dired
+
+    ;; https://github.com/purcell/diredfl
+    ;; This is adapted from the extra font lock rules provided by Drew Adams' `dired+' package
+    (when (require-pack 'diredfl)
+      (add-hook 'dired-mode-hook 'diredfl-mode))
+  
+    ;; Dired config
+    (setq dired-recursive-deletes 'always)	;Always delete recursively
+    (setq dired-recursive-copies 'always)	;Always copy recursively
+    ;; Reuse dired buffers. https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer
+    (put 'dired-find-alternate-file 'disabled nil)
+    (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
+    (arki/define-key "^"
+                     (lambda () (interactive) (find-alternate-file ".."))
+                     'dired-mode-map)
+    ;; https://emacs.stackexchange.com/questions/33548/how-show-size-in-kb-in-dired-mode
+    (setq dired-listing-switches "-alh")
+    ;; https://emacs.stackexchange.com/questions/36317/dired-first-show-list-of-folders
+    ;; 加这个选项在wsl2 中没有反应：--group-directories-first
+    ;; 在windows 环境可以用这个： (setq ls-lisp-dirs-first t)
+
+    ;; (require 'dired-x) ;; Enable <C-x C-j> to open current file's directory
+    (setq dired-dwim-target t) 		;当一个frame中存在多个window时，将下一个分屏自动设置成拷贝地址的目标
+  
+    (when (memq system-type '(gnu gnu/linux gnu/kfreebsd cygwin))
+      ;; https://gitlab.com/xuhdev/dired-quick-sort#dired-quick-sort
+      (when (require-pack 'dired-quick-sort)
+        (dired-quick-sort-setup)
+        (arki/define-key "S" 'hydra-dired-quick-sort/body 'dired-mode-map)
+        )
+      )
+    )
+
+#+end_src
+** ui
+#+begin_src emacs-lisp :tangle yes
+  ;; Config theme
+  ;; Favorite themes: monokai-theme solarized-theme gruvbox-theme
+
+  ;; https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el
+  (when (require-pack 'doom-themes)
+    ;; (load-theme 'doom-dark+)
+    ;; (load-theme 'doom-molokai t)
+    (load-theme 'doom-one t)		; doom-one-light
+    (setq doom-themes-enable-bold t)
+    (setq doom-themes-enable-italic t)
+    (setq doom-themes-treemacs-theme "doom-colors")
+    (doom-themes-treemacs-config)
+    (doom-themes-org-config)
+    ;; https://github.com/domtronn/all-the-icons.el/
+    ;; 需要安装字体文件：M-x all-the-icons-install-fonts
+    (require-pack 'all-the-icons)
+    )
+
+  ;; 高亮显示当前行
+  ;; (global-hl-line-mode 1)
+  ;; 使用beacon替代
+  ;; https://github.com/Malabarba/beacon
+  (when (require-pack 'beacon)
+    (beacon-mode 1)
+    (custom-set-variables
+     '(beacon-color "#CD5C5C")
+     '(beacon-size 25)
+     '(beacon-blink-delay 0.3)		;Time, in seconds, before starting to fade the beacon.
+     '(beacon-blink-duration 0.3)		;Time, in seconds, that the blink should last.
+     '(beacon-blink-when-point-moves-horizontally 12)
+     '(beacon-blink-when-point-moves-vertically 2))
+    )
+
+  ;; A simple visible bell which works in all terminal types
+  ;; https://github.com/purcell/mode-line-bell
+  (when (require-pack 'mode-line-bell)
+    (add-hook 'after-init-hook 'mode-line-bell-mode)
+    )
+
+  ;; Set mouse-color
+  (when (equal window-system 'x)
+    (if (equal (frame-parameter nil 'background-mode) 'light)
+        (set-frame-parameter nil 'mouse-color "black")
+      (set-frame-parameter nil 'mouse-color "white")
+      ))
+
+  ;; (when (require-pack 'on-screen)
+  ;;   (on-screen-global-mode +1))
+
+  ;; Set cursor type to box or bar
+  (setq-default cursor-type 'bar)  	;Doesn't take effect by: (setq cursor-type 'bar)
+
+  ;; https://github.com/seagle0128/doom-modeline
+  (when (require-pack 'doom-modeline)
+    (add-hook 'after-init-hook #'doom-modeline-mode))
+
+  ;; 关闭启动帮助画面
+  (setq inhibit-splash-screen 1)
+
+  ;; 关闭工具栏，tool-bar-mode 即为一个 Minor Mode
+  (tool-bar-mode 'toggle)
+  ;; 关闭菜单栏
+  (menu-bar-mode 'toggle)
+
+  ;; 全屏显示
+  ;; (setq initial-frame-alist (quote ((fullscreen . maximized))))
+  (toggle-frame-maximized)
+  ;; (toggle-frame-fullscreen)
+
+  ;; 关闭文件滑动控件
+  (scroll-bar-mode 'toggle)
+
+  ;; 显示行号 仅当编程模式时候
+  (add-hook 'prog-mode-hook
+            (lambda nil
+              (if (version<= "26.0.50" emacs-version )
+                  (display-line-numbers-mode)
+                (linum-mode 1)))
+            )
+
+  ;; 在最下面显示光标在行中的位置
+  (column-number-mode 1)
+
+#+end_src
+** env
+#+begin_src emacs-lisp :tangle yes
+
+  ;; let emacs could find the executable
+  (when (memq window-system '(mac ns))
+    (when (require-pack 'exec-path-from-shell)
+      (exec-path-from-shell-initialize))
+    )
+
+#+end_src
+** dashboard
+#+begin_src emacs-lisp :tangle yes
+
+  ;; https://github.com/emacs-dashboard/emacs-dashboard
+  (when (require-pack 'dashboard)
+    ;; (dashboard-setup-startup-hook)
+    (arki/define-key "o" 'dashboard-refresh-buffer 'arki/prefix-keymap)
+    (setq dashboard-startup-banner nil) ;'official
+    (when dashboard-startup-banner
+      (setq dashboard-banner-logo-title "Nice day, isn't it?"))
+    (setq dashboard-center-content t)
+    (setq dashboard-items '((bookmarks . 25)
+                            (projects . 25)
+                            (registers . 25)
+                            (recents . 50)
+                            ))
+    (setq dashboard-show-shortcuts t)
+    (setq dashboard-set-file-icons t)
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-footer nil)
+    )
+
+#+end_src
+** screensaver
+#+begin_src emacs-lisp :tangle yes
+  (require 'zone)
+  (require 'color)
+  (require 'cl-lib)
+
+  (defgroup zone-timer nil
+    "Zone out with timer."
+    :group 'games)
+  ;; Rainbow effect learnt from: https://github.com/kawabata/zone-rainbow
+  (defcustom zone-timer-rainbow-hue-factor 50 "Hue factor." :group 'zone-timer)
+  (defcustom zone-timer-rainbow-sat 1.0 "Saturation." :group 'zone-timer)
+  (defcustom zone-timer-rainbow-light 0.5 "Light." :group 'zone-timer)
+  (defcustom zone-timer-rainbow-background nil "If not nil, Background color." :group 'zone-timer)
+  (defcustom zone-timer-interval 10 "Interval (in seconds) to show the new time." :group 'zone-timer)
+  (defcustom zone-timer-rainbow-enable t "Whether to enable rainbow effect. t: enable. nil: disable." :group 'zone-timer)
+  (defcustom zone-timer-format-string "%Y-%m-%d %k:%M:%S" "Used to format time. See: `format-time-string'" :group 'zone-timer)
+  (defcustom zone-timer-start-column -1 "The start column number from where to print time. -1 means the middle of window." :group 'zone-timer)
+  (defun zone-pgm-timer ()
+    "Show current time."
+    (delete-other-windows)
+    (let* ((start-column (if (= zone-timer-start-column -1)
+                             (- (/ (window-width) 2) (/ (length (format-time-string zone-timer-format-string)) 2))
+                           zone-timer-start-column
+                           )
+                         )
+           (start-time (current-time))
+           (pre-time start-time)
+           (pre-second (nth 1 pre-time))
+           (k 0))
+
+      (when (not (input-pending-p))
+        (delete-region (point-min) (point-max))
+        (insert (concat (make-string start-column (string-to-char " ")) (format-time-string zone-timer-format-string start-time)))
+        (newline) (sit-for 0.1))
+      ;; 渲染流动彩色
+      (while (not (input-pending-p))
+        ;; 更新时间
+        (let* ((cur-time (current-time))
+               (cur-second (nth 1 cur-time)))
+          (when (> cur-second pre-second)	; 需要更新秒
+            (delete-region (line-beginning-position) (line-end-position))
+            (insert (concat (make-string start-column (string-to-char " ")) (format-time-string zone-timer-format-string cur-time)))
+            (setq pre-second cur-second)
+            (sit-for 0.01)
+            (when (>= (- cur-second (nth 1 pre-time)) zone-timer-interval) ; 需要更新时间间隔
+              (if (< (line-number-at-pos) (- (window-height) 3)) ;判断是不是最后一行，是最后一行的话需要跳到开始
+                  (newline)
+                (delete-region (point-min) (point-max)))
+              (setq pre-time cur-time))
+            )
+
+          ;; 渲染单帧彩色
+          (when (and zone-timer-rainbow-enable (window-system))
+            (cl-loop
+             for i from (window-start) to (1- (window-end)) do
+             (add-text-properties
+              i (1+ i)
+              `(face ((foreground-color
+                       . ,(apply 'color-rgb-to-hex
+                                 (color-hsl-to-rgb
+                                  (/ (* (% (+ i k) zone-timer-rainbow-hue-factor) 1.0)
+                                     zone-timer-rainbow-hue-factor)
+                                  zone-timer-rainbow-sat zone-timer-rainbow-light)))
+                      ,@(when zone-timer-rainbow-background
+                          `((background-color
+                             . ,zone-timer-rainbow-background)))))))
+            (cl-incf k))
+          (sit-for 0.1)))))
+
+
+  ;;;###autoload
+  (defun zone-timer ()
+    "Zone out with rainbow."
+    (interactive)
+    (let ((zone-programs [zone-pgm-timer])
+          (zone-timer-interval 5))
+      (zone)))
+
+
+  ;; 启用zone
+  (zone-when-idle 300)
+  (setq zone-programs [zone-pgm-timer])
+  (setq zone-timer-interval 600)
+  (setq zone-timer-rainbow-enable t)
+
+#+end_src
+** which-key
+#+begin_src emacs-lisp :tangle yes
+  ;; https://github.com/justbur/emacs-which-key
+  (when (require-pack 'which-key)
+    ;; Allow C-h to trigger which-key before it is done automatically
+    (setq which-key-show-early-on-C-h t)
+    ;; make sure which-key doesn't show normally but refreshes quickly after it is triggered.
+    (setq which-key-idle-delay 0.6)
+    (setq which-key-idle-secondary-delay 0.05)
+    (which-key-mode)
+    ;; Supported types are minibuffer, side-window, frame, and custom.
+    (setq which-key-popup-type 'side-window)
+
+    ;; location of which-key window. valid values: top, bottom, left, right, or a list of any of the two.
+    (setq which-key-side-window-location 'bottom)
+    ;; max width of which-key window, when displayed at left or right.
+    (setq which-key-side-window-max-width 60)
+    ;; max height of which-key window, when displayed at top or bottom.
+    (setq which-key-side-window-max-height 10)
+    )
+
+#+end_src
+** auto-complete
+#+begin_src emacs-lisp :tangle yes
+  ;; Input completion -- Completion of your input in the minibuffer. (See also Minibuffer Completion in the manual.)
+  (ido-mode t)
+  (setq ido-enable-flex-matching t)
+
+
+  ;; https://github.com/joaotavora/yasnippet
+  (when (require-pack 'yasnippet)
+    (yas-global-mode 1)
+    ;; https://github.com/AndreaCrotti/yasnippet-snippets
+    (require-pack 'yasnippet-snippets)
+    )
+
+
+  ;; Config company
+
+  ;; https://www.youtube.com/watch?v=zSPraaX2524
+  ;; https://github.com/tonyaldon/emacs.d/blob/master/settings/settings/setup-completion.el
+
+  ;; https://www.youtube.com/watch?v=oyockkWcHp0
+  ;; https://github.com/jerryhsieh/Emacs-config/blob/company/init.el
+  (when (require-pack 'company)
+    ;; 开启全局 Company 补全
+    (global-company-mode 1)
+
+    (setq company-idle-delay 0.1)
+    (make-variable-buffer-local 'company-idle-delay)
+  
+    (setq company-selection-wrap-around t)
+    (setq company-tooltip-limit 9)
+    (arki/define-key ">" 'company-filter-candidates 'company-active-map)
+
+
+    ;; change C-n C-p
+    (with-eval-after-load 'company
+      (arki/define-key "C-n" 'company-select-next 'company-active-map)
+      (arki/define-key "C-p" 'company-select-previous 'company-active-map)
+      (arki/define-key "M-n" nil 'company-active-map)
+      (arki/define-key "M-p" nil 'company-active-map))
+
+
+    (setq company-minimum-prefix-length 1)
+    (make-variable-buffer-local 'company-minimum-prefix-length)
+
+    ;; company-yasnippet must work with yasnippet and yasnippet-snippets
+    (setq company-backends
+          '((company-files company-keywords company-capf company-yasnippet)
+            (company-abbrev company-dabbrev)))
+    ;; (make-variable-buffer-local 'company-backends)
+  
+    ;; (setq company-transformers '(company-sort-by-backend-importance))
+
+    (defun company-emacs-lisp-mode()
+      "Set up `company-mode'  for `emacs-lisp-model'."
+      (set (make-local-variable 'company-backends)
+           '((company-yasnippet
+              company-elisp
+              company-dabbrev-code
+              company-files))))
+    (add-hook 'emacs-lisp-mode-hook 'company-emacs-lisp-mode)
+
+    (defun company-text-mode ()
+      "Set up `company-mode' for `text-mode'."
+      (set (make-local-variable 'company-backends)
+           '((company-files company-yasnippet) company-dabbrev))
+      (setq company-minimum-prefix-length 2))
+    (add-hook 'text-mode-hook 'company-text-mode)
+
+    (defun company-shell-mode ()
+      "Set up `company-mode' for `shell-mode'"
+      (message "SHELL mode company")
+      (set (make-local-variable 'company-backends)
+           '((company-files company-yasnippet)))
+      (setq company-minimum-prefix-length 1)
+      (setq company-idle-delay 0.1))
+    (add-hook 'shell-mode-hook 'company-shell-mode)
+    )
+
+
+  ;; ;; 调整hippie-expand调用的自动补全功能顺序
+  ;; (setq hippie-expand-try-functions-list '(
+  ;; 					 try-expand-dabbrev
+  ;; 					 try-expand-dabbrev-all-buffers
+  ;; 					 try-expand-dabbrev-from-kill
+  ;; 					 try-complete-file-name-partially
+  ;; 					 try-complete-file-name
+  ;; 					 try-expand-all-abbrevs
+  ;; 					 try-expand-list
+  ;; 					 try-expand-line
+  ;; 					 try-complete-lisp-symbol-partially
+  ;; 					 try-complete-lisp-symbol))
+  ;; ;; 使用hippie-expand增强自动补全
+  ;; (arki/define-key "M-RET" 'hippie-expand)
+
+
+  ;; 配置swiper
+  (when (require-pack 'swiper)
+    ;; (ivy-mode 1)
+    ;; ;; minibuffer 里面的 M-i 绑定 与输入法的冲突了，解绑掉
+    ;; (arki/define-key "M-i" nil 'ivy-minibuffer-map)
+    ;; (setq ivy-use-virtual-buffers nil) ;I dont't need virtual buffer for now, so commented out.
+    ;; (setq enable-recursive-minibuffers nil)
+  
+    ;; enable this if you want `swiper' to use it
+    ;; (setq search-default-mode #'char-fold-to-regexp)
+    (setq search-default-mode t)
+    (arki/define-key "C-S-s" 'swiper)
+
+    )
+
+  (when (require-pack 'counsel)
+    ;; 配置counsel
+    (arki/define-key "M-x" 'counsel-M-x)
+    ;; (arki/define-key "C-x C-f" 'counsel-find-file)
+    ;; (arki/define-key "C-h f" 'counsel-describe-function)
+    ;; (arki/define-key "C-h v" 'counsel-describe-variable)
+    ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
+    )
+
+
+#+end_src
+** elisp
+#+begin_src emacs-lisp :tangle yes
+  ;; 在emacs-lisp模式下括号高亮匹配
+  (when (require-pack 'smartparens)
+    ;; 配置smartparens
+    (add-hook 'emacs-lisp-mode-hook 'smartparens-mode) ;在emacs-lisp-mode模式时加载smartparens
+    ;; (smartparens-global-mode t) ;所有模式都加载smartparens
+    )
+  ;; 将函数扩展为光标不在括号上也能显示两侧的括号
+  (define-advice show-paren-function (:around (fn) fix-show-paren-function)
+    "Highlight enclosing parens."
+    (cond ((looking-at-p "\\s(") (funcall fn))
+          (t (save-excursion
+               (ignore-errors (backward-up-list))
+               (funcall fn)))))
+  ;; 激活show-paren-mode
+  (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
+
+  ;; Find elisp source code.
+  (arki/define-key "C-h C-f" 'find-function)
+  (arki/define-key "C-h C-f" 'find-function)
+  (arki/define-key "C-h C-v" 'find-variable)
+  (arki/define-key "C-h C-k" 'find-function-on-key)
+
+
+#+end_src
+** org
+#+begin_src emacs-lisp :tangle yes
+  (require 'org)
+
+  ;; org-mode needs this
+  (require-pack 'htmlize)
+  (require-pack 'org-preview-html)
+
+  ;; https://github.com/integral-dw/org-superstar-mode
+  (when (require-pack 'org-superstar)
+    (add-hook 'org-mode-hook 'org-superstar-mode)
+    (with-eval-after-load "org-superstar"
+      (setq org-superstar-headline-bullets-list '("☰" "☱" "☲" "☳" "☴" "☵" "☶" "☷")))
+    )
+
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (org-content 3)
+	        
+              ;; Config view options
+              (setq line-spacing 0.1)
+              (setq org-src-fontily-natively t)
+              (org-indent-mode 1)
+	        
+              ;; Config markup
+              (setq org-hide-emphasis-markers t) ;显示斜体、加粗之类的字体
+              (setq org-pretty-entities t)       ;显示上坡线指出的希腊字母、箭头图像之类的字符
+              (setq org-pretty-entities-include-sub-superscripts t) ;显示下角标、上角标
+              ;; When setting this variable to {}, ‘a_b’ is not interpreted as a subscript, but ‘a_{b}’ is
+              (setq org-use-sub-superscripts '{})			  ;限定_或者^后面跟着{}时候才使用上角标、下角标
+              ;; Add markup to text that spans more than two consecutive lines
+              ;; https://emacs.stackexchange.com/questions/13820/inline-verbatim-and-code-with-quotes-in-org-mode/13828#13828
+              ;; Default value of org-emphasis-regexp-components: ("-[:space:]('\"{" "-[:space:].,:!?;'\")}\\[" "[:space:]" "." 1)
+              (setcar (nthcdr 4 org-emphasis-regexp-components) 3)
+              (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
+
+              ;; Config export options
+              (setq org-export-with-sub-superscripts '{})		  ;设置导出时候，限定_或者^后面跟着{}时候才渲染上角标、下角标
+              (setq org-export-with-emphasis t)			  ;设置导出时候，渲染斜体、加粗之类的字体
+
+              ;; Config agenda related
+              (setq org-log-done 'time)
+              (setq org-log-done-with-time t)
+	        
+              ))
+  
+  ;; Config org todos
+  (with-eval-after-load 'org
+    ;; Set keywords. Need to invoke org-mode-restart after set.
+    (setq org-todo-keywords
+          '((sequence "TODO(1!)" "READY(2!)" "DOING(3!)" "STUCK(4@)" "PAUSE(4!)" "|" "DONE(5!)")
+            (sequence "|" "CANCELED(0@/!)")))
+    ;; Insert "CLOSED: [timestamp]" when entering DONE states.
+    (setq org-log-done 'time)
+    ;; Keep the line when remove todo keywords
+    (setq org-closed-keep-when-no-todo t)
+    ;; Set todo keywords faces
+    (setq org-todo-keyword-faces
+          '(("READY" . "green") ("STUCK" . "red") ("PAUSE" . (:underline t))
+            ("CANCELLED" . (:foreground "gray" :weigth bold))))
+    ;; Tracking todo state changes
+    (setq org-log-into-drawer "LOGBOOK")
+    ;; Set priorities to A-E
+    (setq org-priority-highest 65 org-priority-default 67 org-priority-lowest 69)
+    )
+
+  
+  ;; Config org agenda
+  (with-eval-after-load 'org
+    (setq org-agenda-time-grid (quote ((daily today require-timed)
+                                       (800
+                                        1000
+                                        1200
+                                        1330
+                                        1530
+                                        1730
+                                        1930
+                                        2100)
+                                       " ..."
+                                       " ...................................."
+                                       )))
+    )
+
+  
+  ;; Config org-capture
+
+
+  (defgroup arki/org nil
+    "Org mode config variables."
+    :group 'arki/config)
+
+
+  (defcustom arki/org-capture-file-default "~/org/capture.org"
+    "The default file location for `org-capture'"
+    :group 'arki/org)
+
+  (defcustom arki/org-capture-file-thoughts "~/org/thoughts.org"
+    "File location for `org-capture', usage: record thoughts."
+    :group 'arki/org)
+
+
+  (defun init-org-capture ()
+    "Init org capture config."
+
+    (require 'org-capture)
+  
+    (setq org-default-notes-file arki/org-capture-file-default)
+  
+    (arki/define-key "a" 'org-agenda 'arki/prefix-keymap)
+    (arki/define-key "c" 'org-capture 'arki/prefix-keymap)
+    (add-to-list 'org-capture-templates
+                 '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
+                   "* %U - %^{heading}\n  %?"))
+  
+    )
+
+
+  (add-hook 'after-init-hook (lambda () (interactive) (init-org-capture)))
+
+  
+  ;; Config org image insertion
+  (with-eval-after-load 'org
+
+    ;; Config image view
+    ;; (setq org-image-actual-width (/ (display-pixel-width) 6))
+    (setq org-image-actual-width nil)
+    ;; TODO How to display image link like: [[./img.png][image-describe]]
+    (setq org-startup-with-inline-images t)
+  
+    (setq arki/org-insert-image--previous-dir nil)
+    (defun arki/org-insert-image ()
+      (interactive)
+      (let* ((file-path (buffer-file-name)))
+        (if file-path
+            (let* ((cur-dir (file-name-directory file-path))
+                   (dir-name (concat (file-name-nondirectory file-path) ".file"))
+                   (dir-path (expand-file-name dir-name cur-dir))
+                   ;; (origin-file (ido-read-file-name "Image location: " arki/org-insert-image--previous-dir))
+                   (origin-file (let* ((input-path (ido-read-file-name "Image location: " arki/org-insert-image--previous-dir))
+                                       (win2linux-path (arki/wsl-path-win2linux input-path)))
+                                  (when win2linux-path
+                                    (setq input-path win2linux-path))
+                                  (if (file-directory-p input-path)
+                                      (ido-read-file-name (concat "Select image in " win2linux-path " :") input-path)
+                                    input-path)))
+                   (img-name (file-name-nondirectory origin-file))
+                   (new-name (concat (read-from-minibuffer "Rename image: " (file-name-base img-name)) (file-name-extension img-name t)))
+                   (img-width (ido-completing-read "Image width in pixel: " (list "500" "origin" "300" "600") nil nil nil))
+                   (target-file (expand-file-name new-name dir-path))
+                   ;; (target-file-relative (concat (file-name-as-directory ".") (file-name-as-directory dir-name) new-name))
+                   (target-file-relative (concat (file-name-as-directory dir-name) new-name))
+                   )
+              ;; TODO Validate whether it's an image, using `image-file-name-regexp'.
+              ;; TODO Add support for download image from url.
+              (if (and (file-exists-p origin-file)
+                       (not (file-directory-p origin-file)))
+                  (progn
+                    (make-directory dir-path t)
+                    (copy-file origin-file target-file 1)
+                    (setq arki/org-insert-image--previous-dir (file-name-directory origin-file))
+                    (if (equal img-width "origin")
+                        (insert (format "[[file:%s]]" target-file-relative))
+                      (insert (format "#+ATTR_ORG: :width %s\n[[file:%s]]" img-width target-file-relative)))
+                    (org-display-inline-images t))
+                (message (concat "Failed! The input file not exists or is a directory: " origin-file))
+                )
+              )
+          (message "This buffer hasn't been saved. Can't decide target image path."))
+        )
+      )
+
+    (setq arki/org-insert-file--previous-dir nil)
+    (defun arki/org-insert-file ()
+      (interactive)
+      (let* ((file-path (buffer-file-name)))
+        (if file-path
+            (let* ((cur-dir (file-name-directory file-path))
+                   (dir-name (concat (file-name-nondirectory file-path) ".file"))
+                   (dir-path (expand-file-name dir-name cur-dir))
+                   (origin-file (let* ((input-path (ido-read-file-name "File location: " arki/org-insert-file--previous-dir))
+                                       (win2linux-path (arki/wsl-path-win2linux input-path)))
+                                  (when win2linux-path
+                                    (setq input-path win2linux-path))
+                                  (if (file-directory-p input-path)
+                                      (ido-read-file-name (concat "Select file in " win2linux-path " :") input-path)
+                                    input-path)))
+                   (file-name (file-name-nondirectory origin-file))
+                   (new-name (concat (read-from-minibuffer "Rename file: " (file-name-base file-name)) (file-name-extension file-name t)))
+                   (target-file (expand-file-name new-name dir-path))
+                   (target-file-relative (concat (file-name-as-directory dir-name) new-name)))
+              ;; TODO Add support for download file from url.
+              (if (and (file-exists-p origin-file)
+                       (not (file-directory-p origin-file)))
+                  (progn
+                    (make-directory dir-path t)
+                    (copy-file origin-file target-file 1)
+                    (setq arki/org-insert-file--previous-dir (file-name-directory origin-file))
+                    (insert (format "[[file:%s][%s]]" target-file-relative new-name)))
+                (message (concat "Failed! The input file not exists or is a directory: " origin-file))))
+          (message "This buffer hasn't been saved. Can't decide target image path."))))
+
+    (defun arki/org-delete-file-link()
+      "Delete the link at cursor, along with the associated file."
+      (interactive)
+      (let ((cur-file (buffer-file-name))
+            (cur-element (org-element-context)))
+        (if (and (equal (car cur-element) 'link)
+                 (file-exists-p cur-file))
+            (progn
+              (let* ((f-path (org-element-property :path cur-element))
+                     (f-path-abs (expand-file-name f-path (file-name-directory cur-file)))
+                     (begin (org-element-property :begin cur-element))
+                     (end (org-element-property :end cur-element)))
+                (if (file-regular-p f-path-abs)
+                    (when (yes-or-no-p (format "Delete file [%s] ?" f-path-abs))
+                      (message "Deleting file: %s" f-path-abs)
+                      (delete-file f-path-abs)
+                      (message "File deleted: %s" f-path-abs)
+                      (delete-region begin end))
+                  (message "Failed to delete file link: It's not a regular file: %s" f-path-abs))))
+          (message "Failed to delete file link: Not a link here or this buffer file not exists."))))
+
+
+    (defun arki/org-insert-file-link()
+      (interactive)
+
+      (message "Insert link: Image(i) File(f)     |     Delete file and link: (k)")
+      (set-transient-map
+       (let ((map (make-sparse-keymap)))
+         (define-key map (vector (list ?i))
+           (lambda () (interactive) (arki/org-insert-image)))
+         (define-key map (vector (list ?f))
+           (lambda () (interactive) (arki/org-insert-file)))
+         (define-key map (vector (list ?k))
+           (lambda () (interactive) (arki/org-delete-file-link)))
+         map)))
+
+    (arki/define-key "C-c i" 'arki/org-insert-file-link 'org-mode-map)
+  
+    )
+
+
+  
+  (when (display-graphic-p)
+    ;; https://github.com/abo-abo/org-download
+    (require-pack 'org-download)
+    ;; Drag-and-drop to `dired`
+    (add-hook 'dired-mode-hook 'org-download-enable))
+
+  ;; (setq org-agenda-files '("~/org"))
+  
+  ;; Config for latex formular
+  (when (require-pack 'auctex t)
+    (when (require-pack 'cdlatex)
+      (add-hook 'org-mode-hook 'turn-on-org-cdlatex))
+    )
+
+  
+  (require-pack 'org-ref)
+
+  
+  ;; Config org-roam
+  ;; (when (require-pack 'org-roam)
+  ;;   (org-roam-setup)
+  ;;   (arki/define-key "q" 'org-roam-buffer-display-dedicated 'arki/prefix-keymap)
+  ;;   (arki/define-key "C-c q" 'org-roam-node-insert 'org-mode-map)
+  ;;   (setq org-roam-v2-ack t) 		;Disable the warning about updating from v1 to v2.
+  ;;   )
+  
+  ;; Config org-web-tools
+  (when (require-pack 'org-web-tools))
+  
+#+end_src
+** project-tools
+#+begin_src emacs-lisp :tangle yes
+  ;; --------------------------------------------------PROJECT UTILS--------------------------------------------------
+  (when (require-pack 'magit)
+    ;; 配置magit
+    (arki/define-key "g" 'magit-status 'arki/prefix-keymap)
+    (defun arki/push-current-branch-to-all-remotes ()
+      (interactive)
+      (let* ((cur-branch (magit-get-current-branch))
+             ;; Avoid pushing to different remote branches.
+             ;; Or ensure pushing to the remote branch with the same name, create it if not exist.
+             ;; (remote-names (magit-list-remote-branch-names))
+             (remote-names (--map (concat it "/" cur-branch) (magit-list-remotes)))
+             ;; https://emacs.stackexchange.com/questions/9323/get-git-repo-root-directory-preferably-with-magit#comment13808_9324
+             (repo-path (magit-toplevel)) ; Or (vc-root-dir)
+             (success-push '())
+             (failed-push '()))
+        (if (not repo-path)
+            (message "Nothing to do. This is not a git repo.")
+          (when (yes-or-no-p (format "Repo %s: Push %s to %s?" repo-path cur-branch remote-names))
+            (dolist (remote-name remote-names)
+              (condition-case err (progn
+                                    (message "Repo %s: Pushing %s to %s" repo-path cur-branch remote-name)
+                                    (magit-git-push cur-branch remote-name nil)
+                                    (setq success-push (append success-push (list remote-name)))
+                                    )
+                (error
+                 (message "Failed to push %s to %s, due to ERROR: %S" cur-branch remote-name err)
+                 (setq failed-push (append failed-push (list remote-name))))
+                ))
+            (message "Repo %s: Push %s invoked. Success: %s Failed: %s. Wait magit to finish it." repo-path cur-branch success-push failed-push)
+            )
+          )))
+  
+    (arki/define-key "H" 'arki/push-current-branch-to-all-remotes 'magit-status-mode-map)
+    )
+
+
+  ;; https://github.com/Alexander-Miller/treemacs
+  (when (require-pack 'treemacs)
+    ;; Let treemacs become invisible to commands like ‘other-window’ or ‘evil-window-left’.
+    (setq treemacs-is-never-other-window nil)
+    ;; 打开treemmacs导航
+    (arki/define-key "C-<f2>" 'treemacs-select-window)
+    (arki/define-key "<f2>" 'treemacs)
+    )
+
+  (when (require-pack 'projectile)
+    (projectile-mode +1)
+    (arki/define-key "C-c p" 'projectile-command-map 'projectile-mode-map))
+
+  (when (require-packs 'treemacs 'projectile)
+    (require-pack 'treemacs-projectile))
+
+#+end_src
+** filetypes-support
+#+begin_src emacs-lisp :tangle yes
+  ;; CSV
+  (require-pack 'csv-mode)
+
+  ;; Markdown
+  ;; https://github.com/jrblevin/markdown-mode
+  (when (require-pack 'markdown-mode)
+    ;; 配置markdown-mode
+    ;; 调用markdown-live-preview报错markdown failed with exit code 1解决方案：(参考自https://emacs-china.org/t/markdown/11399)
+    ;; 安装pandoc，配置markdown-command指向pandoc。下载地址：https://pandoc.org/
+    (add-hook 'markdown-mode-hook
+              (lambda () (setq markdown-command "pandoc")
+                ;; M-p 与跳转 ace window 冲突了，禁用掉
+                (arki/define-key "M-p" nil 'markdown-mode-map))
+              )
+    )
+
+
+  ;; Json
+  ;; https://github.com/gongo/json-reformat
+  (require-pack 'json-reformat)
+
+  ;; Yaml
+  ;;
+  (require-pack 'yaml)
+
+  ;; Support epub ebooks
+  (when (require-pack 'nov)
+    (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+    )
+
+  ;; Support large files
+  ;; https://github.com/m00natic/vlfi
+  (when (require-pack 'vlf)
+    (custom-set-variables '(large-file-warning-threshold 20971520)
+                          '(vlf-batch-size 1048576) ; in bytes 1MB
+                          '(vlf-tune-step 1048576)
+                          '(vlf-tune-enabled nil))
+    (require 'vlf-setup))
+
+#+end_src
+** input-method
+#+begin_src emacs-lisp :tangle yes
+  (defgroup arki/input-method nil
+    "Input method config, only for read."
+    :group 'arki/config)
+
+
+  (defcustom arki/input-method-ciku (expand-file-name "ciku" arki/cache-dir) "Ciku directory for pyim." :group 'arki/input-method)
+
+  (setq arki/ziranma-scheme '(arki/ziranma-shuangpin
+                              :document "自然码双拼方案。"
+                              :class shuangpin
+                              :first-chars "abcdefghijklmnopqrstuvwxyz"
+                              :rest-chars "abcdefghijklmnopqrstuvwxyz"
+                              :prefer-trigger-chars nil
+                              :keymaps
+                              (("a" "a" "a")
+                               ("b" "b" "ou")
+                               ("c" "c" "iao")
+                               ("d" "d" "uang" "iang")
+                               ("e" "e" "e")
+                               ("f" "f" "en")
+                               ("g" "g" "eng")
+                               ("h" "h" "ang")
+                               ("i" "ch" "i")
+                               ("j" "j" "an")
+                               ("k" "k" "ao")
+                               ("l" "l" "ai")
+                               ("m" "m" "ian")
+                               ("n" "n" "in")
+                               ("o" "o" "uo" "o")
+                               ("p" "p" "un")
+                               ("q" "q" "iu")
+                               ("r" "r" "uan" "er")
+                               ("s" "s" "iong" "ong")
+                               ("t" "t" "ue" "ve")
+                               ("u" "sh" "u")
+                               ("v" "zh" "v" "ui")
+                               ("w" "w" "ia" "ua")
+                               ("x" "x" "ie")
+                               ("y" "y" "uai" "ing")
+                               ("z" "z" "ei")
+                               ("aa" "a")
+                               ("an" "an")
+                               ("ai" "ai")
+                               ("ao" "ao")
+                               ("ah" "ang")
+                               ("ee" "e")
+                               ("ei" "ei")
+                               ("en" "en")
+                               ("er" "er")
+                               ("eg" "eng")
+                               ("oo" "o")
+                               ("ou" "ou"))))
+
+  ;; https://github.com/tumashu/pyim
+  (when (require-pack 'pyim)
+    ;; (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
+    ;; (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
+    (setq default-input-method "pyim")
+    (pyim-scheme-add arki/ziranma-scheme)
+    (setq pyim-enable-shortcode nil)
+    (setq pyim-default-scheme 'arki/ziranma-shuangpin)
+    (setq pyim-page-length 9)
+    ;; 设置显示候选词的框是什么形式的
+    (if (memq window-system '(x win32 ns))
+        (when (require-pack 'posframe)
+          (setq pyim-page-tooltip 'posframe))
+      (setq pyim-page-tooltip 'popup)
+      )
+
+    (setq-default pyim-english-input-switch-functions
+                  '(pyim-probe-dynamic-english
+                    pyim-probe-auto-english))
+    ;; https://github.com/tumashu/pyim/issues/397
+    ;; pyim-convert-code-at-point 已废弃
+    (arki/define-key "M-i" 'pyim-convert-string-at-point)
+
+    (defun arki/input-method--get-ciku-files ()
+      "Get pyim ciku files from directory `arki/input-method-ciku'`"
+      (interactive)
+      (when (file-exists-p arki/input-method-ciku)
+        (directory-files-recursively arki/input-method-ciku ".pyim$")))
+
+    (dolist (cur-file (arki/input-method--get-ciku-files))
+      (add-to-list 'pyim-dicts (list :name (file-name-base cur-file) :file cur-file)))
+
+    (setq pyim-fuzzy-pinyin-alist nil)
+    )
+
+#+end_src
+** fonts
+#+begin_src emacs-lisp :tangle yes
+  ;; 设置默认字体为汉字字符集 找到字符类型的方式： M+x describe-font RET RET
+  ;; (set-frame-font "-ADBO-Source Han Serif CN-normal-normal-normal-*-17-*-*-*-*-0-iso10646-1")
+  ;; (set-frame-font "Source Han Serif CN")
+
+  ;; 更改显示字体大小 16pt
+  ;; http://stackoverflow.com/questions/294664/how-to-set-the-font-size-in-emacs
+  ;; (set-face-attribute 'default nil :height 125)
+
+  ;; 借鉴自：
+  ;; https://gist.github.com/Superbil/7113937
+  ;; base on https://gist.github.com/coldnew/7398835
+
+  (defgroup arki/font nil
+    "Font config, only for read."
+    :group 'arki/config)
+
+
+  (defcustom arki/font-english nil
+    "English font"
+    :group 'arki/font)
+
+  (defcustom arki/font-english-size 16
+    "English font size"
+    :group 'arki/font)
+
+  (defcustom arki/font-chinese nil
+    "Chinese font"
+    :group 'arki/font)
+
+  (defcustom arki/font-chinese-size 16
+    "Chinese font size"
+    :group 'arki/font)
+
+  (defcustom arki/font-chinese-extra nil
+    "Chinese extra font"
+    :group 'arki/font)
+
+  (defcustom arki/font-chinese-extra-size 16
+    "Chinese extra font size"
+    :group 'arki/font)
+
+  (defcustom arki/font-symbol nil
+    "Symbol font"
+    :group 'arki/font)
+
+  (defcustom arki/font-symbol-size 16
+    "Symbol font size"
+    :group 'arki/font)
+
+  (defcustom arki/font-size-min 5
+    "Min font size"
+    :group 'arki/font)
+
+  (defcustom arki/font-size-max 50
+    "Max font size"
+    :group 'arki/font)
+
+  (defcustom arki/font-size-step 1
+    "Step size for font adjust"
+    :group 'arki/font)
+
+
+
+  (defun font-exist-p (fontname)
+    "test if this font is exist or not."
+    (if (or (not fontname) (string= fontname ""))
+        nil
+      (if (not (x-list-fonts fontname))
+          nil t)))
+
+
+  (defun arki/set-font-english (font-name font-size)
+    "Set English font"
+    (when font-name
+      (if (not (font-exist-p font-name))
+          (warn "Font for English doesn't exist, please install it: %s" font-name)
+        (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+            (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+          ;; (set-face-attribute 'default nil :font (font-spec :family font-name :size font-size))
+          (set-frame-font (font-spec :family font-name :size font-size) t nil)      
+          (setq arki/font-english font-name)
+          (setq arki/font-english-size font-size)
+          (message "Set English font to: %S Size: %S" font-name font-size)
+          ))))
+
+
+  (defun arki/set-font-chinese (font-name font-size)
+    "Set Chinese font"
+    (when font-name
+      (if (not (font-exist-p font-name))
+          (warn "Font for Chinese doesn't exist, please install it: %s" font-name)
+        (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+            (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+          ;; 设置中文字体，注意，不要使用 'unicode charset,否则上面的英文字体设置将会失效。
+          (dolist (charset '(kana han cjk-misc bopomofo gb18030))
+            (set-fontset-font "fontset-default" charset (font-spec :family font-name :size font-size)))
+          (setq arki/font-chinese font-name)
+          (setq arki/font-chinese-size font-size)
+          (message "Set Chinese font to: %S Size: %S" font-name font-size)
+          ))))
+
+  (defun arki/set-font-chinese-extra (font-name font-size)
+    "Set Chinese extra font
+
+  设置 fallback 字体，用于显示不常用的字符"
+    (when font-name
+      (if (not (font-exist-p font-name))
+          (warn "Font for Chinese extra doesn't exist, please install it: %s" font-name)
+        (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+            (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+          (set-fontset-font "fontset-default" nil (font-spec :family font-name :size font-size) nil 'prepend)
+          (setq arki/font-chinese-extra font-name)
+          (setq arki/font-chinese-extra-size font-size)
+          (message "Set Chinese extra font to: %S Size: %S" font-name font-size)
+          ))))
+
+
+  (defun arki/set-font-symbol (font-name font-size)
+    "Set symbol font"
+    (when font-name
+      (if (not (font-exist-p font-name))
+          (warn "Font for symbol doesn't exist, please install it: %s" font-name)
+        (if (or (< font-size arki/font-size-min) (> font-size arki/font-size-max))
+            (message "Font size [%S] is not in the range of: [%S, %S]" font-size arki/font-size-min arki/font-size-max)
+          (set-fontset-font "fontset-default" 'symbol (font-spec :family font-name :size font-size))
+          (setq arki/font-symbol font-name)
+          (setq arki/font-symbol-size font-size)
+          (message "Set symbol font to: %S Size: %S" font-name font-size)      
+          ))))
+
+
+  (defun arki/font-step (step-size font-type)
+    "Set font size by step.
+
+  font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
+  
+    (cond
+     ((equal font-type 1) (arki/set-font-english arki/font-english (+ arki/font-english-size step-size)))
+     ((equal font-type 2) (arki/set-font-chinese arki/font-chinese (+ arki/font-chinese-size step-size)))
+     ((equal font-type 3) (arki/set-font-chinese-extra arki/font-chinese-extra (+ arki/font-chinese-extra-size step-size)))
+     ((equal font-type 4) (arki/set-font-symbol arki/font-symbol (+ arki/font-symbol-size step-size)))
+     (t (warn "Unsupported font-type: %s" font-type))
+     )
+    )
+
+
+  (defun arki/font-family-suggest (&optional font-type)
+    "Suggest font families available in minibuffer.
+
+  font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
+    (interactive)
+    (let* ((font-type-name (cond
+                            ((equal font-type 1) " for English")
+                            ((equal font-type 2) " for Chinese")
+                            ((equal font-type 3) " for Chinese extra")
+                            ((equal font-type 4) " for symbol")
+                            (t "")
+                            ))
+           (prev-font-name (cond
+                            ((equal font-type 1) arki/font-english)
+                            ((equal font-type 2) arki/font-chinese)
+                            ((equal font-type 3) arki/font-chinese-extra)
+                            ((equal font-type 4) arki/font-symbol)
+                            (t "")
+                            ))
+           (font-selected (ido-completing-read
+                           (format "Select font%s: " font-type-name)
+                           (delete-dups (font-family-list))
+                           nil nil prev-font-name
+                           )))
+      (if (equal font-selected "nil")
+          nil
+        font-selected)
+      )
+    )
+
+
+  (defun arki/font-family-select (font-type)
+    "Set font family.
+
+  font-type: 1 for English font. 2 Chinese. 3 Chinese-extra. 4 symbol"
+    (if (not (memq font-type '(1 2 3 4)))
+        (warn "Unsupported font-type: %s" font-type)
+      (let ((suggested-font (arki/font-family-suggest font-type)))
+        (cond
+         ((equal font-type 1) (arki/set-font-english suggested-font arki/font-english-size))
+         ((equal font-type 2) (arki/set-font-chinese suggested-font arki/font-chinese-size))
+         ((equal font-type 3) (arki/set-font-chinese-extra suggested-font arki/font-chinese-extra-size))
+         ((equal font-type 4) (arki/set-font-symbol suggested-font arki/font-symbol-size))
+         )
+        )))
+
+
+  (defun arki/set-font ()
+    "Set all the font families and sizes"
+    (arki/set-font-english arki/font-english arki/font-english-size)
+    (arki/set-font-chinese arki/font-chinese arki/font-chinese-size)
+    (arki/set-font-chinese-extra arki/font-chinese-extra arki/font-chinese-extra-size)
+    (arki/set-font-symbol arki/font-symbol arki/font-symbol-size)
+    )
+
+
+  (defun arki/save-font ()
+    (message "Fonts config saving...")
+    (customize-save-variable 'arki/font-english arki/font-english)
+    (customize-save-variable 'arki/font-english-size arki/font-english-size)
+    (customize-save-variable 'arki/font-chinese arki/font-chinese)
+    (customize-save-variable 'arki/font-chinese-size arki/font-chinese-size)
+    (customize-save-variable 'arki/font-chinese-extra arki/font-chinese-extra)
+    (customize-save-variable 'arki/font-chinese-extra-size arki/font-chinese-extra-size)
+    (customize-save-variable 'arki/font-symbol arki/font-symbol)
+    (customize-save-variable 'arki/font-symbol-size arki/font-symbol-size)
+    (message "Fonts config saved." )
+    )
+
+  (defun arki/font-adjust ()
+    (interactive)
+    (message "
+   +---------------------------------------------------------------+
+   | 使用方法 | 按根据提示对中英文字体进行加减，使表格线对齐       |
+   | 英文字   | 0123456789 abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLM|
+   | 扩展字   | 𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄉𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄄𠄅𠄆𠄇𠄇𠄆 |
+   +---------------------------------------------------------------+
+
+  Set font: ENG(1 q+ a-) ZH(2 w+ s-) EXT(3 e+ d-) Symbol(4 r+ f-). Save(0)")
+    (set-transient-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map (vector (list ?1))
+         (lambda () (interactive) (arki/font-family-select 1) (arki/font-adjust)))
+       (define-key map (vector (list ?q))
+         (lambda () (interactive) (arki/font-step arki/font-size-step 1) (arki/font-adjust)))
+       (define-key map (vector (list ?a))
+         (lambda () (interactive) (arki/font-step (- arki/font-size-step) 1) (arki/font-adjust)))
+
+       (define-key map (vector (list ?2))
+         (lambda () (interactive) (arki/font-family-select 2) (arki/font-adjust)))
+       (define-key map (vector (list ?w))
+         (lambda () (interactive) (arki/font-step arki/font-size-step 2) (arki/font-adjust)))
+       (define-key map (vector (list ?s))
+         (lambda () (interactive) (arki/font-step (- arki/font-size-step) 2) (arki/font-adjust)))
+
+       (define-key map (vector (list ?3))
+         (lambda () (interactive) (arki/font-family-select 3) (arki/font-adjust)))
+       (define-key map (vector (list ?e))
+         (lambda () (interactive) (arki/font-step arki/font-size-step 3) (arki/font-adjust)))
+       (define-key map (vector (list ?d))
+         (lambda () (interactive) (arki/font-step (- arki/font-size-step) 3) (arki/font-adjust)))
+
+       (define-key map (vector (list ?4))
+         (lambda () (interactive) (arki/font-family-select 4) (arki/font-adjust)))
+       (define-key map (vector (list ?r))
+         (lambda () (interactive) (arki/font-step arki/font-size-step 4) (arki/font-adjust)))
+       (define-key map (vector (list ?f))
+         (lambda () (interactive) (arki/font-step (- arki/font-size-step) 4) (arki/font-adjust)))
+
+       (define-key map (vector (list ?0))
+         (lambda () (interactive) (arki/save-font) (arki/font-adjust)))     
+
+       map))
+    )
+
+
+  (when (display-graphic-p)
+    (arki/define-key "f" 'arki/font-adjust 'arki/prefix-keymap)
+    (add-hook 'after-init-hook (lambda () (interactive) (arki/set-font)))
+    )
+
+  ;; 有空时候看看这个用于org-mode 表格对齐的：https://github.com/chen-chao/zh-align.el
+
+  ;; (when (require-pack 'cnfonts)
+  ;;   ;; 配置cnfonts https://github.com/tumashu/cnfonts
+  ;;   ;; 让 cnfonts 随着 Emacs 自动生效。
+  ;;   (cnfonts-enable)
+  ;;   (setq cnfonts-use-face-font-rescale t)
+  ;;   (setq cnfonts-keep-frame-size nil))
+
+
+#+end_src
+** auto-save
+#+begin_src emacs-lisp :tangle yes
+  ;; 使用新的自动保存
+  ;; 参考自：
+  ;; https://github.com/bbatsov/super-save/blob/2a905b8bdfc93bee16e2d62a61c6211bbe009331/super-save.el
+  ;; https://www.emacswiki.org/emacs/auto-save.el
+  (defgroup arki/auto-save nil
+    "Smart-saving of buffers."
+    :group 'arki/config)
+
+  (defvar arki/auto-save-mode-map (make-sparse-keymap)
+    "arki/auto-save mode's keymap.")
+
+  (defcustom arki/auto-save-triggers '(
+                                       switch-to-buffer next-buffer previous-buffer
+                                       other-window windmove-up windmove-down windmove-left windmove-right
+                                       revert-buffer revert-buffer-with-coding-system
+                                       ace-window) ; TODO Need to check (fboundp 'ace-window)
+    "A list of commands which would trigger `arki/auto-save-command'."
+    :group 'arki/auto-save
+    :type '(repeat symbol))
+
+  (defcustom arki/auto-save-silent t
+    "Save buffer without modify minibuffer message."
+    :group 'arki/auto-save
+    :type 'boolean)
+
+  (defcustom arki/auto-save-hook-triggers
+    '(mouse-leave-buffer-hook focus-out-hook)
+    "A list of hooks which would trigger `arki/auto-save-command'."
+    :group 'arki/auto-save
+    :type '(repeat symbol))
+
+  (defcustom arki/auto-save-auto-save-when-idle t
+    "Save current buffer automatically when Emacs is idle."
+    :group 'arki/auto-save
+    :type 'boolean)
+
+  (defcustom arki/auto-save-idle-duration 5
+    "The number of seconds Emacs has to be idle, before auto-saving the current buffer.
+  See `arki/auto-save-auto-save-when-idle'."
+    :group 'arki/auto-save
+    :type 'integer)
+
+  (defcustom arki/auto-save-remote-files nil
+    "Save remote files when t, ignore them otherwise."
+    :group 'arki/auto-save
+    :type 'boolean)
+
+  (defcustom arki/auto-save-max-filesize 10
+    "File size in MB.
+
+  If set, when the file is larger than VAL, don't do auto-save for performance issues.
+  If VAL is nil, ignore the file size impact."
+    :group 'arki/auto-save
+    :type 'number)
+
+  (defcustom arki/auto-save-exclude '(".emacs.d/elpa")
+    "A list of regexps for buffer-file-name excluded from arki/auto-save.
+  When a buffer-file-name matches any of the regexps it is ignored."
+    :group 'arki/auto-save
+    :type '(repeat (choice regexp)))
+
+  (defun arki/auto-save--include-p (filename)
+    "Return non-nil if FILENAME doesn't match any of the `arki/auto-save-exclude'."
+    (let ((checks arki/auto-save-exclude)
+          (keepit t))
+      (while (and checks keepit)
+        (setq keepit (not (ignore-errors
+                            (if (stringp (car checks))
+                                (string-match (car checks) filename))))
+              checks (cdr checks)))
+      keepit))
+
+
+
+  (defun arki/auto-save--check-buffer-status ()
+    "Check whether the buffer is ready for save"
+    (and 
+     ;; And Yassnippet is not active
+     (or (not (boundp 'yas--active-snippets))
+         (not yas--active-snippets))
+     ;; And  Company is not active
+     (or (not (boundp 'company-candidates))
+         (not company-candidates))
+     )
+    )
+
+  ;; file size check
+  (defvar arki/auto-save--cur-file-size nil "Size of current file in MB")
+  (make-variable-buffer-local 'arki/auto-save--cur-file-size)
+
+  (defun arki/auto-save--check-file-size ()
+    "Check file size. According to `arki/auto-save-max-filesize'"
+    (if arki/auto-save-max-filesize
+        (if arki/auto-save--cur-file-size
+            (<= arki/auto-save--cur-file-size arki/auto-save-max-filesize)
+          (let* ((file-size-bytes (file-attribute-size (file-attributes (buffer-file-name))))
+                 ;; When the file is newly created, file--attributes is nil, so let file-size be 0 now.
+                 (file-size-mega-bytes (if file-size-bytes (/ file-size-bytes 1024.0 1024.0) 0)))
+            (setq arki/auto-save--cur-file-size file-size-mega-bytes))
+          (arki/auto-save--check-file-size)
+          )
+      t
+      ))
+
+  (defun arki/auto-save-command ()
+    "Save the current buffer if needed."
+    ;; Use (buffer-file-name) instead of buffer-file-name-variable to
+    ;; avoid error when the file is new created.
+    ;; The ERROR: Wrong type argument: number-or-marker-p, nil
+    (let ((file-name (buffer-file-name)))
+      (when (and file-name
+                 ;; And not file name not excluded
+                 (arki/auto-save--include-p file-name)
+                 ;; And (if is remote: should allow remote save)
+                 (if (file-remote-p file-name) arki/auto-save-remote-files t)
+                 ;; And is not readonly
+                 (not buffer-read-only)
+                 ;; And modified
+                 (buffer-modified-p (current-buffer))
+                 ;; And writable
+                 (file-writable-p file-name)
+                 ;; Check buffer status: And Yassnippet is not active And  Company is not active
+                 (arki/auto-save--check-buffer-status)
+                 ;; And file is not too large
+                 (arki/auto-save--check-file-size)
+                 )
+        (if arki/auto-save-silent
+            (with-temp-message (format "Saving %S" file-name) (save-buffer))
+          (save-buffer))
+        )
+      )
+    )
+
+  (defvar arki/auto-save--idle-timer nil)
+
+  (defun arki/auto-save-command-advice (&rest _args)
+    "A simple wrapper around `arki/auto-save-command' that's advice-friendly."
+    (arki/auto-save-command))
+
+  (defun arki/auto-save--advice-trigger-commands ()
+    "Apply arki/auto-save advice to the commands listed in `arki/auto-save-triggers'."
+    (mapc (lambda (command)
+            (advice-add command :before #'arki/auto-save-command-advice))
+          arki/auto-save-triggers))
+
+  (defun arki/auto-save--advice-trigger-commands-cancel ()
+    "Remove arki/auto-save advice from to the commands listed in `arki/auto-save-triggers'."
+    (mapc (lambda (command) (advice-remove command #'arki/auto-save-command-advice))
+          arki/auto-save-triggers))
+
+  (defun arki/auto-save--idle-timer-init ()
+    "Initialize arki/auto-save idle timer if `arki/auto-save-auto-save-when-idle' is true."
+    (setq arki/auto-save--idle-timer
+          (when arki/auto-save-auto-save-when-idle
+            (run-with-idle-timer arki/auto-save-idle-duration t #'arki/auto-save-command))))
+
+  (defun arki/auto-save--idle-timer-cancel ()
+    "Stop arki/auto-save idle timer if `arki/auto-save--idle-timer' is set."
+    (when arki/auto-save--idle-timer
+      (cancel-timer arki/auto-save--idle-timer)))
+
+  (defun arki/auto-save-stop ()
+    "Cleanup arki/auto-save's advices and hooks."
+    (arki/auto-save--advice-trigger-commands-cancel)
+    (arki/auto-save--idle-timer-cancel)
+    (dolist (hook arki/auto-save-hook-triggers)
+      (remove-hook hook #'arki/auto-save-command)))
+
+  (defun arki/auto-save-init ()
+    "Setup arki/auto-save's advices and hooks."
+
+    ;; Reset auto-save state
+    (arki/auto-save-stop)
+    ;; Add command advice
+    (arki/auto-save--advice-trigger-commands)
+    ;; Add timer
+    (arki/auto-save--idle-timer-init)
+    ;; Add hook
+    (dolist (hook arki/auto-save-hook-triggers)
+      (add-hook hook #'arki/auto-save-command)))
+
+  ;; ;;;###autoload
+  ;; (define-minor-mode arki/auto-save-mode
+  ;;   "A minor mode that saves your Emacs buffers when they lose focus."
+  ;;   :lighter " arki/auto-save"
+  ;;   :keymap arki/auto-save-mode-map
+  ;;   :group 'arki/auto-save
+  ;;   :global nil
+  ;;   (cond
+  ;;    (arki/auto-save-mode (arki/auto-save-init))
+  ;;    (t (arki/auto-save-stop))))
+
+
+  (add-hook 'emacs-startup-hook 'arki/auto-save-init)
+
+#+end_src
+** ibuffer
+#+begin_src emacs-lisp :tangle yes
+  ;;; init-ibuffer.el --- ibuffer settings -*- lexical-binding: t -*-
+  ;;; Commentary:
+  ;; Learn from: https://github.com/purcell/emacs.d/blob/master/lisp/init-ibuffer.el
+
+  ;;; Code:
+  (when (require-pack 'fullframe)
+    (with-eval-after-load 'ibuffer
+      (fullframe ibuffer ibuffer-quit)))
+
+  (when (require-pack 'ibuffer-vc)
+    (defun ibuffer-set-up-preferred-filters ()
+      (ibuffer-vc-set-filter-groups-by-vc-root)
+      (unless (eq ibuffer-sorting-mode 'filename/process)
+        (ibuffer-do-sort-by-filename/process)))
+    (add-hook 'ibuffer-hook 'ibuffer-set-up-preferred-filters)
+    )
+
+  (setq-default ibuffer-show-empty-filter-groups nil)
+
+  (with-eval-after-load 'ibuffer
+    ;; Use human readable Size column instead of original one
+    (define-ibuffer-column size-h
+      (:name "Size" :inline t)
+      (file-size-human-readable (buffer-size))))
+
+  ;; Modify the default ibuffer-formats (toggle with `)
+  ;; mark modified read-only locked name size mode process filename
+  (setq ibuffer-formats
+        '((mark "(" modified vc-status-mini "|" read-only locked ") "
+                (size-h 10 -1 :right)
+                "   "
+                (name 15 15 :left :elide)
+                "   "
+                (mode 15 15 :left :elide)
+                "   "
+                vc-relative-file)
+          (mark "(" modified vc-status-mini "|" read-only locked ") "
+                (size-h 10 -1 :right)
+                "   "
+                (name 15 -1 :left)
+                "   "
+                (mode 15 -1 :left)
+                "   "
+                (vc-status 15 15 :left)
+                "   "
+                vc-relative-file)))
+
+  (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
+
+
+#+end_src
+** layout
+#+begin_src emacs-lisp :tangle yes
+  ;; --------------------------------------------------WINDOW MANAGER--------------------------------------------------
+  (when (require-pack 'ace-window)
+    ;; 配置ace-windown
+    (arki/define-key "M-p" 'ace-window)
+    )
+
+  (require-pack 'transpose-frame)
+
+  ;; 启用winner mode
+  (winner-mode 1)
+
+
+  ;; 执行完命令后，直接使用C-g关闭辅助性的buffer
+  (when (require-pack 'popwin)
+    ;; 配置popwin
+    (popwin-mode 1)
+    )
+
+
+  ;; https://github.com/nex3/perspective-el#buffer-switchers
+  (when (require-pack 'perspective)
+    (persp-mode)
+    (when (require 'bs)
+      (arki/define-key "C-x C-b" (lambda (arg) (interactive "P")
+                                   (if (fboundp 'persp-ibuffer)
+                                       (persp-ibuffer arg)
+                                     (ibuffer)))))
+    (setq persp-state-default-file (expand-file-name "perspective.save" arki/cache-dir))
+    (add-hook 'kill-emacs-hook (lambda () (interactive "P")
+                                 ;; Kill gpg buffers before save persp, to avoid password input when restart emacs.
+                                 (kill-matching-buffers ".*\\.gpg$" nil t)
+                                 (persp-state-save persp-state-default-file)))
+    (add-hook 'emacs-startup-hook (lambda () (interactive "P") (persp-state-load persp-state-default-file)))
+    )
+
+  ;; https://github.com/bmag/emacs-purpose
+  ;; Config M-x customize-group purpose
+  ;; (add-to-list 'purpose-user-mode-purposes '(<major-mode> . <purpose>))
+  ;; (add-to-list 'purpose-user-name-purposes '(<name> . <purpose>))
+  ;; (add-to-list 'purpose-user-regexp-purposes '(<pattern> . <purpose>))
+  ;; (setq purpose-use-default-configuration t) ; not really necessary, default is t
+  ;; (purpose-compile-user-configuration) ; activates your changes
+  ;; (when (require-pack 'window-purpose)
+  ;; (purpose-mode))
+
+
+#+end_src
+** help-info
+#+begin_src emacs-lisp :tangle yes
+  (when (require-pack-local 'info+)
+    (setq Info-fontify-glossary-words nil)
+    )
+#+end_src
+** dictionary
+#+begin_src emacs-lisp :tangle yes
+
+  ;; https://github.com.cnpmjs.org/xuchunyang/youdao-dictionary.el
+  (when (require-pack 'youdao-dictionary)
+
+    (defun youdao-dictionary-search-from-region-or-input (arg)
+      "With C-u, search from input. Else: search at point or region."
+      (interactive "p")
+      (cond ((= arg 4) (call-interactively 'youdao-dictionary-search-from-input))
+            (t (call-interactively 'youdao-dictionary-search-at-point))))
+
+    (arki/define-key "d" 'youdao-dictionary-search-from-region-or-input 'arki/prefix-keymap)
+    (setq youdao-dictionary-search-history-file (expand-file-name ".youdao-history" arki/cache-dir))
+
+    ;; Integrate with popwin-el (https://github.com/m2ym/popwin-el)
+    (when (require-pack 'popwin) (push "*Youdao Dictionary*" popwin:special-display-config))
+  
+    )
+
+
+#+end_src
+** python
+#+begin_src emacs-lisp :tangle yes
+  (defgroup arki/python nil
+    "Python config."
+    :group 'arki/config)
+
+
+  (defcustom arki/lsp-pyls-server-command nil
+    "Python language server location.
+
+  May be here: {CONDA_HOME}/Scripts/pyls {PYTHON_ENV_HOME}/bin/pyls
+  "
+    :group 'arki/python)
+
+  
+  ;; Config lsp.
+  ;; https://github.com/emacs-lsp/lsp-mode
+  (setq arki/lsp--ready? nil)
+  ;; Set key prefix should come before require pack.
+  (setq lsp-keymap-prefix "C-c l")
+  (when (require-pack 'lsp-mode)
+    (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration)
+    ;; https://github.com/emacs-lsp/dap-mode
+    (require-pack 'dap-mode)
+
+    ;; https://github.com/emacs-lsp/lsp-ui
+    (require-pack 'lsp-ui)
+
+    ;; https://github.com/emacs-lsp/lsp-treemacs
+    (require-pack 'lsp-treemacs)
+  
+    (setq arki/lsp--ready? t)
+    )
+
+  
+  ;; Config python env
+
+  ;; https://github.com/necaris/conda.el
+  (setq arki/python--conda-home-ready? nil)
+  (when (require-pack 'conda)
+
+    (conda-env-initialize-interactive-shells)
+    (conda-env-initialize-eshell)
+
+    (defun arki/python--prepare-conda-env ()
+      "Set conda home. And switch to base env if conda-project-env-path is not provided."    
+      (let* ((conda-path (executable-find "conda")))
+        (if conda-path
+            (if (and (string-prefix-p conda-anaconda-home conda-path) (string-match-p "conda" conda-anaconda-home))
+                ;; Here: conda command resides in conda-anaconda-home, and conda-anaconda-home contains "codna"
+                ;; Activate conda env
+                (progn (setq arki/python--conda-home-ready? t)
+                       ;; `conda-project-env-path` can be set by a buffer-local or project-local variable (e.g. a `.dir-locals.el` that defines `conda-project-env-path`),
+                       ;; or inferred from an `environment.yml` or similar at the project level."
+                       (if (bound-and-true-p conda-project-env-path)
+                           ;; If already activated, no need to re-activate.
+                           (if (equal conda-env-current-path (conda-env-name-to-dir conda-project-env-path))
+                               (message "Conda env has already been [%s]" conda-env-current-name)
+                             (message "Got conda env info, activate it now: [%s]" conda-project-env-path)
+                             (conda-env-activate conda-project-env-path))
+                         ;; Cannot get env info, select an env.
+                         (conda-env-activate))
+                       ;; Verify python executable is in current conda env.
+                       (if (string-prefix-p conda-env-current-path  (executable-find "python")) t
+                         (message "Current conda env broken: [%s] Python executable not found here!" conda-env-current-path)
+                         nil))
+              ;; Here: conda home is not ok, config it now:
+              (let* ((prompt-message (format "Conda home [%s] is not valid, while conda is [%s]. Now select conda home: " conda-anaconda-home conda-path))
+                     (conda-home (ido-read-directory-name prompt-message (arki/directory-parent conda-path 2))))
+                (customize-save-variable 'conda-anaconda-home conda-home)
+                (customize-save-variable 'conda-env-home-directory conda-home)
+                (arki/python--prepare-conda-env))
+              )
+          (message "Warning: Conda executable is not available. Stop setting conda related things.")
+          nil
+          )))
+
+    (defun arki/python--adjust-conda-env-and-lsp-mode ()
+      "The logic:
+
+  1. If conda env is not activated as desired: Activate the desired one, and link to lsp server if needed.
+  As desired means: 
+  Local variable conda-project-env-path is consistent with conda-env-current-path,
+  or, conda-project-env-path is not set.
+
+  2. If conda env changed: And lsp is not running: Just start it.
+                           And lsp is running: restart lsp.
+  "
+      (when (equal major-mode 'python-mode)
+
+        (if (or (not (bound-and-true-p conda-project-env-path)) ; Local env not set
+                ;; Local env set the same with current env.
+                (and (bound-and-true-p conda-project-env-path)
+                     (equal conda-env-current-path (conda-env-name-to-dir conda-project-env-path))))
+            ;; Conda env is activated and lsp mode it not on: turn on lsp mode.
+            (when (and (bound-and-true-p conda-env-current-path)
+                       (not (bound-and-true-p lsp-mode)))
+              (lsp))
+
+          ;; Local env is set and not the same with current activated env.
+          (conda-env-activate conda-project-env-path)
+          (when (string-match-p "Connected to" (format "%S" (lsp)))
+            (call-interactively 'lsp-workspace-restart)))))
+
+    (defun arki/python--adjust-conda-env-and-lsp-mode-advice (&rest args)
+      (arki/python--adjust-conda-env-and-lsp-mode))
+
+    (setq arki/python--lsp-ready? nil)
+    (defun arki/python--prepare-lsp ()
+      "Prepare python language server. Can only be executed successfully once."
+      (when (and (not arki/python--lsp-ready?) ; Can only be executed successfully once.
+                 arki/lsp--ready?		     ; Can only be invoked when lsp is ready.
+                 (arki/python--prepare-conda-env)) ; Can only be invoked when conda env is ready.
+        ;; https://github.com/emacs-lsp/lsp-pyright
+        (when (require-pack 'lsp-pyright)
+          ;; (setq lsp-pyright-python-executable-cmd (expand-file-name "bin/python" (conda-env-name-to-dir "base")))
+          (setq lsp-pyright-python-executable-cmd "python")
+          (advice-add 'switch-to-buffer :after #'arki/python--adjust-conda-env-and-lsp-mode-advice)
+          (setq arki/python--lsp-ready? t))))
+
+
+    (defun arki/python-lsp-config ()
+      "Init python lsp config."
+      (interactive)
+      (arki/python--prepare-lsp)
+      (arki/python--adjust-conda-env-and-lsp-mode))
+
+  
+    (arki/define-key "p" 'arki/python-lsp-config 'arki/prefix-keymap)
+    )
+
+
+#+end_src
+** wsl
+#+begin_src emacs-lisp :tangle yes
+  (defgroup arki/wsl nil
+    "Input method config, only for read."
+    :group 'arki/config)
+
+
+  (defcustom arki/wsl-p nil "Flag to indicate whether I'm in wsl." :group 'arki/wsl)
+
+  (defun arki/wsl-setup()
+    "Setup functions only useful for interacting with wsl."
+  
+    (defun arki/wsl-path-win2linux (win-path)
+      "Transform windows path to linux path inside wsl."
+
+      (when (and arki/wsl-p
+                 (string-match "^[a-zA-Z]:[\\\\/]" win-path))
+        (let* ((disk (downcase (substring win-path 0 1)))
+               (final-path (replace-regexp-in-string "^[a-zA-Z]:[\\\\/]*" "" win-path))
+               )
+          (setq final-path (replace-regexp-in-string "\\\\+" "/" final-path))
+          (setq final-path (concat "/mnt/" disk "/" final-path)))))
+
+
+    (defun arki/wsl-copy-file-win2linux (win-path target-linux-path)
+      "Copy file from windows to specified linux path inside wsl."
+      (let* ((wsl-path (arki/wsl-path-win2linux win-path)))
+        (when wsl-path
+          (copy-file wsl-path target-linux-path 1)
+          t)))
+
+    (defun arki/wsl-open-in-win ()
+      "Open file in wsl by windows"
+      (interactive)
+      (when arki/wsl-p
+        (let* ((file (ido-read-file-name "File to open in win: "))
+               ;; Refer to: https://www.reddit.com/r/bashonubuntuonwindows/comments/8teo9i/is_there_a_way_to_open_a_file_in_a_browser_from/
+               (command (format "explorer.exe $(wslpath -w $(realpath %s))" file)))
+          (message "Execute command: %S" command)
+          (shell-command command))))
+    )
+
+  (add-hook 'after-init-hook 'arki/wsl-setup)
+
+
+
+#+end_src
+** eaf
+#+begin_src emacs-lisp :tangle yes
+  (defun arki/eaf-enable ()
+    (interactive)
+  
+    ;; https://github.com/manateelazycat/emacs-application-framework
+    ;; Step1: Download eaf repo.
+    ;; git clone --depth=1 -b master https://github.com/manateelazycat/emacs-application-framework.git ~/.emacs.d/site-lisp/emacs-application-framework/
+  
+    ;; Step2: Install system dependencies. Load eaf first then invoke this command.
+    ;; M-x eaf-install-dependencies
+
+    ;; Step3: Install el dependencies.
+    ;; https://github.com/kiwanami/emacs-ctable
+    (require-pack 'ctable)
+    ;; https://github.com/kiwanami/emacs-deferred
+    (require-pack 'deferred)
+    ;; https://github.com/kiwanami/emacs-epc
+    (require-pack 'epc)
+    ;; https://github.com/magnars/s.el
+    (require-pack 's)
+
+    ;; Step4: Enable eaf
+    (add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-application-framework/")
+    (require 'eaf)
+
+    ;; Then all active EAF Browser buffers will be noted down before
+    ;; Emacs is killed, and will be opened again when calling M-x
+    ;; eaf-browser-restore-buffers in a future Emacs session.
+    (setq eaf-browser-continue-where-left-off t)
+  
+    (setq eaf-browser-default-search-engine "duckduckgo")
+    (eaf-setq eaf-browse-blank-page-url "https://duckduckgo.com")
+
+    ;; There are certain variables will be shared across Emacs Lisp and Python.
+    ;; You can easily configure then with the function eaf-setq.
+    ;; Check the full list of configurable variables with C-h v eaf-var-list
+    )
+  (arki/define-key "e" 'arki/eaf-enable 'arki/prefix-keymap)
+
+#+end_src
+* Need review
+#+begin_src emacs-lisp
+  ;; Bookmarks
+  (setq bookmark-default-file (expand-file-name "bookmarks" arki/cache-dir))
+  (setq bookmark-save-flag 1)
+#+end_src
+* Load customized configuritions
+#+begin_src emacs-lisp
+  ;;----------------------------------------------------------------------------
+  ;; Load variables configured via the interactive 'customize' interface
+  ;;----------------------------------------------------------------------------
+  (when (file-exists-p custom-file)
+    (load custom-file))
+
+  (message "My init file ends here!")
+#+end_src
