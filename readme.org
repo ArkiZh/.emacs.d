@@ -2121,6 +2121,7 @@ How to use: Add the code below to ~init.el~.
     ;; Integrate with popwin-el (https://github.com/m2ym/popwin-el)
     (when (require-pack 'popwin) (push "*Youdao Dictionary*" popwin:special-display-config))
 
+    (require-pack-local 'shengci t "https://raw.githubusercontent.com/EvanMeek/shengci.el/master/shengci.el")
     )
 
 
