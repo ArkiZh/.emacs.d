@@ -1801,7 +1801,7 @@ How to use: Add the code below to ~init.el~.
              ;; Avoid pushing to different remote branches.
              ;; Or ensure pushing to the remote branch with the same name, create it if not exist.
              ;; (remote-names (magit-list-remote-branch-names))
-             (remote-names (--map (concat it "/" cur-branch) (magit-list-remotes)))
+             (remote-names (mapcar (lambda (it) (concat it "/" cur-branch)) (magit-list-remotes)))
              ;; https://emacs.stackexchange.com/questions/9323/get-git-repo-root-directory-preferably-with-magit#comment13808_9324
              (repo-path (magit-toplevel)) ; Or (vc-root-dir)
              (success-push '())
