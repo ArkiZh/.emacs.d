@@ -23,10 +23,10 @@
     ;; 调用markdown-live-preview报错markdown failed with exit code 1解决方案：(参考自https://emacs-china.org/t/markdown/11399)
     ;; 安装pandoc，配置markdown-command指向pandoc。下载地址：https://pandoc.org/
     (add-hook 'markdown-mode-hook
-          (lambda () (setq markdown-command "pandoc")
-        ;; M-p 与跳转 ace window 冲突了，禁用掉
-        (arki/define-key "M-p" nil 'markdown-mode-map))
-          )
+              (lambda () (setq markdown-command "pandoc")
+                ;; M-p 与跳转 ace window 冲突了，禁用掉
+                (arki/define-key "M-p" nil 'markdown-mode-map))
+              )
     )
 #+end_src
 **** org-web-tools需要用它将html转成org文挡
@@ -54,7 +54,7 @@ How to use: Add the code below to ~init.el~.
     (interactive "fFile to load: \nP")
     (let* ((tangled-file (concat (file-name-sans-extension file) ".el"))
            (tangled-compiled-file (concat (file-name-sans-extension file) ".elc")))
-      (require 'org)    
+      (require 'org)
       ;; Tangle only if the Org file is newer than the Elisp file.
       (when (file-newer-than-file-p file tangled-file)
         (org-babel-tangle-file file tangled-file "emacs-lisp")
@@ -430,9 +430,9 @@ How to use: Add the code below to ~init.el~.
   (defun require-pack-local (name &optional ensure url)
     "Install package from url.
 
-  TODO: Need to add feature: 
+  TODO: Need to add feature:
   1. Need to support the case: url is a git repo.
-  2. In the case el file's name is different from its dir: need to specify the target dir, and load specific el file. 
+  2. In the case el file's name is different from its dir: need to specify the target dir, and load specific el file.
   2. The switch to skip compile stage.
 
 
@@ -1115,20 +1115,36 @@ How to use: Add the code below to ~init.el~.
     ;; Dired config
     (setq dired-recursive-deletes 'always)    ;Always delete recursively
     (setq dired-recursive-copies 'always)    ;Always copy recursively
-    ;; Reuse dired buffers. https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer
-    (put 'dired-find-alternate-file 'disabled nil)
-    (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
-    (arki/define-key "^"
-                     (lambda () (interactive) (find-alternate-file ".."))
-                     'dired-mode-map)
+
     ;; https://emacs.stackexchange.com/questions/33548/how-show-size-in-kb-in-dired-mode
     (setq dired-listing-switches "-alh")
+
     ;; https://emacs.stackexchange.com/questions/36317/dired-first-show-list-of-folders
     ;; 加这个选项在wsl2 中没有反应：--group-directories-first
     ;; 在windows 环境可以用这个： (setq ls-lisp-dirs-first t)
 
     ;; (require 'dired-x) ;; Enable <C-x C-j> to open current file's directory
     (setq dired-dwim-target t)         ;当一个frame中存在多个window时，将下一个分屏自动设置成拷贝地址的目标
+
+    ;; Navigation
+    (arki/define-key "I" 'dired-kill-subdir 'dired-mode-map)
+    (arki/define-key "<tab>" 'dired-hide-subdir 'dired-mode-map)
+    ;; https://emacs.stackexchange.com/questions/53461/specifying-a-binding-for-control-shift-tab
+    (arki/define-key "<S-iso-lefttab>" 'dired-hide-all 'dired-mode-map)
+    (arki/define-key "<S-tab>" 'dired-hide-all 'dired-mode-map)
+    (arki/define-key "[" 'dired-prev-dirline 'dired-mode-map)
+    (arki/define-key "]" 'dired-next-dirline 'dired-mode-map)
+    (arki/define-key "{" 'dired-prev-subdir 'dired-mode-map)
+    (arki/define-key "}" 'dired-next-subdir 'dired-mode-map)
+
+    ;; Reuse dired buffers. https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer
+    (put 'dired-find-alternate-file 'disabled nil)
+    (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
+    (arki/define-key "^"
+                     (lambda () (interactive) (find-alternate-file ".."))
+                     'dired-mode-map)
+
+
 
     (when (memq system-type '(gnu gnu/linux gnu/kfreebsd cygwin))
       ;; https://gitlab.com/xuhdev/dired-quick-sort#dired-quick-sort
