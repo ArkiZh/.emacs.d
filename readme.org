@@ -207,19 +207,28 @@ Add the code below to ~init.el~.
   (global-set-key (kbd "M-SPC") 'arki/prefix-keymap)
 
   (defun arki/define-key (key command &optional keymap)
-    "Set key binding, and record the binding.
-  If keymap is not provided, will use global-set-key.
-  If keymap is provided, you should add quote before it."
-    (interactive)
-    (if keymap
-        (progn
-          (define-key (eval keymap) (kbd key) command)
-          (arki/alist-push-value arki/key-bindings keymap (list key command))
-          )
-      (global-set-key (kbd key) command)
-      (arki/alist-push-value arki/key-bindings 'global (list key command))
-      )
-    )
+    "Set key binding, and record the binding to `arki/key-bindings'.
+
+  KEY
+  The key string displayed by <C-h k>
+
+  COMMAND
+  The command needed to be binded, should be quoted.
+
+  KEYMAP
+  If nil, set to `current-global-map'.
+  If provided, should be quoted."
+    (let* ((current-keymap (if keymap (symbol-value keymap) (current-global-map)))
+           (current-kbd (kbd key))
+           (current-keymap-symbol (if keymap keymap 'global))
+           (previous-command (lookup-key current-keymap current-kbd))
+           (previous-need-record (and previous-command
+                                      (not (assoc key (cdr (assoc current-keymap-symbol arki/key-bindings))))
+                                      )))
+      (when previous-need-record
+        (arki/alist-push-value arki/key-bindings current-keymap-symbol (list key previous-command)))
+      (arki/alist-push-value arki/key-bindings current-keymap-symbol (list key command))
+      (define-key current-keymap current-kbd command)))
 
   
   ;;----------------------------------------------------------------------------
@@ -555,6 +564,50 @@ Add the code below to ~init.el~.
     (global-so-long-mode 1)
     (customize-save-variable 'so-long-max-lines 100)
     (customize-save-variable 'so-long-threshold 500))
+
+#+end_src
+*** Dired
+#+begin_src emacs-lisp :tangle yes
+  (with-eval-after-load 'dired
+    ;; Dired config
+    (setq dired-recursive-deletes 'always)    ;Always delete recursively
+    (setq dired-recursive-copies 'always)    ;Always copy recursively
+
+    ;; https://emacs.stackexchange.com/questions/33548/how-show-size-in-kb-in-dired-mode
+    (setq dired-listing-switches "-alh")
+
+    ;; https://emacs.stackexchange.com/questions/36317/dired-first-show-list-of-folders
+    ;; 加这个选项在wsl2 中没有反应：--group-directories-first
+    ;; 在windows 环境可以用这个： (setq ls-lisp-dirs-first t)
+
+    ;; (require 'dired-x) ;; Enable <C-x C-j> to open current file's directory
+    (setq dired-dwim-target t)         ;当一个frame中存在多个window时，将下一个分屏自动设置成拷贝地址的目标
+
+
+    ;; Navigation
+    (customize-save-variable 'dired-bind-info nil) ; Non-nil means bind ‘dired-info’ to "I" in Dired, otherwise do not.
+    (arki/define-key "I" 'dired-kill-subdir 'dired-mode-map)
+
+    (arki/define-key "<tab>" 'dired-hide-subdir 'dired-mode-map)
+    ;; https://emacs.stackexchange.com/questions/53461/specifying-a-binding-for-control-shift-tab
+    (arki/define-key "<S-iso-lefttab>" 'dired-hide-all 'dired-mode-map)
+    (arki/define-key "<S-tab>" 'dired-hide-all 'dired-mode-map)
+
+    (arki/define-key "P" 'dired-prev-dirline 'dired-mode-map)
+    (arki/define-key "N" 'dired-next-dirline 'dired-mode-map)
+
+    (arki/define-key "," 'dired-prev-subdir 'dired-mode-map)
+    (arki/define-key "." 'dired-next-subdir 'dired-mode-map)
+
+
+    ;; Reuse dired buffers. https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer
+    (put 'dired-find-alternate-file 'disabled nil)
+    (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
+    (customize-save-variable 'dired-bind-man nil) ; Non-nil means bind ‘dired-man’ to "N" in Dired, otherwise do not.
+    (arki/define-key ";"
+                     (lambda () (interactive) (find-alternate-file ".."))
+                     'dired-mode-map)
+    )
 
 #+end_src
 ** Fonts
@@ -1144,57 +1197,12 @@ Add the code below to ~init.el~.
 #+end_src
 ** dired
 #+begin_src emacs-lisp
-  ;; https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
-  ;; https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
-  ;; (add-hook 'dired-mode-hook
-
   (with-eval-after-load 'dired
 
     ;; https://github.com/purcell/diredfl
     ;; This is adapted from the extra font lock rules provided by Drew Adams' `dired+' package
     (when (require-pack 'diredfl)
       (add-hook 'dired-mode-hook 'diredfl-mode))
-
-    ;; Dired config
-    (setq dired-recursive-deletes 'always)    ;Always delete recursively
-    (setq dired-recursive-copies 'always)    ;Always copy recursively
-
-    ;; https://emacs.stackexchange.com/questions/33548/how-show-size-in-kb-in-dired-mode
-    (setq dired-listing-switches "-alh")
-
-    ;; https://emacs.stackexchange.com/questions/36317/dired-first-show-list-of-folders
-    ;; 加这个选项在wsl2 中没有反应：--group-directories-first
-    ;; 在windows 环境可以用这个： (setq ls-lisp-dirs-first t)
-
-    ;; (require 'dired-x) ;; Enable <C-x C-j> to open current file's directory
-    (setq dired-dwim-target t)         ;当一个frame中存在多个window时，将下一个分屏自动设置成拷贝地址的目标
-
-
-    ;; Navigation
-    (customize-save-variable 'dired-bind-info nil) ; Non-nil means bind ‘dired-info’ to "I" in Dired, otherwise do not.
-    (arki/define-key "I" 'dired-kill-subdir 'dired-mode-map)
-
-    (arki/define-key "<tab>" 'dired-hide-subdir 'dired-mode-map)
-    ;; https://emacs.stackexchange.com/questions/53461/specifying-a-binding-for-control-shift-tab
-    (arki/define-key "<S-iso-lefttab>" 'dired-hide-all 'dired-mode-map)
-    (arki/define-key "<S-tab>" 'dired-hide-all 'dired-mode-map)
-
-    (arki/define-key "[" 'dired-prev-dirline 'dired-mode-map)
-    (arki/define-key "]" 'dired-next-dirline 'dired-mode-map)
-
-    (arki/define-key "{" 'dired-prev-subdir 'dired-mode-map)
-    (arki/define-key "}" 'dired-next-subdir 'dired-mode-map)
-
-
-    ;; Reuse dired buffers. https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer
-    (put 'dired-find-alternate-file 'disabled nil)
-    (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
-    (customize-save-variable 'dired-bind-man nil) ; Non-nil means bind ‘dired-man’ to "N" in Dired, otherwise do not.
-    (arki/define-key "N"
-                     (lambda () (interactive) (find-alternate-file ".."))
-                     'dired-mode-map)
-
-
 
     (when (memq system-type '(gnu gnu/linux gnu/kfreebsd cygwin))
       ;; https://gitlab.com/xuhdev/dired-quick-sort#dired-quick-sort
@@ -1545,10 +1553,8 @@ Add the code below to ~init.el~.
 
   ;; Find elisp source code.
   (arki/define-key "C-h C-f" 'find-function)
-  (arki/define-key "C-h C-f" 'find-function)
   (arki/define-key "C-h C-v" 'find-variable)
   (arki/define-key "C-h C-k" 'find-function-on-key)
-
 
 #+end_src
 ** org                                                            :manually:
@@ -2374,3 +2380,8 @@ Add the code below to ~init.el~.
 #+begin_src emacs-lisp
   (message "My init file ends here!")
 #+end_src
+* Questions
+** eval-after-load vs mode-hook
+  https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
+  https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
+**
