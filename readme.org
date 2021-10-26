@@ -58,7 +58,6 @@ Add the code below to ~init.el~.
 
   (when (file-exists-p custom-file)
     (load custom-file))
-
 #+end_src
 ** Load packages, and activate them.
 #+begin_src emacs-lisp
@@ -437,7 +436,7 @@ Add the code below to ~init.el~.
         (message "Local package is not found: %s, ignore it." name)
         nil)))
 #+end_src
-** better-defaults
+** Better defaults
 *** System settings
 #+begin_src emacs-lisp
   ;; 设置utf-8为默认编码格式
@@ -500,6 +499,16 @@ Add the code below to ~init.el~.
   (horizontal-scroll-bar-mode -1)
 
 
+  (defgroup arki/navigation nil
+    "Font config, only for read."
+    :group 'arki/config)
+
+
+  (defcustom arki/scroll-horizontal-default-width 1
+    "The default width (in columns) to scroll horizontally."
+    :group 'arki/navigation)
+
+
   (defun arki/scroll-horizontal (direction width)
     "Scroll text to right or left horizontally.
 
@@ -508,22 +517,26 @@ Add the code below to ~init.el~.
   If 'left, invoke scroll-right.
 
   WIDTH
-  If nil or 0, invoke scroll function with arg 1.
+  If nil or 0, invoke scroll function with arg `arki/scroll-horizontal-default-width'.
   If positive, invoke scroll function with arg WIDTH.
-  If negative, invoke scroll function with arg nil."
+  If negative, invoke scroll function with arg (/ (window-body-width) 2)."
     ;; (message "ARGs: %S %S" direction width)
-    (let* ((width (cond ((or (not width) (= width 0)) 1)
-                        ((< width 0) nil)
-                        ((> width 0) width)))
+    (let* ((cur-width (cond ((or (not width) (= width 0)) arki/scroll-horizontal-default-width)
+                            ((< width 0) (/ (window-body-width) 2))
+                            ((> width 0) width)))
            (scroll-fn (cond ((or (not direction) (eq 'right direction)) 'scroll-left)
                             ((eq 'left direction) 'scroll-right))))
+      (when width
+        (customize-save-variable 'arki/scroll-horizontal-default-width cur-width)
+        (message "Set default scroll width from %s to %s columns." arki/scroll-horizontal-default-width cur-width)
+        (setq arki/scroll-horizontal--default-width cur-width))
+
       ;; https://stackoverflow.com/questions/9942675/in-elisp-how-do-i-put-a-function-in-a-variable
       ;; (message "FUNC: %S WIDTH: %S" scroll-fn width)
-      (funcall scroll-fn width)))
+      (funcall scroll-fn cur-width)))
 
   (arki/define-key "<C-right>" (lambda (width) (interactive "P") (arki/scroll-horizontal 'right width)))
   (arki/define-key "<C-left>" (lambda (width) (interactive "P") (arki/scroll-horizontal 'left width)))
-
 #+end_src
 *** Edit behaviour
 #+begin_src emacs-lisp
@@ -564,7 +577,6 @@ Add the code below to ~init.el~.
     (global-so-long-mode 1)
     (customize-save-variable 'so-long-max-lines 100)
     (customize-save-variable 'so-long-threshold 500))
-
 #+end_src
 *** Dired
 #+begin_src emacs-lisp :tangle yes
@@ -608,7 +620,6 @@ Add the code below to ~init.el~.
                      (lambda () (interactive) (find-alternate-file ".."))
                      'dired-mode-map)
     )
-
 #+end_src
 ** Fonts
 #+begin_src emacs-lisp
@@ -887,10 +898,8 @@ Add the code below to ~init.el~.
   ;;   (cnfonts-enable)
   ;;   (setq cnfonts-use-face-font-rescale t)
   ;;   (setq cnfonts-keep-frame-size nil))
-
-
 #+end_src
-** auto-save
+** Auto save
 #+begin_src emacs-lisp
   ;; 使用新的自动保存
   ;; 参考自：
@@ -1086,7 +1095,6 @@ Add the code below to ~init.el~.
 
 
   (add-hook 'emacs-startup-hook 'arki/auto-save-init)
-
 #+end_src
 * Setup extra packages or features
 :PROPERTIES:
@@ -1193,7 +1201,6 @@ Add the code below to ~init.el~.
     (setq imenu-list-after-jump-hook nil)
     (add-hook 'imenu-list-after-jump-hook (lambda () (recenter-top-bottom 0)))
     )
-
 #+end_src
 ** dired
 #+begin_src emacs-lisp
@@ -1212,7 +1219,6 @@ Add the code below to ~init.el~.
         )
       )
     )
-
 #+end_src
 ** theme
 *** doom-themes doom-modeline                                                 :manually:
@@ -1266,22 +1272,18 @@ Add the code below to ~init.el~.
 
   ;; (when (require-pack 'on-screen)
   ;;   (on-screen-global-mode +1))
-
 #+end_src
 
 ** env
 #+begin_src emacs-lisp
-
   ;; let emacs could find the executable
   (when (memq window-system '(mac ns))
     (when (require-pack 'exec-path-from-shell)
       (exec-path-from-shell-initialize))
     )
-
 #+end_src
 ** dashboard
 #+begin_src emacs-lisp
-
   ;; https://github.com/emacs-dashboard/emacs-dashboard
   (when (require-pack 'dashboard)
     ;; (dashboard-setup-startup-hook)
@@ -1300,9 +1302,9 @@ Add the code below to ~init.el~.
     (setq dashboard-set-heading-icons t)
     (setq dashboard-set-footer nil)
     )
-
 #+end_src
 ** screensaver
+*** Define zone-timer
 #+begin_src emacs-lisp
   (require 'zone)
   (require 'color)
@@ -1316,7 +1318,7 @@ Add the code below to ~init.el~.
   (defcustom zone-timer-rainbow-sat 1.0 "Saturation." :group 'zone-timer)
   (defcustom zone-timer-rainbow-light 0.5 "Light." :group 'zone-timer)
   (defcustom zone-timer-rainbow-background nil "If not nil, Background color." :group 'zone-timer)
-  (defcustom zone-timer-interval 10 "Interval (in seconds) to show the new time." :group 'zone-timer)
+  (defcustom zone-timer-interval 30 "Interval (in seconds) to show the new time." :group 'zone-timer)
   (defcustom zone-timer-rainbow-enable t "Whether to enable rainbow effect. t: enable. nil: disable." :group 'zone-timer)
   (defcustom zone-timer-format-string "%Y-%m-%d %k:%M:%S" "Used to format time. See: `format-time-string'" :group 'zone-timer)
   (defcustom zone-timer-start-column -1 "The start column number from where to print time. -1 means the middle of window." :group 'zone-timer)
@@ -1380,14 +1382,12 @@ Add the code below to ~init.el~.
     (let ((zone-programs [zone-pgm-timer])
           (zone-timer-interval 5))
       (zone)))
-
-
+#+end_src
+*** Enable zone-timer when idle
+#+begin_src emacs-lisp
   ;; 启用zone
-  (zone-when-idle 300)
   (setq zone-programs [zone-pgm-timer])
-  (setq zone-timer-interval 600)
-  (setq zone-timer-rainbow-enable t)
-
+  (zone-when-idle 1800)
 #+end_src
 ** which-key
 #+begin_src emacs-lisp
@@ -1409,7 +1409,6 @@ Add the code below to ~init.el~.
     ;; max height of which-key window, when displayed at top or bottom.
     (setq which-key-side-window-max-height 10)
     )
-
 #+end_src
 ** auto-complete
 #+begin_src emacs-lisp
@@ -1530,8 +1529,6 @@ Add the code below to ~init.el~.
     ;; (arki/define-key "C-h v" 'counsel-describe-variable)
     ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
     )
-
-
 #+end_src
 ** elisp
 #+begin_src emacs-lisp
@@ -1555,7 +1552,6 @@ Add the code below to ~init.el~.
   (arki/define-key "C-h C-f" 'find-function)
   (arki/define-key "C-h C-v" 'find-variable)
   (arki/define-key "C-h C-k" 'find-function-on-key)
-
 #+end_src
 ** org                                                            :manually:
 其中 ~org-web-tools~ 需要使用[[https://pandoc.org/][pandoc]]将html转成org文挡
@@ -1884,7 +1880,6 @@ Add the code below to ~init.el~.
 
   (when (require-packs 'treemacs 'projectile)
     (require-pack 'treemacs-projectile))
-
 #+end_src
 ** filetypes-support
 *** markdown                                                     :manually:
@@ -2070,8 +2065,6 @@ Add the code below to ~init.el~.
                 vc-relative-file)))
 
   (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
-
-
 #+end_src
 ** layout
 #+begin_src emacs-lisp
@@ -2119,8 +2112,6 @@ Add the code below to ~init.el~.
   ;; (purpose-compile-user-configuration) ; activates your changes
   ;; (when (require-pack 'window-purpose)
   ;; (purpose-mode))
-
-
 #+end_src
 ** help-info
 #+begin_src emacs-lisp
@@ -2130,7 +2121,6 @@ Add the code below to ~init.el~.
 #+end_src
 ** dictionary
 #+begin_src emacs-lisp
-
   ;; https://github.com.cnpmjs.org/xuchunyang/youdao-dictionary.el
   (when (require-pack 'youdao-dictionary)
 
@@ -2148,8 +2138,6 @@ Add the code below to ~init.el~.
 
     (require-pack-local 'shengci t "https://raw.githubusercontent.com/EvanMeek/shengci.el/master/shengci.el")
     )
-
-
 #+end_src
 ** python
 #+begin_src emacs-lisp
@@ -2281,8 +2269,6 @@ Add the code below to ~init.el~.
 
     (arki/define-key "p" 'arki/python-lsp-config 'arki/prefix-keymap)
     )
-
-
 #+end_src
 ** wsl
 #+begin_src emacs-lisp
@@ -2327,9 +2313,6 @@ Add the code below to ~init.el~.
     )
 
   (add-hook 'after-init-hook 'arki/wsl-setup)
-
-
-
 #+end_src
 ** eaf
 #+begin_src emacs-lisp
@@ -2370,7 +2353,20 @@ Add the code below to ~init.el~.
     ;; Check the full list of configurable variables with C-h v eaf-var-list
     )
   (arki/define-key "e" 'arki/eaf-enable 'arki/prefix-keymap)
+#+end_src
 
+* Key macros
+:PROPERTIES:
+:header-args: :tangle yes :comments link
+:END:
+** Doc
+1. [[info:emacs#Save Keyboard Macro][Naming and Saving Keyboard Macros]]
+2. [[info:emacs#Regexps][Syntax of Regular Expressions]]
+** Indent code in the next source sturcture from current point.
+#+begin_src emacs-lisp
+  (fset 'arki/kmacro-format-source-block-elisp
+        (kmacro-lambda-form [?\M-x ?i ?s ?e ?a ?r ?c ?h ?- ?f ?o ?r ?w ?a ?r ?d return ?^ ?# ?\\ ?+ ?b ?e ?g ?i ?n ?_ ?s ?r ?c ?  ?e ?m ?a ?c ?s ?- ?l ?i ?s ?p return ?\C-c ?\' ?\C-\M-\\ ?\M-x ?c ?l ?e ?a backspace backspace backspace backspace ?w ?h ?i ?t ?e ?s ?p ?a ?c ?e ?- ?c ?l ?e ?a ?n ?u ?p return ?\C-\M-\\ ?\C-c ?\'] 0 "%d"))
+  (arki/define-key "C-x C-k 1" 'arki/kmacro-format-source-block-elisp)
 #+end_src
 * Need review
 * End
@@ -2382,6 +2378,6 @@ Add the code below to ~init.el~.
 #+end_src
 * Questions
 ** eval-after-load vs mode-hook
-  https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
-  https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
+https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
+https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
 **
