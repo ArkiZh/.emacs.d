@@ -1554,7 +1554,7 @@ Add the code below to ~init.el~.
   (arki/define-key "C-h C-k" 'find-function-on-key)
 #+end_src
 ** org                                                            :manually:
-其中 ~org-web-tools~ 需要使用[[https://pandoc.org/][pandoc]]将html转成org文挡
+其中 ~org-web-tools~ 需要安装[[https://pandoc.org/][pandoc]],将html转成org文挡
 #+begin_src emacs-lisp
   (require 'org)
 
