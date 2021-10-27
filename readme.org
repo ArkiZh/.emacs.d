@@ -1101,7 +1101,21 @@ Add the code below to ~init.el~.
 :header-args: :tangle yes :comments link
 :END:
 ** Set melpa and mirror
+1. Officials
+   | [[https://elpa.gnu.org/][GNU]]          | https://elpa.gnu.org/packages/     |
+   | [[https://melpa.org/#/getting-started][MELPA]]        | https://melpa.org/packages/        |
+   | MELPA Stable | https://stable.melpa.org/packages/ |
+2. [[https://elpa.emacs-china.org/][emacs-china]]
+   如果需要 HTTPS，请将镜像地址中的 http 改成 https 
+   | GNU          | http://elpa.emacs-china.org/gnu/          |
+   | MELPA        | http://elpa.emacs-china.org/melpa/        |
+   | MELPA Stable | http://elpa.emacs-china.org/stable-melpa/ |
+
+
 #+begin_src emacs-lisp
+  ;; (setq package-archives '(("gnu"   . "https://elpa.gnu.org/packages/")
+  ;;                          ("melpa" . "https://melpa.org/packages/")))
+
   (setq package-archives '(("gnu"   . "https://elpa.emacs-china.org/gnu/")
                            ("melpa" . "https://elpa.emacs-china.org/melpa/")))
 
