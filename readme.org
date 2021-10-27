@@ -2087,21 +2087,21 @@ Add the code below to ~init.el~.
     )
 
 
-  ;; https://github.com/nex3/perspective-el#buffer-switchers
-  (when (require-pack 'perspective)
-    (persp-mode)
-    (when (require 'bs)
-      (arki/define-key "C-x C-b" (lambda (arg) (interactive "P")
-                                   (if (fboundp 'persp-ibuffer)
-                                       (persp-ibuffer arg)
-                                     (ibuffer)))))
-    (setq persp-state-default-file (expand-file-name "perspective.save" arki/cache-dir))
-    (add-hook 'kill-emacs-hook (lambda () (interactive "P")
-                                 ;; Kill gpg buffers before save persp, to avoid password input when restart emacs.
-                                 (kill-matching-buffers ".*\\.gpg$" nil t)
-                                 (persp-state-save persp-state-default-file)))
-    (add-hook 'emacs-startup-hook (lambda () (interactive "P") (persp-state-load persp-state-default-file)))
-    )
+  ;; ;; https://github.com/nex3/perspective-el#buffer-switchers
+  ;; (when (require-pack 'perspective)
+  ;;   (persp-mode)
+  ;;   (when (require 'bs)
+  ;;     (arki/define-key "C-x C-b" (lambda (arg) (interactive "P")
+  ;;                                  (if (fboundp 'persp-ibuffer)
+  ;;                                      (persp-ibuffer arg)
+  ;;                                    (ibuffer)))))
+  ;;   (setq persp-state-default-file (expand-file-name "perspective.save" arki/cache-dir))
+  ;;   (add-hook 'kill-emacs-hook (lambda () (interactive "P")
+  ;;                                ;; Kill gpg buffers before save persp, to avoid password input when restart emacs.
+  ;;                                (kill-matching-buffers ".*\\.gpg$" nil t)
+  ;;                                (persp-state-save persp-state-default-file)))
+  ;;   (add-hook 'emacs-startup-hook (lambda () (interactive "P") (persp-state-load persp-state-default-file)))
+  ;;   )
 
   ;; https://github.com/bmag/emacs-purpose
   ;; Config M-x customize-group purpose
@@ -2369,6 +2369,138 @@ Add the code below to ~init.el~.
   (arki/define-key "C-x C-k 1" 'arki/kmacro-format-source-block-elisp)
 #+end_src
 * Need review
+#+begin_src emacs-lisp :tangle no
+  (defvar arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)) "Where to save desktop.")
+
+  (setq arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)))
+  (defvar arki/desktop-current-desktop "default" "The default desktop.")
+
+  (setq desktop-restore-frames nil)
+
+
+  (defun arki/desktop-save (&optional desktop-name release only-if-changed)
+    (interactive (list
+                  (ido-completing-read "Input you desktop name:" (let* ((dirs (directory-files arki/desktop-dir nil "[^.]")))
+                                                                   (if dirs dirs (list arki/desktop-current-desktop))))
+                  nil
+                  t))
+    (if desktop-name
+        (setq arki/desktop-current-desktop desktop-name)
+      (setq desktop-name arki/desktop-current-desktop))
+
+    (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
+      (unless (file-directory-p cur-desktop-dir)
+        (make-directory cur-desktop-dir t))
+      (desktop-save cur-desktop-dir release only-if-changed)))
+
+
+  (defun arki/desktop-read (&optional desktop-name)
+    (interactive (list
+                  (ido-completing-read "Input you desktop name:" (directory-files arki/desktop-dir nil "[^.]") nil t)))
+    (unless desktop-name (setq (desktop-name arki/desktop-current-desktop)))
+    (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
+      (if (file-directory-p cur-desktop-dir)
+          (desktop-read cur-desktop-dir)
+        (message "Current desktop doesn't exist: %s" desktop-name))))
+
+
+  (arki/desktop-save "test")
+
+  (arki/desktop-save desktop-dirname)
+
+  (desktop-read desktop-dirname)
+
+  t
+  (pp-to-string desktop-files-not-to-save)
+  "\"\\\\(\\\\`/[^/:]*:\\\\|(ftp)\\\\'\\\\)\""
+
+
+
+  (pp-to-string frameset-filter-alist)
+  "((treemacs-workspace . :never)
+   (treemacs-id . :never)
+   (tabs . frameset-filter-tabs)
+   (background-color . frameset-filter-sanitize-color)
+   (buffer-list . :never)
+   (buffer-predicate . :never)
+   (buried-buffer-list . :never)
+   (client . :never)
+   (delete-before . :never)
+   (font . frameset-filter-font-param)
+   (font-backend . :never)
+   (foreground-color . frameset-filter-sanitize-color)
+   (frameset--text-pixel-height . :save)
+   (frameset--text-pixel-width . :save)
+   (fullscreen . frameset-filter-shelve-param)
+   (GUI:font . frameset-filter-unshelve-param)
+   (GUI:fullscreen . frameset-filter-unshelve-param)
+   (GUI:height . frameset-filter-unshelve-param)
+   (GUI:width . frameset-filter-unshelve-param)
+   (height . frameset-filter-shelve-param)
+   (outer-window-id . :never)
+   (parent-frame . :never)
+   (parent-id . :never)
+   (mouse-wheel-frame . :never)
+   (tty . frameset-filter-tty-to-GUI)
+   (tty-type . frameset-filter-tty-to-GUI)
+   (width . frameset-filter-shelve-param)
+   (window-id . :never)
+   (window-system . :never)
+   (name . :never)
+   (left . frameset-filter-iconified)
+   (minibuffer . frameset-filter-minibuffer)
+   (top . frameset-filter-iconified))
+  "
+
+
+  desktop-restore-eager
+  t
+
+  desktop-globals-to-clear
+  (kill-ring kill-ring-yank-pointer search-ring search-ring-yank-pointer regexp-search-ring regexp-search-ring-yank-pointer)
+
+  desktop-globals-to-save
+  (desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
+
+  desktop-clear-preserve-buffers
+  ("\\*scratch\\*" "\\*Messages\\*" "\\*server\\*" "\\*tramp/.+\\*" "\\*Warnings\\*")
+
+  desktop-auto-save-timeout
+  30
+
+  desktop-auto-save-timer
+  nil
+
+  desktop-load-locked-desktop
+  ask
+
+  (desktop-read)
+
+  desktop-save-mode
+  nil
+
+  desktop-path
+  ("~/.emacs.d/" "~")
+  desktop-base-file-name
+  ".emacs.desktop"
+  desktop-base-lock-name
+  ".emacs.desktop.lock"
+  (setq desktop-base-file-name "emacs")
+  )
+
+  (desktop-change-dir)
+
+  (desktop-save)
+  (desktop-save-in-desktop-dir)
+
+
+
+  (setq desktop-path (list (expand-file-name "desktops" arki/cache-dir)))
+  (setq desktop-dirname (car desktop-path))
+  (expand-file-name desktop-dirname)
+  "/home/k/.emacs.d/arki.cache/desktops"
+  (setq desktop-name "emacs")
+#+end_src
 * End
 :PROPERTIES:
 :header-args: :tangle yes :comments link
