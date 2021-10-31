@@ -493,6 +493,8 @@ Add the code below to ~init.el~.
   ;; (toggle-frame-fullscreen)
 #+end_src
 *** Hide scroll bar
+[[info:elisp#Textual Scrolling][Textual Scrolling]]
+
 #+begin_src emacs-lisp
   ;; 关闭窗口滑动控件
   (scroll-bar-mode -1)
@@ -537,6 +539,51 @@ Add the code below to ~init.el~.
 
   (arki/define-key "<C-right>" (lambda (width) (interactive "P") (arki/scroll-horizontal 'right width)))
   (arki/define-key "<C-left>" (lambda (width) (interactive "P") (arki/scroll-horizontal 'left width)))
+
+
+  (defcustom arki/scroll-vertical-default-height 1
+    "The default height (in columns) to scroll vertically."
+    :group 'arki/navigation)
+
+  (defun arki/scroll-vertical (direction heigth)
+    "Scroll text to up or down vertically.
+
+  DIRECTION
+  If nil or 'down, invoke scroll-up.
+  If 'up, invoke scroll-up.
+
+  HEIGHT
+  If nil or 0, invoke scroll function with arg `arki/scroll-vertical-default-height'.
+  If positive, invoke scroll function with arg HEIGHT.
+  If negative, invoke scroll function with arg (/ (window-body-height) 2)."
+    ;; (message "ARGs: %S %S" direction height)
+    (let* ((cur-height (cond ((or (not height) (= height 0)) arki/scroll-vertical-default-height)
+                             ((< height 0) (/ (window-body-height) 2))
+                             ((> height 0) height)))
+           (scroll-fn (cond ((or (not direction) (eq 'down direction)) 'scroll-up)
+                            ((eq 'up direction) 'scroll-down))))
+      (when height
+        (customize-save-variable 'arki/scroll-vertical-default-height cur-height)
+        (message "Set default scroll height from %s to %s rows." arki/scroll-vertical-default-height cur-height)
+        (setq arki/scroll-vertical--default-height cur-height))
+
+      ;; https://stackoverflow.com/questions/9942675/in-elisp-how-do-i-put-a-function-in-a-variable
+      ;; (message "FUNC: %S HEIGHT: %S" scroll-fn height)
+      (funcall scroll-fn cur-height)))
+
+  (arki/define-key "<C-up>" (lambda (height) (interactive "P") (arki/scroll-vertical 'up height)))
+  (arki/define-key "<C-down>" (lambda (height) (interactive "P") (arki/scroll-vertical 'down height)))
+
+#+end_src
+*** Windown resize
+[[info:emacs#Change Window][Deleting and reiszing windows]]
+#+begin_src emacs-lisp
+  (arki/define-key "<M-right>" 'enlarge-window-horizontally)
+  (arki/define-key "<M-left>" 'shrink-window-horizontally)
+
+  (arki/define-key "<M-up>" 'enlarge-window)
+  (arki/define-key "<M-down>" 'shrink-window)
+
 #+end_src
 *** Edit behaviour
 #+begin_src emacs-lisp
@@ -2407,6 +2454,7 @@ Add the code below to ~init.el~.
   (arki/define-key "C-x C-k 1" 'arki/kmacro-format-source-block-elisp)
 #+end_src
 * Need review
+** Desktop save
 #+begin_src emacs-lisp :tangle no
   (defvar arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)) "Where to save desktop.")
 
@@ -2538,6 +2586,10 @@ Add the code below to ~init.el~.
   (expand-file-name desktop-dirname)
   "/home/k/.emacs.d/arki.cache/desktops"
   (setq desktop-name "emacs")
+#+end_src
+** Resize window
+#+begin_src emacs-lisp :tangle no
+
 #+end_src
 * End
 :PROPERTIES:
