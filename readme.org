@@ -2589,7 +2589,8 @@ Add the code below to ~init.el~.
 #+end_src
 ** Resize window
 #+begin_src emacs-lisp :tangle no
-
+  (require-pack 'windsize)
+  (require-pack 'windresize)
 #+end_src
 * End
 :PROPERTIES:
