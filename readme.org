@@ -1113,11 +1113,35 @@ Add the code below to ~init.el~.
 
 
 #+begin_src emacs-lisp
-  ;; (setq package-archives '(("gnu"   . "https://elpa.gnu.org/packages/")
-  ;;                          ("melpa" . "https://melpa.org/packages/")))
+  (defcustom arki/package-archives-mirrors '(("official" . (("gnu"   . "https://elpa.gnu.org/packages/")
+                                                            ("melpa" . "https://melpa.org/packages/")))
+                                             ("emacs-china" . (("gnu"   . "https://elpa.emacs-china.org/gnu/")
+                                                               ("melpa" . "https://elpa.emacs-china.org/melpa/"))))
+    "Config elpa mirrors."
+    :group 'arki/config
+    :type '(alist :key-type string :value-type (alist :key-type string :value-type string)))
 
-  (setq package-archives '(("gnu"   . "https://elpa.emacs-china.org/gnu/")
-                           ("melpa" . "https://elpa.emacs-china.org/melpa/")))
+
+
+  (defun arki/package-archives-mirror-switch (mirror-name &optional refresh)
+    "Set package archives mirror.
+
+  MIRROR-NAME The mirror name defined in `arki/package-archives-mirrors'
+
+  REFRESH If not nil, invoke `package-refresh-contents'"
+
+    (interactive (list (ido-completing-read "Select the mirror: "
+                                            (mapcar 'car arki/package-archives-mirrors)
+                                            nil t nil)
+                       current-prefix-arg))
+    (setq package-archives (cdr (assoc mirror-name arki/package-archives-mirrors)))
+    (message "Set package-archives to %s: %s" mirror-name package-archives)
+    (when refresh
+      (package-refresh-contents)
+      (message "Package contents refreshed!")))
+
+
+  (arki/package-archives-mirror-switch "emacs-china")
 
   ;; Import new GNU ELPA keys (if any) into package.el’s keyring.
   (require-pack 'gnu-elpa-keyring-update)
