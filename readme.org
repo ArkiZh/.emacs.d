@@ -52,13 +52,6 @@ Add the code below to ~init.el~.
     (when (version< emacs-version tested-ver)
       (message "This config has been tested under version %s. But yours is %s. Upgrade if possible." tested-ver emacs-version)))
 #+end_src
-** Setup ~custom-file~ location.
-#+begin_src emacs-lisp
-  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-
-  (when (file-exists-p custom-file)
-    (load custom-file))
-#+end_src
 ** Load packages, and activate them.
 #+begin_src emacs-lisp
   ;; Adjust garbage collection thresholds during startup, and thereafter. In bytes.
@@ -622,8 +615,8 @@ Add the code below to ~init.el~.
   ;; (so-long-commentary)
   (when (version<= "27.1" emacs-version)
     (global-so-long-mode 1)
-    (customize-save-variable 'so-long-max-lines 100)
-    (customize-save-variable 'so-long-threshold 500))
+    (customize-set-variable 'so-long-max-lines 100)
+    (customize-set-variable 'so-long-threshold 500))
 #+end_src
 *** Dired
 #+begin_src emacs-lisp :tangle yes
@@ -644,7 +637,7 @@ Add the code below to ~init.el~.
 
 
     ;; Navigation
-    (customize-save-variable 'dired-bind-info nil) ; Non-nil means bind ‘dired-info’ to "I" in Dired, otherwise do not.
+    (customize-set-variable 'dired-bind-info nil) ; Non-nil means bind ‘dired-info’ to "I" in Dired, otherwise do not.
     (arki/define-key "I" 'dired-kill-subdir 'dired-mode-map)
 
     (arki/define-key "<tab>" 'dired-hide-subdir 'dired-mode-map)
@@ -662,7 +655,7 @@ Add the code below to ~init.el~.
     ;; Reuse dired buffers. https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer
     (put 'dired-find-alternate-file 'disabled nil)
     (arki/define-key "RET" 'dired-find-alternate-file 'dired-mode-map)
-    (customize-save-variable 'dired-bind-man nil) ; Non-nil means bind ‘dired-man’ to "N" in Dired, otherwise do not.
+    (customize-set-variable 'dired-bind-man nil) ; Non-nil means bind ‘dired-man’ to "N" in Dired, otherwise do not.
     (arki/define-key ";"
                      (lambda () (interactive) (find-alternate-file ".."))
                      'dired-mode-map)
