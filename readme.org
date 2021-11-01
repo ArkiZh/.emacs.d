@@ -2589,16 +2589,140 @@ Add the code below to ~init.el~.
 #+end_src
 ** Resize window
 #+begin_src emacs-lisp :tangle no
-  (require-pack 'windsize)
+  (when (require-pack 'windsize)
+    (windsize-default-keybindings))
+
+  ;; This is very useful
   (require-pack 'windresize)
+
+  (progn (windmove-left windresize-windmove-relative-to-point)
+         (adjust-window-trailing-edge (selected-window) (- i) t))
+
+  (adjust-window-trailing-edge nil 2 t)
+
+  (setq arki/t (windmove-left))
+  arki/t
+
+
+
+
+  (condition-case err (windmove-left)
+    (error
+     (message "ERROR: %s" (error-message-string err))))
+
+
+  (select-window (selected-window))
+  (windmove-find-other-window 'left)
+  (equal 'abc 'abc)
 #+end_src
-* End
+
+Tested code.
+#+begin_src emacs-lisp :tangle no
+
+  (defcustom arki/window-move-border-default-width 1 "The default width used to enlarge or shrink window horizontally." :type 'integer)
+  (defcustom arki/window-move-border-default-height 1 "The default height used to enlarge or shrink window vertically." :type 'integer)
+
+
+  (defun arki/interactive-convert-prefix-to-element (prefix)
+    (when prefix
+      (if (listp prefix) (car prefix) prefix)))
+
+
+  (defun arki/window-move-border (direction &optional delta)
+    "Resize window by moving border.
+
+  DIRECTION Which border to move.
+  DELTA How much to move."
+    (interactive (list (ido-completing-read "Choose the border:" (list "right" "left" "up" "down") nil t)
+                       delta))
+    ;; (message "Inputs: %S %S %S %S" direction delta (integerp delta) (listp delta))
+    (let* ((cur-window (selected-window))
+           (target-window (cond
+                           ((string= direction "right") (selected-window))
+                           ((string= direction "down") (selected-window))
+                           ((string= direction "left") (windmove-find-other-window 'left))
+                           ((string= direction "up") (windmove-find-other-window 'up))))
+           (horizontal? (or (string= direction "right") (string= direction "left")))
+           (can-resize? (windmove-find-other-window (intern direction)))
+           (delta (arki/interactive-convert-prefix-to-element delta))
+           (cur-delta (if horizontal?
+                          (if delta delta arki/window-move-border-default-width)
+                        (if delta delta arki/window-move-border-default-height))))
+      ;; (message "Converted: %S %S %S %S" horizontal? can-resize? delta cur-delta)
+      (when can-resize?
+        ;; (message "%S %S %S" target-window cur-delta horizontal?)
+        (adjust-window-trailing-edge target-window cur-delta horizontal?))))
+
+
+  (defun arki/window-move-border-right (which-border delta &optional opposite)
+    (if (not delta)
+        (arki/window-move-border which-border (if opposite (- arki/window-move-border-default-width) arki/window-move-border-default-width))
+      (customize-save-variable 'arki/window-move-border-default-width delta)
+      (arki/window-move-border which-border (if opposite (- delta) delta))))
+
+  (defun arki/window-move-border-down (which-border delta &optional opposite)
+    (if (not delta)
+        (arki/window-move-border which-border (if opposite (- arki/window-move-border-default-height) arki/window-move-border-default-height))
+      (customize-save-variable 'arki/window-move-border-default-height delta)
+      (arki/window-move-border which-border (if opposite (- delta) delta))))
+
+  (defun arki/window-move-right-border-right (delta)
+    (interactive "P")
+    (arki/window-move-border-right "right" (arki/interactive-convert-prefix-to-element delta)))
+
+
+  (defun arki/window-move-right-border-left (delta)
+    (interactive "P")
+    (arki/window-move-border-right "right" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-left-border-right (delta)
+      (interactive "P")
+      (arki/window-move-border-right "left" (arki/interactive-convert-prefix-to-element delta)))
+
+  (defun arki/window-move-left-border-left (delta)
+      (interactive "P")
+      (arki/window-move-border-right "left" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-up-border-up (delta)
+        (interactive "P")
+        (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-up-border-down (delta)
+        (interactive "P")
+        (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta)))
+
+  (defun arki/window-move-down-border-up (delta)
+        (interactive "P")
+        (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-down-border-down (delta)
+        (interactive "P")
+        (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta)))
+
+
+  (arki/define-key "<M-right>" 'arki/window-move-right-border-right)
+  (arki/define-key "<C-M-right>" 'arki/window-move-left-border-right)
+  (arki/define-key "<M-left>" 'arki/window-move-right-border-left)
+  (arki/define-key "<C-M-left>" 'arki/window-move-left-border-left)
+  (arki/define-key "<M-up>" 'arki/window-move-down-border-up)
+  (arki/define-key "<C-M-up>" 'arki/window-move-up-border-up)
+  (arki/define-key "<M-down>" 'arki/window-move-down-border-down)
+  (arki/define-key "<C-M-down>" 'arki/window-move-up-border-down)
+#+end_src
+* Load custom variables
 :PROPERTIES:
 :header-args: :tangle yes :comments link
 :END:
+
 #+begin_src emacs-lisp
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+
+  (when (file-exists-p custom-file)
+    (load custom-file))
+
   (message "My init file ends here!")
 #+end_src
+
 * Questions
 ** eval-after-load vs mode-hook
 https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
