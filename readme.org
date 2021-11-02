@@ -195,9 +195,6 @@ Add the code below to ~init.el~.
   (defvar arki/key-bindings '((global))
     "Record customize key-bindings.")
 
-  (define-prefix-command 'arki/prefix-keymap)
-  (global-set-key (kbd "M-SPC") 'arki/prefix-keymap)
-
   (defun arki/define-key (key command &optional keymap)
     "Set key binding, and record the binding to `arki/key-bindings'.
 
@@ -222,6 +219,9 @@ Add the code below to ~init.el~.
       (arki/alist-push-value arki/key-bindings current-keymap-symbol (list key command))
       (define-key current-keymap current-kbd command)))
 
+
+  (define-prefix-command 'arki/prefix-keymap)
+  (arki/define-key "<M-SPC>" 'arki/prefix-keymap)
   
   ;;----------------------------------------------------------------------------
   ;; File utils
