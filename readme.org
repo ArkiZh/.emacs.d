@@ -2798,6 +2798,7 @@ Use <M-SPC w> to activate, then:
 Tested code.
 #+begin_src emacs-lisp :tangle no
 #+end_src
+
 * Load custom variables
 :PROPERTIES:
 :header-args: :tangle yes :comments link
@@ -2816,4 +2817,38 @@ Tested code.
 ** eval-after-load vs mode-hook
 https://stackoverflow.com/questions/2736087/eval-after-load-vs-mode-hook
 https://stackoverflow.com/questions/21880139/what-is-with-eval-after-load-in-emacs-lisp/21880276
-**
+
+** How to set customize variables?
+1. [[https://emacs.stackexchange.com/questions/32157/should-custom-variables-defined-without-defcustom-be-set-via-custom-set-variab][The question]]: ~customize-set-variable~ vs ~customize-set-value~
+
+   - Variable set by ~customize-set-variable~ will be saved to custom file, when ~customize-save-variable~
+     or ~customize-save-variables~ is invoked.
+   - While, variable set by ~customize-set-value~ will not be saved to custom file.
+   - They can both set comment.
+
+2. From help-gnu-emacs:
+
+   [[https://lists.gnu.org/archive/html/help-gnu-emacs/2015-11/msg00360.html][which one to use: custom-set-variables, customize-set-variable, or customize-set-value?]]
+
+   1. The `customize-*' functions are also commands.  And they set only a single variable (option).
+      `custom-set-variables' is not a command, and it can set any number of options - it is what
+      Customize writes to your `custom-file' (or init file).
+
+   2. `customize-set-value' does not use the defcustom's :set function, and it does not set the
+      default value.  It just sets the current value in the current buffer.  It is like setq, except
+      that it can be used interactively (it is a command), and in that case it reads the value
+      according to how such values are read interactively.  AFAIK, it respects the defcustom :type
+      (but it does not respect :set).
+
+   3. I agree that the doc is not very clear.  Recently I forgot that `customize-set-value' does not
+      use the defcustom's :set function, and I was bitten by the fact that it does not.  It seems
+      odd that it has two, completely independent differences from `customize-set-variable'.
+
+
+*** TODO Need to write a function to set custom variable with the default comment
+:LOGBOOK:
+- State "TODO"       from              [2021-11-03 Wed 14:30]
+:END:
+The default comment could be: /Initialized in init file with default value: xx/.
+
+
