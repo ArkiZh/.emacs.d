@@ -1136,6 +1136,224 @@ Add the code below to ~init.el~.
 
   (add-hook 'emacs-startup-hook 'arki/auto-save-init)
 #+end_src
+** Layout management
+*** Resize window by borders
+#+begin_src emacs-lisp
+  (defcustom arki/window-move-border-default-width 1 "The default width used to enlarge or shrink window horizontally." :type 'integer)
+  (defcustom arki/window-move-border-default-height 1 "The default height used to enlarge or shrink window vertically." :type 'integer)
+
+
+  (defun arki/interactive-convert-prefix-to-element (prefix)
+    (when prefix
+      (if (listp prefix) (car prefix) prefix)))
+
+  (require 'windmove)
+
+
+  (defun arki/window-move-border (direction &optional delta)
+    "Resize window by moving border.
+
+    DIRECTION Which border to move.
+    DELTA How much to move."
+    (interactive (list (ido-completing-read "Choose the border:" (list "right" "left" "up" "down") nil t)
+                       delta))
+    ;; (message "Inputs: %S %S %S %S" direction delta (integerp delta) (listp delta))
+    (let* ((cur-window (selected-window))
+           (target-window (cond
+                           ((string= direction "right") (selected-window))
+                           ((string= direction "down") (selected-window))
+                           ((string= direction "left") (windmove-find-other-window 'left))
+                           ((string= direction "up") (windmove-find-other-window 'up))))
+           (horizontal? (or (string= direction "right") (string= direction "left")))
+           (can-resize? (windmove-find-other-window (intern direction)))
+           (delta (arki/interactive-convert-prefix-to-element delta))
+           (cur-delta (if horizontal?
+                          (if delta delta arki/window-move-border-default-width)
+                        (if delta delta arki/window-move-border-default-height))))
+      ;; (message "Converted: %S %S %S %S" horizontal? can-resize? delta cur-delta)
+      (when can-resize?
+        ;; (message "%S %S %S" target-window cur-delta horizontal?)
+        (adjust-window-trailing-edge target-window cur-delta horizontal?))))
+
+
+  (defun arki/window-move-border-right (which-border delta &optional opposite)
+    (if (not delta)
+        (arki/window-move-border which-border (if opposite (- arki/window-move-border-default-width) arki/window-move-border-default-width))
+      (customize-save-variable 'arki/window-move-border-default-width delta)
+      (arki/window-move-border which-border (if opposite (- delta) delta))))
+
+  (defun arki/window-move-border-down (which-border delta &optional opposite)
+    (if (not delta)
+        (arki/window-move-border which-border (if opposite (- arki/window-move-border-default-height) arki/window-move-border-default-height))
+      (customize-save-variable 'arki/window-move-border-default-height delta)
+      (arki/window-move-border which-border (if opposite (- delta) delta))))
+
+  (defun arki/window-move-right-border-right (delta)
+    (interactive "P")
+    (arki/window-move-border-right "right" (arki/interactive-convert-prefix-to-element delta)))
+
+
+  (defun arki/window-move-right-border-left (delta)
+    (interactive "P")
+    (arki/window-move-border-right "right" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-left-border-right (delta)
+    (interactive "P")
+    (arki/window-move-border-right "left" (arki/interactive-convert-prefix-to-element delta)))
+
+  (defun arki/window-move-left-border-left (delta)
+    (interactive "P")
+    (arki/window-move-border-right "left" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-up-border-up (delta)
+    (interactive "P")
+    (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-up-border-down (delta)
+    (interactive "P")
+    (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta)))
+
+  (defun arki/window-move-down-border-up (delta)
+    (interactive "P")
+    (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta) t))
+
+  (defun arki/window-move-down-border-down (delta)
+    (interactive "P")
+    (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta)))
+
+  (defun arki/window-move-both-border-left (delta)
+    (interactive "P")
+    (arki/window-move-left-border-left delta)
+    (arki/window-move-right-border-left delta))
+
+  (defun arki/window-move-both-border-right (delta)
+    (interactive "P")
+    (arki/window-move-left-border-right delta)
+    (arki/window-move-right-border-right delta))
+
+  (defun arki/window-move-both-border-up (delta)
+    (interactive "P")
+    (arki/window-move-up-border-up delta)
+    (arki/window-move-down-border-up delta))
+
+  (defun arki/window-move-both-border-down (delta)
+    (interactive "P")
+    (arki/window-move-up-border-down delta)
+    (arki/window-move-down-border-down delta))
+
+  ;; (arki/define-key "<M-right>" 'arki/window-move-right-border-right)
+  ;; (arki/define-key "<C-M-right>" 'arki/window-move-left-border-right)
+  ;; (arki/define-key "<M-left>" 'arki/window-move-right-border-left)
+  ;; (arki/define-key "<C-M-left>" 'arki/window-move-left-border-left)
+  ;; (arki/define-key "<M-up>" 'arki/window-move-down-border-up)
+  ;; (arki/define-key "<C-M-up>" 'arki/window-move-up-border-up)
+  ;; (arki/define-key "<M-down>" 'arki/window-move-down-border-down)
+  ;; (arki/define-key "<C-M-down>" 'arki/window-move-up-border-down)
+
+#+end_src
+*** Save desktop
+#+begin_src emacs-lisp
+  (defvar arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)) "The directory to save desktop.")
+
+  (setq arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)))
+  (defvar arki/desktop-current-desktop "default" "The default desktop.")
+
+  (customize-set-value 'desktop-restore-frames t)
+  (customize-set-value 'desktop-load-locked-desktop t)
+
+  (defun arki/desktop-save (&optional desktop-name release only-if-changed)
+    (interactive (list
+                  (ido-completing-read "Save to this desktop:" (let* ((dirs (directory-files arki/desktop-dir nil "[^.]")))
+                                                                 (if dirs dirs (list arki/desktop-current-desktop))))
+                  t
+                  t))
+    (if desktop-name
+        (setq arki/desktop-current-desktop desktop-name)
+      (setq desktop-name arki/desktop-current-desktop))
+
+    (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
+      (unless (file-directory-p cur-desktop-dir)
+        (make-directory cur-desktop-dir t))
+      (desktop-save cur-desktop-dir release only-if-changed)))
+
+  (defun arki/desktop-remove (desktop-name)
+    (interactive (list
+                  (ido-completing-read "Remove this desktop:" (directory-files arki/desktop-dir nil "[^.]") nil t)))
+    (when desktop-name
+      (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
+        (when (file-directory-p cur-desktop-dir)
+          (delete-directory cur-desktop-dir t)
+          (message "Desktop removed: %s" desktop-name)))))
+
+  (defun arki/desktop-read (&optional desktop-name)
+    (interactive (list
+                  (ido-completing-read "Read this desktop:" (directory-files arki/desktop-dir nil "[^.]") nil t)))
+    (unless desktop-name (setq desktop-name arki/desktop-current-desktop))
+    (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
+      (if (file-directory-p cur-desktop-dir)
+          (desktop-read cur-desktop-dir)
+        (message "Current desktop doesn't exist: %s" desktop-name))))
+#+end_src
+*** Assign keystroke
+Use <M-SPC w> to activate, then:
+- press <?> for help.
+- Using arrow keys to resize current window by their borders.
+- Press <s> to save desktop.
+- Press <l> to load desktop.
+
+#+begin_src emacs-lisp
+  (defvar arki/layout-help-message
+    "Move window borders by arrows.
+  Default to the right or down border.
+  With <M> for the left or up.
+  With <C-M> for both borders.
+  With <C> to move cursor across adjacent windows.
+  TODO: With <S> to move current window around.
+
+  Press <a> to save desktop.   (Append)
+  Press <s> to select desktop. (Select)
+  Press <d> to remove desktop. (Delete)
+
+  Press <?> for help."
+    "The help message for window move.")
+
+
+  (defun arki/layout ()
+    (interactive)
+    (message "Move window borders. Press ? for help.")
+    (set-transient-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map (kbd "<right>") 'arki/window-move-right-border-right)
+       (define-key map (kbd "<M-right>") 'arki/window-move-left-border-right)
+       (define-key map (kbd "<C-M-right>") 'arki/window-move-both-border-right)
+       (define-key map (kbd "<C-right>") 'windmove-right)
+
+       (define-key map (kbd "<left>") 'arki/window-move-right-border-left)
+       (define-key map (kbd "<M-left>") 'arki/window-move-left-border-left)
+       (define-key map (kbd "<C-M-left>") 'arki/window-move-both-border-left)
+       (define-key map (kbd "<C-left>") 'windmove-left)
+
+       (define-key map (kbd "<up>") 'arki/window-move-down-border-up)
+       (define-key map (kbd "<M-up>") 'arki/window-move-up-border-up)
+       (define-key map (kbd "<C-M-up>") 'arki/window-move-both-border-up)
+       (define-key map (kbd "<C-up>") 'windmove-up)
+
+       (define-key map (kbd "<down>") 'arki/window-move-down-border-down)
+       (define-key map (kbd "<M-down>") 'arki/window-move-up-border-down)
+       (define-key map (kbd "<C-M-down>") 'arki/window-move-both-border-down)
+       (define-key map (kbd "<C-down>") 'windmove-down)
+
+       (define-key map (kbd "a") 'arki/desktop-save)
+       (define-key map (kbd "s") 'arki/desktop-read)
+       (define-key map (kbd "d") 'arki/desktop-remove)
+
+       (define-key map "?" (lambda () (interactive) (message arki/layout-help-message)))
+       map)
+     t))
+
+
+  (arki/define-key "w" 'arki/layout 'arki/prefix-keymap)
+#+end_src
 * Setup extra packages or features
 :PROPERTIES:
 :header-args: :tangle yes :comments link
@@ -2449,38 +2667,6 @@ Add the code below to ~init.el~.
 * Need review
 ** Desktop save
 #+begin_src emacs-lisp :tangle no
-  (defvar arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)) "Where to save desktop.")
-
-  (setq arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)))
-  (defvar arki/desktop-current-desktop "default" "The default desktop.")
-
-  (setq desktop-restore-frames nil)
-
-
-  (defun arki/desktop-save (&optional desktop-name release only-if-changed)
-    (interactive (list
-                  (ido-completing-read "Input you desktop name:" (let* ((dirs (directory-files arki/desktop-dir nil "[^.]")))
-                                                                   (if dirs dirs (list arki/desktop-current-desktop))))
-                  nil
-                  t))
-    (if desktop-name
-        (setq arki/desktop-current-desktop desktop-name)
-      (setq desktop-name arki/desktop-current-desktop))
-
-    (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
-      (unless (file-directory-p cur-desktop-dir)
-        (make-directory cur-desktop-dir t))
-      (desktop-save cur-desktop-dir release only-if-changed)))
-
-
-  (defun arki/desktop-read (&optional desktop-name)
-    (interactive (list
-                  (ido-completing-read "Input you desktop name:" (directory-files arki/desktop-dir nil "[^.]") nil t)))
-    (unless desktop-name (setq (desktop-name arki/desktop-current-desktop)))
-    (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
-      (if (file-directory-p cur-desktop-dir)
-          (desktop-read cur-desktop-dir)
-        (message "Current desktop doesn't exist: %s" desktop-name))))
 
 
   (arki/desktop-save "test")
@@ -2611,148 +2797,6 @@ Add the code below to ~init.el~.
 
 Tested code.
 #+begin_src emacs-lisp :tangle no
-
-  (defcustom arki/window-move-border-default-width 1 "The default width used to enlarge or shrink window horizontally." :type 'integer)
-  (defcustom arki/window-move-border-default-height 1 "The default height used to enlarge or shrink window vertically." :type 'integer)
-
-
-  (defun arki/interactive-convert-prefix-to-element (prefix)
-    (when prefix
-      (if (listp prefix) (car prefix) prefix)))
-
-  (require 'windmove)
-
-
-  (defun arki/window-move-border (direction &optional delta)
-    "Resize window by moving border.
-
-  DIRECTION Which border to move.
-  DELTA How much to move."
-    (interactive (list (ido-completing-read "Choose the border:" (list "right" "left" "up" "down") nil t)
-                       delta))
-    ;; (message "Inputs: %S %S %S %S" direction delta (integerp delta) (listp delta))
-    (let* ((cur-window (selected-window))
-           (target-window (cond
-                           ((string= direction "right") (selected-window))
-                           ((string= direction "down") (selected-window))
-                           ((string= direction "left") (windmove-find-other-window 'left))
-                           ((string= direction "up") (windmove-find-other-window 'up))))
-           (horizontal? (or (string= direction "right") (string= direction "left")))
-           (can-resize? (windmove-find-other-window (intern direction)))
-           (delta (arki/interactive-convert-prefix-to-element delta))
-           (cur-delta (if horizontal?
-                          (if delta delta arki/window-move-border-default-width)
-                        (if delta delta arki/window-move-border-default-height))))
-      ;; (message "Converted: %S %S %S %S" horizontal? can-resize? delta cur-delta)
-      (when can-resize?
-        ;; (message "%S %S %S" target-window cur-delta horizontal?)
-        (adjust-window-trailing-edge target-window cur-delta horizontal?))))
-
-
-  (defun arki/window-move-border-right (which-border delta &optional opposite)
-    (if (not delta)
-        (arki/window-move-border which-border (if opposite (- arki/window-move-border-default-width) arki/window-move-border-default-width))
-      (customize-save-variable 'arki/window-move-border-default-width delta)
-      (arki/window-move-border which-border (if opposite (- delta) delta))))
-
-  (defun arki/window-move-border-down (which-border delta &optional opposite)
-    (if (not delta)
-        (arki/window-move-border which-border (if opposite (- arki/window-move-border-default-height) arki/window-move-border-default-height))
-      (customize-save-variable 'arki/window-move-border-default-height delta)
-      (arki/window-move-border which-border (if opposite (- delta) delta))))
-
-  (defun arki/window-move-right-border-right (delta)
-    (interactive "P")
-    (arki/window-move-border-right "right" (arki/interactive-convert-prefix-to-element delta)))
-
-
-  (defun arki/window-move-right-border-left (delta)
-    (interactive "P")
-    (arki/window-move-border-right "right" (arki/interactive-convert-prefix-to-element delta) t))
-
-  (defun arki/window-move-left-border-right (delta)
-    (interactive "P")
-    (arki/window-move-border-right "left" (arki/interactive-convert-prefix-to-element delta)))
-
-  (defun arki/window-move-left-border-left (delta)
-    (interactive "P")
-    (arki/window-move-border-right "left" (arki/interactive-convert-prefix-to-element delta) t))
-
-  (defun arki/window-move-up-border-up (delta)
-    (interactive "P")
-    (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta) t))
-
-  (defun arki/window-move-up-border-down (delta)
-    (interactive "P")
-    (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta)))
-
-  (defun arki/window-move-down-border-up (delta)
-    (interactive "P")
-    (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta) t))
-
-  (defun arki/window-move-down-border-down (delta)
-    (interactive "P")
-    (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta)))
-
-  (defun arki/window-move-both-border-left (delta)
-    (interactive "P")
-    (arki/window-move-left-border-left delta)
-    (arki/window-move-right-border-left delta))
-
-  (defun arki/window-move-both-border-right (delta)
-    (interactive "P")
-    (arki/window-move-left-border-right delta)
-    (arki/window-move-right-border-right delta))
-
-  (defun arki/window-move-both-border-up (delta)
-    (interactive "P")
-    (arki/window-move-up-border-up delta)
-    (arki/window-move-down-border-up delta))
-
-  (defun arki/window-move-both-border-down (delta)
-    (interactive "P")
-    (arki/window-move-up-border-down delta)
-    (arki/window-move-down-border-down delta))
-
-  ;; (arki/define-key "<M-right>" 'arki/window-move-right-border-right)
-  ;; (arki/define-key "<C-M-right>" 'arki/window-move-left-border-right)
-  ;; (arki/define-key "<M-left>" 'arki/window-move-right-border-left)
-  ;; (arki/define-key "<C-M-left>" 'arki/window-move-left-border-left)
-  ;; (arki/define-key "<M-up>" 'arki/window-move-down-border-up)
-  ;; (arki/define-key "<C-M-up>" 'arki/window-move-up-border-up)
-  ;; (arki/define-key "<M-down>" 'arki/window-move-down-border-down)
-  ;; (arki/define-key "<C-M-down>" 'arki/window-move-up-border-down)
-
-
-  (defvar arki/window-move-help-message
-    "Move window borders by arrows. Default to the right or down border. With <M> for the left or up. With <C-M> for both borders."
-    "The help message for window move.")
-  (defun arki/window-move ()
-    (interactive)
-    (message "Move window borders. Press ? for help.")
-    (set-transient-map
-     (let ((map (make-sparse-keymap)))
-       (define-key map (kbd "<right>") 'arki/window-move-right-border-right)
-       (define-key map (kbd "<M-right>") 'arki/window-move-left-border-right)
-       (define-key map (kbd "<C-M-right>") 'arki/window-move-both-border-right)
-
-       (define-key map (kbd "<left>") 'arki/window-move-right-border-left)
-       (define-key map (kbd "<M-left>") 'arki/window-move-left-border-left)
-       (define-key map (kbd "<C-M-left>") 'arki/window-move-both-border-left)
-
-       (define-key map (kbd "<up>") 'arki/window-move-down-border-up)
-       (define-key map (kbd "<M-up>") 'arki/window-move-up-border-up)
-       (define-key map (kbd "<C-M-up>") 'arki/window-move-both-border-up)
-
-       (define-key map (kbd "<down>") 'arki/window-move-down-border-down)
-       (define-key map (kbd "<M-down>") 'arki/window-move-up-border-down)
-       (define-key map (kbd "<C-M-down>") 'arki/window-move-both-border-down)
-
-       (define-key map "?" (lambda () (interactive) (message arki/window-move-help-message)))
-       map)
-     t))
-
-  (arki/define-key "w" 'arki/window-move 'arki/prefix-keymap)
 #+end_src
 * Load custom variables
 :PROPERTIES:
