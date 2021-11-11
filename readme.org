@@ -1297,6 +1297,91 @@ Add the code below to ~init.el~.
   (customize-set-value 'desktop-restore-frames t)
   (customize-set-value 'desktop-load-locked-desktop t)
 
+
+  (defvar arki/desktop--tmpfile-separator "=MODE=" "The file name sperator used for saving tmp buffers.")
+  (defvar arki/desktop--tmpfile-prefix "TMPBUFFER=" "The file name prefix used for saving tmp buffers.")
+  (defvar arki/desktop--tmpfile-dir "tmpbuffers" "The directory name used for saving tmp buffers.")
+
+  (defun arki/desktop--get-tmpfile-dir (desktop-name)
+    (expand-file-name arki/desktop--tmpfile-dir (expand-file-name desktop-name arki/desktop-dir)))
+
+  (defun arki/desktop--get-tmpfile-name (buffer-or-name)
+    (let* ((buffer (get-buffer buffer-or-name))
+           (name (buffer-name buffer))
+           (mode (buffer-local-value 'major-mode buffer)))
+      (concat arki/desktop--tmpfile-prefix
+              name
+              arki/desktop--tmpfile-separator
+              (symbol-name mode))))
+
+  (defun arki/desktop--get-tmpfile-path (desktop-name buffer-or-name)
+    (expand-file-name (arki/desktop--get-tmpfile-name buffer-or-name)
+                      (arki/desktop--get-tmpfile-dir desktop-name)))
+
+  (defun arki/desktop--tmpbuffer-p (buffer-or-name)
+    (let* ((buffer (get-buffer buffer-or-name))
+           (cur-name (buffer-name buffer))
+           (cur-file (buffer-file-name buffer))
+           (cur-mode (buffer-local-value 'major-mode buffer))
+           ;; (cur-modified (buffer-modified-p v))
+           )
+      (and (not (string-match-p "^[ *]" cur-name)) ; Don't start with whitespace or star
+           (not (equal 'dired-mode cur-mode))      ; Aren't dired mode
+           (not cur-file))                         ; Don't relate to any file.
+      ))
+  (defun arki/desktop--tmpfile-p (tmpfile-name)
+    (string-prefix-p arki/desktop--tmpfile-prefix tmpfile-name))
+
+
+  (defun arki/desktop--get-tempbuffer-name-mode-from-file (tmpfile-name)
+    (when (arki/desktop--tmpfile-p tmpfile-name)
+      (let* ((without-prefix (substring tmpfile-name (length arki/desktop--tmpfile-prefix)))
+             (values (split-string without-prefix arki/desktop--tmpfile-separator)))
+        (list (nth 0 values) (nth 1 values)))))
+
+
+  (defun arki/desktop-tmpfiles-save (desktop-name)
+    (let* ((cur-save-dir (arki/desktop--get-tmpfile-dir desktop-name)))
+      (unless (file-directory-p cur-save-dir)
+        (make-directory cur-save-dir))
+      (dolist (buffer (buffer-list))
+        (when (arki/desktop--tmpbuffer-p buffer)
+          (let ((cur-mode (buffer-local-value 'major-mode buffer))
+                (cur-name (buffer-name buffer))
+                (write-path (arki/desktop--get-tmpfile-path desktop-name buffer)))
+            (save-current-buffer
+              (with-temp-buffer (insert-buffer-substring  buffer)
+                                (write-file write-path))
+
+              (message "Desktop (%s) tmpbuffer saved: %s -> %s" desktop-name cur-name write-path)))))))
+
+  (defun arki/desktop-tmpfiles-revert (desktop-name &optional force-revert)
+    (let ((tmpfiles-dir (arki/desktop--get-tmpfile-dir desktop-name)))
+      (when (file-directory-p tmpfiles-dir)
+        (dolist (file (directory-files
+                       (arki/desktop--get-tmpfile-dir desktop-name)
+                       t
+                       (format "^%s" arki/desktop--tmpfile-prefix)))
+          (save-current-buffer
+            (let* ((buffer (get-file-buffer file))
+                   (cur-name-mode (arki/desktop--get-tempbuffer-name-mode-from-file (file-name-nondirectory file)))
+                   (cur-name (nth 0 cur-name-mode))
+                   (cur-mode (nth 1 cur-name-mode)))
+              (if (not buffer)
+                  (if (not force-revert)
+                      (message "Desktop hasn't revert tmpbuffer: %s -> %s" cur-name file)
+                    (set-buffer (get-buffer-create cur-name))
+                    (insert-file-contents file nil nil nil t)
+                    (funcall (intern cur-mode))
+                    (message "Desktop tmpbuffer reverted: %s" (buffer-name)))
+                (set-buffer buffer)
+                (set-visited-file-name nil)
+                (rename-buffer cur-name t)
+                (funcall (intern cur-mode))
+                (message "Desktop tmpbuffer reverted: %s" (buffer-name))))))
+        )))
+
+
   (defun arki/desktop-save (&optional desktop-name release only-if-changed)
     (interactive (list
                   (ido-completing-read "Save to this desktop:" (let* ((dirs (directory-files arki/desktop-dir nil "[^.]")))
@@ -1312,6 +1397,7 @@ Add the code below to ~init.el~.
       (unless (file-directory-p cur-desktop-dir)
         (make-directory cur-desktop-dir t))
       (desktop-save cur-desktop-dir release only-if-changed)
+      (arki/desktop-tmpfiles-save desktop-name)
       (message "Desktop saved: %s" desktop-name)))
 
   (defun arki/desktop-remove (desktop-name)
@@ -1325,14 +1411,16 @@ Add the code below to ~init.el~.
             (customize-save-variable 'arki/desktop-current-desktop nil))
           (message "Desktop removed: %s" desktop-name)))))
 
-  (defun arki/desktop-read (&optional desktop-name)
+  (defun arki/desktop-load (&optional desktop-name)
     (interactive (list
                   (ido-completing-read "Read this desktop:" (directory-files arki/desktop-dir nil "[^.]") nil t arki/desktop-current-desktop)))
     (unless desktop-name (setq desktop-name arki/desktop-current-desktop))
+    (desktop-clear)
     (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
       (if (file-directory-p cur-desktop-dir)
           (progn (desktop-read cur-desktop-dir)
                  (customize-save-variable 'arki/desktop-current-desktop desktop-name)
+                 (arki/desktop-tmpfiles-revert desktop-name t)
                  (message "Desktop opened: %s" desktop-name))
         (message "Current desktop doesn't exist: %s" desktop-name))))
 #+end_src
@@ -1342,6 +1430,7 @@ Use <M-SPC w> to activate, then:
 - Using arrow keys to resize current window by their borders.
 - Press <s> to save desktop.
 - Press <l> to load desktop.
+- Press <k> to remove desktop.
 
 #+begin_src emacs-lisp
   (defvar arki/layout-help-message
@@ -1352,9 +1441,9 @@ Use <M-SPC w> to activate, then:
   With <C> to move cursor across adjacent windows.
   TODO: With <S> to move current window around.
 
-  Press <a> to save desktop.   (Append)
-  Press <s> to select desktop. (Select)
-  Press <d> to remove desktop. (Delete)
+  Press <s> to save desktop.
+  Press <l> to load desktop.
+  Press <k> to remove desktop.
 
   Press <?> for help."
     "The help message for window move.")
@@ -1385,9 +1474,9 @@ Use <M-SPC w> to activate, then:
        (define-key map (kbd "<C-M-down>") 'arki/window-move-both-border-down)
        (define-key map (kbd "<C-down>") 'windmove-down)
 
-       (define-key map (kbd "a") 'arki/desktop-save)
-       (define-key map (kbd "s") 'arki/desktop-read)
-       (define-key map (kbd "d") 'arki/desktop-remove)
+       (define-key map (kbd "s") 'arki/desktop-save)
+       (define-key map (kbd "l") 'arki/desktop-load)
+       (define-key map (kbd "k") 'arki/desktop-remove)
 
        (define-key map "?" (lambda () (interactive) (message arki/layout-help-message)))
        map)
@@ -2674,8 +2763,11 @@ Use <M-SPC w> to activate, then:
   (arki/define-key "C-x C-k 1" 'arki/kmacro-format-source-block-elisp)
 #+end_src
 * Need review
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 ** Desktop save
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
 
 
   (arki/desktop-save "test")
@@ -2774,30 +2866,17 @@ Use <M-SPC w> to activate, then:
   (expand-file-name desktop-dirname)
   "/home/k/.emacs.d/arki.cache/desktops"
   (setq desktop-name "emacs")
+#+end_src
+
+Save tmp files:
+#+begin_src emacs-lisp
 
 
-
-  ;; Get tmp buffers and save to desktop location.
-  (dolist (v (buffer-list))
-    (let* ((cur-name (buffer-name v))
-           (cur-file (buffer-file-name v))
-           (cur-mode (buffer-local-value 'major-mode v))
-           (cur-modified (buffer-modified-p v)))
-      (when (and (not (string-match-p "^[ *]" cur-name))
-                 (not (equal 'dired-mode cur-mode))
-                 (not cur-file))
-        (message "%S %S %S %S" cur-modified cur-name cur-mode cur-file)
-        (write-file (expand-file-name "scratch" arki/desktop-dir))
-        (set-visited-file-name nil)
-        (rename-buffer "*scratch*" t)
-        (get-buffer-create "*scratch*")
-        (generate-new-buffer-name "")
-        )))
-
-  (string-match "^[*].*\\*" "*abc*")
+  ;; (arki/desktop-tmpfiles-revert "emacs" t)
+  ;; (arki/desktop-tmpfiles-save arki/desktop-current-desktop)
 #+end_src
 ** Resize window
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (when (require-pack 'windsize)
     (windsize-default-keybindings))
 
