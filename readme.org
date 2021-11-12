@@ -1340,7 +1340,13 @@ Add the code below to ~init.el~.
         (list (nth 0 values) (nth 1 values)))))
 
 
-  (defun arki/desktop-tmpfiles-save (desktop-name)
+  (defun arki/desktop-tmpbuffers-save (desktop-name &optional unreference)
+    "Save tmpbuffers for desktop.
+
+  DESKTOP-NAME, save tmpbuffers to this desktop.
+
+  UNREFERENCE, if not nil, don't reference tmpbuffers to tmpfiles.
+  "  
     (let* ((cur-save-dir (arki/desktop--get-tmpfile-dir desktop-name)))
       (unless (file-directory-p cur-save-dir)
         (make-directory cur-save-dir))
@@ -1350,18 +1356,55 @@ Add the code below to ~init.el~.
                 (cur-name (buffer-name buffer))
                 (write-path (arki/desktop--get-tmpfile-path desktop-name buffer)))
             (save-current-buffer
-              (with-temp-buffer (insert-buffer-substring  buffer)
-                                (write-file write-path))
+              (if unreference
+                  (with-temp-buffer (insert-buffer-substring  buffer)
+                                    (write-file write-path))
+                (write-file write-path))
 
               (message "Desktop (%s) tmpbuffer saved: %s -> %s" desktop-name cur-name write-path)))))))
 
-  (defun arki/desktop-tmpfiles-revert (desktop-name &optional force-revert)
+  (defun arki/desktop--tmpfiles-list (desktop-name)
+    "List tmpfiles of DESKTOP-NAME."
+    (directory-files
+     (arki/desktop--get-tmpfile-dir desktop-name)
+     t
+     (format "^%s" arki/desktop--tmpfile-prefix)))
+
+
+  (defun arki/desktop-tmpbuffers-unreference-tmpfiles (desktop-name)
+    "Remove the reference between tmpfiles and tmpbuffers.
+
+  DESKTOP-NAME the desktop to use."
     (let ((tmpfiles-dir (arki/desktop--get-tmpfile-dir desktop-name)))
       (when (file-directory-p tmpfiles-dir)
-        (dolist (file (directory-files
-                       (arki/desktop--get-tmpfile-dir desktop-name)
-                       t
-                       (format "^%s" arki/desktop--tmpfile-prefix)))
+        (dolist (file (arki/desktop--tmpfiles-list desktop-name))
+          (save-current-buffer
+            (let* ((buffer (get-file-buffer file))
+                   (cur-name-mode (arki/desktop--get-tempbuffer-name-mode-from-file (file-name-nondirectory file)))
+                   (cur-name (nth 0 cur-name-mode))
+                   (cur-mode (nth 1 cur-name-mode)))
+              (when buffer
+                (set-buffer buffer)
+                (set-visited-file-name nil)
+                (rename-buffer cur-name t)
+                (funcall (intern cur-mode))
+                (message "Desktop (%s) tmpbuffer (%s) unreferenced: %s" desktop-name cur-name file)
+                )))))))
+
+  (defun arki/desktop-tmpbuffers-restore (desktop-name &optional force-revert)
+    "Revert tmpbuffers from tmpfiles to previous state.
+  Remove the tmpfile-tmpbuffer reference, restore the filename and major mode.
+
+  DESKTOP-NAME restore from this desktop.
+  FORCE-REVERT if not nil, restore the tmpbuffer which hasn't been saved to desktop file.
+
+  Check whether have been loaded.
+  If loaded and have the tmpfile reference: Restore to previous state.
+  Else, load tmpfiles and restore to previous state.
+  "
+    (let ((tmpfiles-dir (arki/desktop--get-tmpfile-dir desktop-name)))
+      (when (file-directory-p tmpfiles-dir)
+        (dolist (file (arki/desktop--tmpfiles-list desktop-name))
           (save-current-buffer
             (let* ((buffer (get-file-buffer file))
                    (cur-name-mode (arki/desktop--get-tempbuffer-name-mode-from-file (file-name-nondirectory file)))
@@ -1396,8 +1439,9 @@ Add the code below to ~init.el~.
     (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
       (unless (file-directory-p cur-desktop-dir)
         (make-directory cur-desktop-dir t))
-      (desktop-save cur-desktop-dir release only-if-changed)
-      (arki/desktop-tmpfiles-save desktop-name)
+      (arki/desktop-tmpbuffers-save desktop-name) ;Persist tmpbuffers to tmpfiles and retain the references.
+      (desktop-save cur-desktop-dir release only-if-changed) ;Save buffers with tmpfiles.
+      (arki/desktop-tmpbuffers-unreference-tmpfiles desktop-name) ;Restore previous state of tmpbuffers.
       (message "Desktop saved: %s" desktop-name)))
 
   (defun arki/desktop-remove (desktop-name)
@@ -1420,7 +1464,8 @@ Add the code below to ~init.el~.
       (if (file-directory-p cur-desktop-dir)
           (progn (desktop-read cur-desktop-dir)
                  (customize-save-variable 'arki/desktop-current-desktop desktop-name)
-                 (arki/desktop-tmpfiles-revert desktop-name t)
+                 ;; (arki/desktop-tmpbuffers-restore desktop-name t)
+                 (arki/desktop-tmpbuffers-unreference-tmpfiles desktop-name) ;Restore previous state of tmpbuffers.
                  (message "Desktop opened: %s" desktop-name))
         (message "Current desktop doesn't exist: %s" desktop-name))))
 #+end_src
