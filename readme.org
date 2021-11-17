@@ -1327,6 +1327,7 @@ Add the code below to ~init.el~.
            )
       (and (not (string-match-p "^[ *]" cur-name)) ; Don't start with whitespace or star
            (not (equal 'dired-mode cur-mode))      ; Aren't dired mode
+           (not (equal 'magit-status-mode cur-mode))      ; Aren't magit mode
            (not cur-file))                         ; Don't relate to any file.
       ))
   (defun arki/desktop--tmpfile-p (tmpfile-name)
@@ -1359,6 +1360,7 @@ Add the code below to ~init.el~.
               (if unreference
                   (with-temp-buffer (insert-buffer-substring  buffer)
                                     (write-file write-path))
+                (set-buffer buffer)
                 (write-file write-path))
 
               (message "Desktop (%s) tmpbuffer saved: %s -> %s" desktop-name cur-name write-path)))))))
