@@ -1327,7 +1327,7 @@ Add the code below to ~init.el~.
            )
       (and (not (string-match-p "^[ *]" cur-name)) ; Don't start with whitespace or star
            (not (equal 'dired-mode cur-mode))      ; Aren't dired mode
-           (not (equal 'magit-status-mode cur-mode))      ; Aren't magit mode
+           (not (string-match "magit" (symbol-name cur-mode)))      ; Aren't magit mode
            (not cur-file))                         ; Don't relate to any file.
       ))
   (defun arki/desktop--tmpfile-p (tmpfile-name)
