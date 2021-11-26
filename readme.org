@@ -2045,7 +2045,7 @@ Use <M-SPC w> to activate, then:
 
   (add-hook 'org-mode-hook
             (lambda ()
-              (org-content 3)
+              ;; (org-content 3)             ;Disable this for the convenience restore org buffer.
 
               ;; Config view options
               (setq line-spacing 0.1)
