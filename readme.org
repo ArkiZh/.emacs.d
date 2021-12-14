@@ -2128,6 +2128,10 @@ Use <M-SPC w> to activate, then:
     "File location for `org-capture', usage: record thoughts."
     :group 'arki/org)
 
+  (defcustom arki/org-capture-file-daily-work "~/org/daily-work.org"
+    "File location for `org-capture', usage: record thoughts."
+    :group 'arki/org)
+
 
   (defun init-org-capture ()
     "Init org capture config."
@@ -2140,8 +2144,11 @@ Use <M-SPC w> to activate, then:
     (arki/define-key "c" 'org-capture 'arki/prefix-keymap)
     (add-to-list 'org-capture-templates
                  '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
-                   "* %U - %^{heading}\n  %?"))
-
+                   "* %U %^{heading}\n%?"))
+    (add-to-list 'org-capture-templates
+                 '("d" "Daily work." item (file+olp+datetree arki/org-capture-file-daily-work)
+                   "%U %?"
+                   :tree-type week))
     )
 
 
