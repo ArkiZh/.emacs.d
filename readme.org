@@ -1529,8 +1529,36 @@ Use <M-SPC w> to activate, then:
        map)
      t))
 
-
   (arki/define-key "w" 'arki/layout 'arki/prefix-keymap)
+
+
+  ;; (define-prefix-command 'arki/window-move-keymap)
+  ;; (arki/define-key "w" 'arki/window-move-keymap 'arki/prefix-keymap)
+
+  ;; (arki/define-key "<right>" 'arki/window-move-right-border-right 'arki/window-move-keymap)
+  ;; (arki/define-key "<M-right>" 'arki/window-move-left-border-right 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-M-right>" 'arki/window-move-both-border-right 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-right>" 'windmove-right 'arki/window-move-keymap)
+
+  ;; (arki/define-key "<left>" 'arki/window-move-right-border-left 'arki/window-move-keymap)
+  ;; (arki/define-key "<M-left>" 'arki/window-move-left-border-left 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-M-left>" 'arki/window-move-both-border-left 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-left>" 'windmove-left 'arki/window-move-keymap)
+
+  ;; (arki/define-key "<up>" 'arki/window-move-down-border-up 'arki/window-move-keymap)
+  ;; (arki/define-key "<M-up>" 'arki/window-move-up-border-up 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-M-up>" 'arki/window-move-both-border-up 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-up>" 'windmove-up 'arki/window-move-keymap)
+
+  ;; (arki/define-key "<down>" 'arki/window-move-down-border-down 'arki/window-move-keymap)
+  ;; (arki/define-key "<M-down>" 'arki/window-move-up-border-down 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-M-down>" 'arki/window-move-both-border-down 'arki/window-move-keymap)
+  ;; (arki/define-key "<C-down>" 'windmove-down 'arki/window-move-keymap)
+
+  ;; (arki/define-key "s" 'arki/desktop-save 'arki/window-move-keymap)
+  ;; (arki/define-key "l" 'arki/desktop-load 'arki/window-move-keymap)
+  ;; (arki/define-key "k" 'arki/desktop-remove 'arki/window-move-keymap)
+  ;; (arki/define-key "k" (lambda () (interactive) (message arki/layout-help-message)) 'arki/window-move-keymap)
 #+end_src
 * Setup extra packages or features
 :PROPERTIES:
@@ -2037,11 +2065,13 @@ Use <M-SPC w> to activate, then:
   (require-pack 'org-preview-html)
 
   ;; https://github.com/integral-dw/org-superstar-mode
-  (when (require-pack 'org-superstar)
-    (add-hook 'org-mode-hook 'org-superstar-mode)
-    (with-eval-after-load "org-superstar"
-      (setq org-superstar-headline-bullets-list '("☰" "☱" "☲" "☳" "☴" "☵" "☶" "☷")))
-    )
+  ;; Deprecated now: Use org-num-mode and org-bars instead.
+  ;; (when (require-pack 'org-superstar)
+  ;;   (add-hook 'org-mode-hook 'org-superstar-mode)
+  ;;   (with-eval-after-load "org-superstar"
+  ;;     ;; (setq org-superstar-headline-bullets-list '("☰" "☱" "☲" "☳" "☴" "☵" "☶" "☷")))
+  ;;     (setq org-superstar-headline-bullets-list '("\u200b")))
+  ;;   )
 
   (add-hook 'org-mode-hook
             (lambda ()
@@ -2051,6 +2081,7 @@ Use <M-SPC w> to activate, then:
               (setq line-spacing 0.1)
               (setq org-src-fontily-natively t)
               (org-indent-mode 1)
+              (org-num-mode 1)
 
               ;; Config markup
               (setq org-hide-emphasis-markers t) ;显示斜体、加粗之类的字体
@@ -2072,13 +2103,21 @@ Use <M-SPC w> to activate, then:
               (setq org-log-done 'time)
               (setq org-log-done-with-time t)
 
+              ;; Config org bars.
+              (when (display-graphic-p)
+                (when (require-pack-local 'org-bars t "https://gitee.com/p1uxtar/org-bars/raw/master/org-bars.el")
+                  (org-bars-mode 1)
+                  (setq org-bars-color-options '(:desaturate-level-faces 30 :darken-level-faces 15))
+                  (setq line-spacing nil)
+                  ))
+
               ))
   
   ;; Config org todos
   (with-eval-after-load 'org
     ;; Set keywords. Need to invoke org-mode-restart after set.
     (setq org-todo-keywords
-          '((sequence "TODO(1!)" "READY(2!)" "DOING(3!)" "STUCK(4@)" "PAUSE(4!)" "|" "DONE(5!)")
+          '((sequence "TODO(1!)" "READY(2!)" "DOING(3!)" "STUCK(4@)" "PAUSE(5!)" "|" "DONE(6!)")
             (sequence "|" "CANCELED(0@/!)")))
     ;; Insert "CLOSED: [timestamp]" when entering DONE states.
     (setq org-log-done 'time)
