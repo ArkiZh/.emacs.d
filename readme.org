@@ -1244,19 +1244,19 @@ Add the code below to ~init.el~.
 
   (defun arki/window-move-up-border-up (delta)
     (interactive "P")
-    (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta) t))
+    (arki/window-move-border-down "up" (arki/interactive-convert-prefix-to-element delta) t))
 
   (defun arki/window-move-up-border-down (delta)
     (interactive "P")
-    (arki/window-move-border-right "up" (arki/interactive-convert-prefix-to-element delta)))
+    (arki/window-move-border-down "up" (arki/interactive-convert-prefix-to-element delta)))
 
   (defun arki/window-move-down-border-up (delta)
     (interactive "P")
-    (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta) t))
+    (arki/window-move-border-down "down" (arki/interactive-convert-prefix-to-element delta) t))
 
   (defun arki/window-move-down-border-down (delta)
     (interactive "P")
-    (arki/window-move-border-right "down" (arki/interactive-convert-prefix-to-element delta)))
+    (arki/window-move-border-down "down" (arki/interactive-convert-prefix-to-element delta)))
 
   (defun arki/window-move-both-border-left (delta)
     (interactive "P")
@@ -1498,7 +1498,14 @@ Use <M-SPC w> to activate, then:
 
   (defun arki/layout ()
     (interactive)
-    (message "Move window borders. Press ? for help.")
+    ;; https://stackoverflow.com/questions/46512076/how-to-pass-current-prefix-arg-to-this-command
+    (setq prefix-arg current-prefix-arg)
+    (if prefix-arg
+        (message "Move window borders [Prefix: %S]. Press ? for help." prefix-arg)
+      (message "Move window borders. Press ? for help.")
+      )
+
+
     (set-transient-map
      (let ((map (make-sparse-keymap)))
        (define-key map (kbd "<right>") 'arki/window-move-right-border-right)
