@@ -1653,6 +1653,10 @@ Use <M-SPC w> to activate, then:
    | [[https://elpa.gnu.org/][GNU]]          | https://elpa.gnu.org/packages/     |
    | [[https://melpa.org/#/getting-started][MELPA]]        | https://melpa.org/packages/        |
    | MELPA Stable | https://stable.melpa.org/packages/ |
+2. [[https://mirrors.tuna.tsinghua.edu.cn/help/elpa/][TsingHua]]
+   | GNU          | http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/          |
+   | MELPA        | http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/        |
+   | MELPA Stable | http://mirrors.tuna.tsinghua.edu.cn/elpa/stable-melpa/ |
 2. [[https://elpa.emacs-china.org/][emacs-china]]
    如果需要 HTTPS，请将镜像地址中的 http 改成 https 
    | GNU          | http://elpa.emacs-china.org/gnu/          |
@@ -1665,7 +1669,11 @@ Use <M-SPC w> to activate, then:
                            ("melpa" . "https://elpa.emacs-china.org/melpa/")))
         arki/package-archives-mirrors)
 
-  (arki/package-archives-mirror-switch "emacs-china")
+  (push '("TsingHua" . (("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+        arki/package-archives-mirrors)
+
+  (arki/package-archives-mirror-switch "TsingHua")
 
   ;; Import new GNU ELPA keys (if any) into package.el’s keyring.
   (require-pack 'gnu-elpa-keyring-update)
