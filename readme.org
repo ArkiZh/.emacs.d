@@ -133,7 +133,7 @@ Add the code below to ~init.el~.
         ;; (message "Unknown key: %s. Now add it with value: %s." key value)
         ;; (setcdr input_alist (copy-alist input_alist))
         ;; (setcar input_alist (list key value))
-        (setcdr (last input_alist) (list (list key value)))
+        (setcdr (last input_alist) (list (cons key value)))
         )
       )
     input_alist)
