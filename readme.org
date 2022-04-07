@@ -477,7 +477,8 @@ Add the code below to ~init.el~.
            (cur-kv (assoc cur-name arki/alias-files)))
       (if cur-kv
           (find-file (arki/alist-get-value arki/alias-files cur-name))
-        (let ((new-file (read-string (format "Assign alias [%s] to: " cur-name) buffer-file-name)))
+        (let* ((default-file (if buffer-file-name buffer-file-name default-directory))
+               (new-file (read-string (format "Assign alias [%s] to: " cur-name) default-file)))
           (push (cons cur-name new-file) arki/alias-files)
           (customize-save-variable 'arki/alias-files arki/alias-files)
           (message "Alias [%s] assigned to: %s" cur-name new-file)
