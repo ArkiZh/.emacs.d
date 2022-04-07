@@ -68,6 +68,7 @@ Add the code below to ~init.el~.
 #+end_src
 
 ** Define my custom common functions
+*** Basics
 #+begin_src emacs-lisp
   
   ;;----------------------------------------------------------------------------
@@ -110,6 +111,14 @@ Add the code below to ~init.el~.
   ;;----------------------------------------------------------------------------
   ;; Define common functions
   ;;----------------------------------------------------------------------------
+
+  (defun arki/alist-keys (input_alist)
+    "Get keys of an ALIST."
+    (mapcar 'car input_alist))
+
+  (defun arki/alist-get-value (input-alist key)
+    "Get the value of KEY from an ALIST."
+    (cdr (assoc key input-alist)))
 
   (defun arki/alist-push-value (input_alist key value)
     "Set the given ALIST.
@@ -285,26 +294,6 @@ Add the code below to ~init.el~.
   (arki/define-key "r" 'arki/rename-this-file-and-buffer 'arki/prefix-keymap)
 
 
-  (defun arki/open-init-file()
-    "Open init file.
-
-  The file is named init.el under `user-emacs-directory'."
-    (interactive)
-    (find-file (expand-file-name "init.el" user-emacs-directory)))
-
-  (defun arki/open-alias()
-    "Open alias files.
-
-  If the alias is defined, open it.
-  Else, define it now, then open it."
-    (interactive)
-    ;; TODO
-    )
-
-
-  ;; (arki/define-key "<f2>" 'arki/open-init-file)
-
-
   (defun arki/sudo-open-file()
     "Open file with sudo privilege"
     (interactive)
@@ -316,6 +305,7 @@ Add the code below to ~init.el~.
       (message "Can't execute sudo for system: [%s]" system-type)
       )
     )
+
 
   
   ;;----------------------------------------------------------------------------
@@ -363,8 +353,10 @@ Add the code below to ~init.el~.
 
   ;; 将多行的段落合并成一行
   (arki/define-key "M-Q" 'arki/unfill-paragraph)
+#+end_src
 
-  
+*** Site lisp utils
+#+begin_src emacs-lisp
   ;;----------------------------------------------------------------------------
   ;; Site lisp utils
   ;;----------------------------------------------------------------------------
@@ -394,7 +386,7 @@ Add the code below to ~init.el~.
   (defun arki/site-lisp-library-el-path (name)
     "Locate el file path in site lisp directory.
 
-  First search file in `arki/site-lisp-dir', if not found here, give the path in subdir."
+    First search file in `arki/site-lisp-dir', if not found here, give the path in subdir."
     (let* ((el-name (format "%s.el" name))
            (first-file (expand-file-name el-name arki/site-lisp-dir)))
       (if (file-exists-p first-file)
@@ -405,7 +397,7 @@ Add the code below to ~init.el~.
   (defun arki/download-site-lisp-el-file (name url)
     "Dowload el file from url.
 
-  Return file path if success, else return nil."
+    Return file path if success, else return nil."
     (let* ((dir (arki/site-lisp-dir-for name))
            (dir-exists (file-directory-p dir)))
       (message "Downloading %s from %s" name url)
@@ -422,21 +414,21 @@ Add the code below to ~init.el~.
 
   (defun site-lisp-library-loadable-p (name)
     "Return whether or not the library `name' can be loaded from a
-  source file under `arki/site-lisp-dir'"
+    source file under `arki/site-lisp-dir'"
     (file-exists-p (arki/site-lisp-library-el-path name)))
 
 
   (defun require-pack-local (name &optional ensure url)
     "Install package from url.
 
-  TODO: Need to add feature:
-  1. Need to support the case: url is a git repo.
-  2. In the case el file's name is different from its dir: need to specify the target dir, and load specific el file.
-  2. The switch to skip compile stage.
+    TODO: Need to add feature:
+    1. Need to support the case: url is a git repo.
+    2. In the case el file's name is different from its dir: need to specify the target dir, and load specific el file.
+    2. The switch to skip compile stage.
 
 
-  If it's already downloaded before, compile it if necessary, then require it.
-  If not found, download it if `ensure' is t, otherwise ignore this package."
+    If it's already downloaded before, compile it if necessary, then require it.
+    If not found, download it if `ensure' is t, otherwise ignore this package."
     (if (site-lisp-library-loadable-p name)
         (let ((el-file (arki/site-lisp-library-el-path name)))
           ;; Add this file's parent dir to load-path, to avoid compiling error.
@@ -457,6 +449,43 @@ Add the code below to ~init.el~.
             nil)
         (message "Local package is not found: %s, ignore it." name)
         nil)))
+#+end_src
+
+** Open alias
+#+begin_src emacs-lisp
+  ;;----------------------------------------------------------------------------
+  ;; Alias utils
+  ;;----------------------------------------------------------------------------
+
+  ;; TODO add function: arki/open-alias as an entrance to replace arki/alias-open.
+  (defgroup arki/alias nil
+    "Alias defined for `arki/open-alias'."
+    :group 'arki/config)
+
+  (defcustom arki/alias-files (list (cons "init" (expand-file-name "readme.org" user-emacs-directory)))
+    "Config alias."
+    :group 'arki/alias
+    :type '(alist :key-type string :value-type string))
+
+  (defun arki/alias-file-open()
+    "Open alias file.
+
+    If the alias is defined, open it.
+    Else, define it now, then open it."
+    (interactive)
+    (let* ((cur-name (ido-completing-read "Open:" (arki/alist-keys arki/alias-files)))
+           (cur-kv (assoc cur-name arki/alias-files)))
+      (if cur-kv
+          (find-file (arki/alist-get-value arki/alias-files cur-name))
+        (let ((new-file (read-string (format "Assign alias [%s] to: " cur-name) buffer-file-name)))
+          (push (cons cur-name new-file) arki/alias-files)
+          (customize-save-variable 'arki/alias-files arki/alias-files)
+          (message "Alias [%s] assigned to: %s" cur-name new-file)
+          (unless (equal cur-name new-file)
+            (find-file new-file)))
+        )))
+
+  (arki/define-key "h" 'arki/alias-file-open 'arki/prefix-keymap)
 #+end_src
 
 ** Better defaults
