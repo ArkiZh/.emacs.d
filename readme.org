@@ -1913,8 +1913,11 @@ Use <M-SPC w> to activate, then:
 ** env
 #+begin_src emacs-lisp
   ;; let emacs could find the executable
-  (when (memq window-system '(mac ns))
+  ;; https://github.com/purcell/exec-path-from-shell
+  (when (memq window-system '(mac ns x))
     (when (require-pack 'exec-path-from-shell)
+      (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID"))
+        (add-to-list 'exec-path-from-shell-variables var))
       (exec-path-from-shell-initialize))
     )
 #+end_src
