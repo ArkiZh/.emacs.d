@@ -144,6 +144,15 @@ Add the code below to ~init.el~.
       (dotimes (i n)
         (setq result (directory-file-name (file-name-directory result))))
       result))
+
+
+  ;; https://emacs.stackexchange.com/questions/3022/reset-custom-variable-to-default-value-programmatically
+  (defun arki/defcustom-reset-value (var)
+    "Reset variable defined by defcustom to its standard value."
+    (when (custom-variable-p var)
+      (let ((std-value (eval (car (get var 'standard-value)))))
+        (customize-save-variable var std-value))))
+
   
   ;;----------------------------------------------------------------------------
   ;; Package utils
@@ -1363,7 +1372,7 @@ Add the code below to ~init.el~.
 #+begin_src emacs-lisp
   (defvar arki/desktop-dir (file-name-as-directory (expand-file-name "desktops" arki/cache-dir)) "The directory to save desktop.")
 
-  (defcustom arki/desktop-current-desktop nil "The default desktop." :group 'arki/config)
+  (defcustom arki/desktop-current-desktop "default" "The default desktop." :group 'arki/config)
 
   (customize-set-value 'desktop-restore-frames t)
   (customize-set-value 'desktop-load-locked-desktop t)
@@ -1498,9 +1507,15 @@ Add the code below to ~init.el~.
         )))
 
 
+  (defun arki/desktop--list ()
+    (if (file-directory-p arki/desktop-dir)
+        (directory-files arki/desktop-dir nil "[^.]")
+      (make-directory arki/desktop-dir t)
+      nil))
+
   (defun arki/desktop-save (&optional desktop-name release only-if-changed)
     (interactive (list
-                  (ido-completing-read "Save to this desktop:" (let* ((dirs (directory-files arki/desktop-dir nil "[^.]")))
+                  (ido-completing-read "Save to this desktop:" (let* ((dirs (arki/desktop--list)))
                                                                  (if dirs dirs (list arki/desktop-current-desktop)))
                                        nil nil arki/desktop-current-desktop)
                   t
@@ -1519,18 +1534,18 @@ Add the code below to ~init.el~.
 
   (defun arki/desktop-remove (desktop-name)
     (interactive (list
-                  (ido-completing-read "Remove this desktop:" (directory-files arki/desktop-dir nil "[^.]") nil t arki/desktop-current-desktop)))
+                  (ido-completing-read "Remove this desktop:" (arki/desktop--list) nil t arki/desktop-current-desktop)))
     (when desktop-name
       (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
         (when (file-directory-p cur-desktop-dir)
           (delete-directory cur-desktop-dir t)
           (when (string= desktop-name arki/desktop-current-desktop)
-            (customize-save-variable 'arki/desktop-current-desktop nil))
+            (arki/defcustom-reset-value 'arki/desktop-current-desktop))
           (message "Desktop removed: %s" desktop-name)))))
 
   (defun arki/desktop-load (&optional desktop-name)
     (interactive (list
-                  (ido-completing-read "Read this desktop:" (directory-files arki/desktop-dir nil "[^.]") nil t arki/desktop-current-desktop)))
+                  (ido-completing-read "Read this desktop:" (arki/desktop--list) nil t arki/desktop-current-desktop)))
     (unless desktop-name (setq desktop-name arki/desktop-current-desktop))
     (desktop-clear)
     (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
@@ -2011,7 +2026,7 @@ Use <M-SPC w> to activate, then:
 #+begin_src emacs-lisp
   ;; 启用zone
   (setq zone-programs [zone-pgm-timer])
-  (zone-when-idle 1800)
+  (zone-when-idle 3600)
 #+end_src
 
 ** which-key
@@ -2767,6 +2782,10 @@ Use <M-SPC w> to activate, then:
 #+end_src
 
 ** python
+:PROPERTIES:
+:header-args: :tangle no
+:END:
+
 #+begin_src emacs-lisp
   (defgroup arki/python nil
     "Python config."
