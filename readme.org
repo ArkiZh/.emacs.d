@@ -1855,6 +1855,8 @@ Use <M-SPC w> to activate, then:
 #+end_src
 
 ** theme
+Only set theme for ~display-graphic-p~ is ~t~.
+[[https://stackoverflow.com/a/5801740/12364313][How to detect that emacs is in terminal-mode]]
 *** doom-themes doom-modeline                                                 :manually:
 1. [[https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el][doom-themes]]需要使用[[https://github.com/domtronn/all-the-icons.el/][all-the-icons]]插件。而 ~all-the-icons~ 需要使用[[https://github.com/domtronn/all-the-icons.el/tree/master/fonts][一些符号字体]]。
 2. 可以直接下载安装，也可以使用命令 ~all-the-icons-install-fonts~ 安装，但是这个命令可能没有自己下载快，
@@ -1998,7 +2000,7 @@ Use <M-SPC w> to activate, then:
             )
 
           ;; 渲染单帧彩色
-          (when (and zone-timer-rainbow-enable (window-system))
+          (when (and zone-timer-rainbow-enable (display-graphic-p))
             (cl-loop
              for i from (window-start) to (1- (window-end)) do
              (add-text-properties
