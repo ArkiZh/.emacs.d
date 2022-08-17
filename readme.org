@@ -2490,12 +2490,13 @@ Only set theme for ~display-graphic-p~ is ~t~.
 
 
   
-  (when (display-graphic-p)
+  (defun init-org-download ()
     ;; https://github.com/abo-abo/org-download
     (when (require-pack 'org-download)
       ;; Drag-and-drop to `dired`
       (add-hook 'dired-mode-hook 'org-download-enable))
     )
+  (arki/add-hook-for-graphic-frame-init 'init-org-download t)
 
   ;; (setq org-agenda-files '("~/org"))
   
