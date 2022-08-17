@@ -34,7 +34,8 @@ Add the code below to ~init.el~.
         (load-file tangled-file)
         (message "Loaded: %s" tangled-file))))
 
-
+  ;; Set arki/package-install-disabled to t, if don't want to install new packages.
+  (defvar arki/package-install-disabled nil "Disable package install if t.")
 
   (arki/org-babel-load-file (expand-file-name "readme.org" user-emacs-directory) t)
 #+end_src
@@ -103,6 +104,7 @@ Add the code below to ~init.el~.
   If nil: invoke `package-refresh-contents' during `require-package', then set to t, no matter whether the refresh is successful.
   If non-nil: don't invoke `package-refresh-contents' during `require-package.")
 
+
   (defvar arki/package-installed-info '(("INSTALLED_BEFORE") ("INSTALLED_NOW") ("FAILED"))
     "Record the installation info of required packages.")
 
@@ -111,6 +113,9 @@ Add the code below to ~init.el~.
   ;;----------------------------------------------------------------------------
   ;; Define common functions
   ;;----------------------------------------------------------------------------
+  (defun arki/list-replace-nth-value (var n value)
+    "Replace the N-th element of list VAR by VALUE."
+    (setcar (nthcdr n var) value))
 
   (defun arki/alist-keys (input_alist)
     "Get keys of an ALIST."
@@ -186,20 +191,22 @@ Add the code below to ~init.el~.
                                        (require pack))
                                      t)
       (refresh-pack-contents)
-      (message "Package: %s installing..." pack)
-      (condition-case err (progn
-                            (package-install pack)
-                            (arki/alist-push-value arki/package-installed-info "INSTALLED_NOW" pack)
-                            (message "Package: %s installed!" pack)
-                            (when (not skip-load)
-                              (require pack)
-                              (message "Package: %s loaded!" pack))
-                            t)
-        (error
-         (arki/alist-push-value arki/package-installed-info "FAILED" pack)
-         (message "Package: `%S' failed to install! ERROR: %S" pack err)
-         nil)
-        )
+      ;; Set arki/package-install-disabled to t, if don't want to install new packages.
+      (unless (bound-and-true-p arki/package-install-disabled)
+        (message "Package: %s installing..." pack)
+        (condition-case err (progn
+                              (package-install pack)
+                              (arki/alist-push-value arki/package-installed-info "INSTALLED_NOW" pack)
+                              (message "Package: %s installed!" pack)
+                              (when (not skip-load)
+                                (require pack)
+                                (message "Package: %s loaded!" pack))
+                              t)
+          (error
+           (arki/alist-push-value arki/package-installed-info "FAILED" pack)
+           (message "Package: `%S' failed to install! ERROR: %S" pack err)
+           nil)
+          ))
       ))
 
   (defun require-packs (pack &rest packs)
@@ -362,6 +369,39 @@ Add the code below to ~init.el~.
 
   ;; 将多行的段落合并成一行
   (arki/define-key "M-Q" 'arki/unfill-paragraph)
+  
+  ;;----------------------------------------------------------------------------
+  ;; Graphic frame callbacks
+  ;;----------------------------------------------------------------------------
+  (defvar arki/graphic-frame-callbacks nil "Store callbacks for graphic environment.")
+  (defvar arki/graphic-frame-callbacks-executed-p nil "Flag to judge whether these callbacks have been called.")
+
+  (defun arki/callbacks-call (callbacks)
+    "Invoke each of CALLBACKS.
+
+  Each element of CALLBACKS is a list, looks like (callback repeat? invoked-counter)."
+    (dolist (vv callbacks)
+      (let ((fun (nth 0 vv))
+            (repeat (nth 1 vv))
+            (cnt (nth 2 vv)))
+        (when (or repeat
+                  (and (not repeat) (< cnt 1)))
+          (funcall fun)
+          (arki/list-replace-nth-value vv 2 (+ cnt 1))))))
+
+  (add-hook 'after-init-hook
+            (lambda (&rest params) (arki/callbacks-call arki/graphic-frame-callbacks)))
+
+  (add-hook 'after-make-frame-functions
+            (lambda (&rest params) (arki/callbacks-call arki/graphic-frame-callbacks)))
+
+  (defun arki/add-hook-for-graphic-frame-init (callback &optional no-repeat)
+    "Add CALLBACK to `after-init-hook and `after-make-frame-functions if `display-graphic-p is t.
+
+  NO-REPEAT If t, this CALLBACK can be invoked only once, else any times."
+    (when (display-graphic-p)
+      (add-to-list 'arki/graphic-frame-callbacks (list callback (not no-repeat) 0))))
+
 #+end_src
 
 *** Site lisp utils
@@ -640,7 +680,7 @@ Add the code below to ~init.el~.
 
 #+end_src
 
-*** Windown resize
+*** Windown resize                                                   :MODIFY:
 [[info:emacs#Change Window][Deleting and reiszing windows]]
 #+begin_src emacs-lisp
   (arki/define-key "<M-right>" 'enlarge-window-horizontally)
@@ -1038,10 +1078,13 @@ Add the code below to ~init.el~.
     )
 
 
-  (when (display-graphic-p)
+  (defun init-font ()
     (arki/define-key "f" 'arki/font-adjust 'arki/prefix-keymap)
-    (add-hook 'after-init-hook (lambda () (interactive) (message "Setting font...") (arki/set-font) (message "Setting font done.")))
-    )
+    (message "Setting font...")
+    (arki/set-font)
+    (message "Setting font done."))
+
+  (arki/add-hook-for-graphic-frame-init 'init-font)
 
   ;; 有空时候看看这个用于org-mode 表格对齐的：https://github.com/chen-chao/zh-align.el
 
@@ -1868,24 +1911,30 @@ Only set theme for ~display-graphic-p~ is ~t~.
   ;; Favorite themes: monokai-theme solarized-theme gruvbox-theme
 
   ;; https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el
-  (when (require-pack 'doom-themes)
-    ;; (load-theme 'doom-dark+)
-    ;; (load-theme 'doom-molokai t)
-    ;; (load-theme 'doom-one t)        ; doom-one-light
-    (load-theme 'doom-one-light t)
-    (setq doom-themes-enable-bold t)
-    (setq doom-themes-enable-italic t)
-    (setq doom-themes-treemacs-theme "doom-colors")
-    (doom-themes-treemacs-config)
-    (doom-themes-org-config)
-    ;; https://github.com/domtronn/all-the-icons.el/
-    ;; 需要安装字体文件：M-x all-the-icons-install-fonts
-    (require-pack 'all-the-icons)
-    )
+  (defun init-theme()
+    (when (require-pack 'doom-themes)
+      ;; (load-theme 'doom-dark+)
+      ;; (load-theme 'doom-molokai t)
+      ;; (load-theme 'doom-one t)        ; doom-one-light
+      (load-theme 'doom-one-light t)
+      (setq doom-themes-enable-bold t)
+      (setq doom-themes-enable-italic t)
+      (setq doom-themes-treemacs-theme "doom-colors")
+      (doom-themes-treemacs-config)
+      (doom-themes-org-config)
+      ;; https://github.com/domtronn/all-the-icons.el/
+      ;; 需要安装字体文件：M-x all-the-icons-install-fonts
+      (require-pack 'all-the-icons)
+      )
 
+    (message "Done: init-theme.")
+    )
   ;; https://github.com/seagle0128/doom-modeline
+  ;; Can be used in terminal.
   (when (require-pack 'doom-modeline)
-    (add-hook 'after-init-hook #'doom-modeline-mode))
+    (doom-modeline-mode))
+
+  (arki/add-hook-for-graphic-frame-init 'init-theme)
 #+end_src
 
 *** beacon mode-line-bell
@@ -2031,7 +2080,7 @@ Only set theme for ~display-graphic-p~ is ~t~.
 #+begin_src emacs-lisp
   ;; 启用zone
   (setq zone-programs [zone-pgm-timer])
-  (zone-when-idle 3600)
+  (zone-when-idle 36000)
 #+end_src
 
 ** which-key
@@ -2134,23 +2183,6 @@ Only set theme for ~display-graphic-p~ is ~t~.
       (setq company-idle-delay 0.1))
     (add-hook 'shell-mode-hook 'company-shell-mode)
     )
-
-
-  ;; ;; 调整hippie-expand调用的自动补全功能顺序
-  ;; (setq hippie-expand-try-functions-list '(
-  ;;                      try-expand-dabbrev
-  ;;                      try-expand-dabbrev-all-buffers
-  ;;                      try-expand-dabbrev-from-kill
-  ;;                      try-complete-file-name-partially
-  ;;                      try-complete-file-name
-  ;;                      try-expand-all-abbrevs
-  ;;                      try-expand-list
-  ;;                      try-expand-line
-  ;;                      try-complete-lisp-symbol-partially
-  ;;                      try-complete-lisp-symbol))
-  ;; ;; 使用hippie-expand增强自动补全
-  ;; (arki/define-key "M-RET" 'hippie-expand)
-
 
   ;; 配置swiper
   (when (require-pack 'swiper)
@@ -2482,13 +2514,24 @@ Only set theme for ~display-graphic-p~ is ~t~.
   (require-pack 'org-ref)
 
   
-  ;; Config org-roam
-  ;; (when (require-pack 'org-roam)
-  ;;   (org-roam-setup)
-  ;;   (arki/define-key "q" 'org-roam-buffer-display-dedicated 'arki/prefix-keymap)
-  ;;   (arki/define-key "C-c q" 'org-roam-node-insert 'org-mode-map)
-  ;;   (setq org-roam-v2-ack t)         ;Disable the warning about updating from v1 to v2.
-  ;;   )
+  (when (require-pack 'org-roam)
+    (setq org-roam-directory (file-truename "~/Documents/org-roam"))
+    (unless (file-directory-p org-roam-directory)
+      (make-directory org-roam-directory))
+    (org-roam-db-autosync-mode)
+
+    (arki/define-key "C-c g" 'org-roam-node-insert)
+    (arki/define-key "C-c h" 'org-roam-node-find)
+
+    ;; https://github.com/org-roam/org-roam-ui
+    (when (require-pack 'org-roam-ui)
+      (setq org-roam-ui-sync-theme t
+            org-roam-ui-follow t
+            org-roam-ui-update-on-save t
+            org-roam-ui-open-on-start nil)
+      (unless (default-value 'org-roam-ui-mode)
+        (org-roam-ui-mode 1)))
+    )
   
   ;; Config org-web-tools
   (when (require-pack 'org-web-tools))
@@ -3167,6 +3210,19 @@ Save tmp files:
 
 Tested code.
 #+begin_src emacs-lisp :tangle no
+#+end_src
+
+** Org-roam
+#+begin_src emacs-lisp
+  (when (require-pack 'org-roam)
+    (setq org-roam-directory (file-truename "~/Documents/org-roam"))
+    (unless (file-directory-p org-roam-directory)
+      (make-directory org-roam-directory))
+    (org-roam-db-autosync-mode)
+
+    ;; https://github.com/org-roam/org-roam-ui
+    (require-pack 'org-roam-ui)
+    )
 #+end_src
 
 * Load custom variables
