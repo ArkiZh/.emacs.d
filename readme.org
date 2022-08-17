@@ -792,15 +792,17 @@ Add the code below to ~init.el~.
         '((mark "(" modified "|" read-only locked ") "
                 (size-h 10 -1 :right)
                 "   "
-                (name 15 15 :left :elide)
+                (name 36 36 :left :elide)
                 "   "
-                (mode 15 15 :left :elide))
+                (mode 36 36 :left :elide)
+                "   " filename-and-process)
           (mark "(" modified "|" read-only locked ") "
                 (size-h 10 -1 :right)
                 "   "
-                (name 15 -1 :left)
+                (name 36 -1 :left)
                 "   "
-                (mode 15 -1 :left))))
+                (mode 36 -1 :left)
+                "   " filename-and-process)))
 
   (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
 
@@ -2759,17 +2761,17 @@ Only set theme for ~display-graphic-p~ is ~t~.
         '((mark "(" modified vc-status-mini "|" read-only locked ") "
                 (size-h 10 -1 :right)
                 "   "
-                (name 15 15 :left :elide)
+                (name 36 36 :left :elide)
                 "   "
-                (mode 15 15 :left :elide)
+                (mode 36 36 :left :elide)
                 "   "
                 vc-relative-file)
           (mark "(" modified vc-status-mini "|" read-only locked ") "
                 (size-h 10 -1 :right)
                 "   "
-                (name 15 -1 :left)
+                (name 36 -1 :left)
                 "   "
-                (mode 15 -1 :left)
+                (mode 36 -1 :left)
                 "   "
                 (vc-status 15 15 :left)
                 "   "
