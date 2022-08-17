@@ -190,9 +190,9 @@ Add the code below to ~init.el~.
                                      (when (not skip-load)
                                        (require pack))
                                      t)
-      (refresh-pack-contents)
       ;; Set arki/package-install-disabled to t, if don't want to install new packages.
       (unless (bound-and-true-p arki/package-install-disabled)
+        (refresh-pack-contents)
         (message "Package: %s installing..." pack)
         (condition-case err (progn
                               (package-install pack)
@@ -789,24 +789,18 @@ Add the code below to ~init.el~.
   ;; Modify the default ibuffer-formats (toggle with `)
   ;; mark modified read-only locked name size mode process filename
   (setq ibuffer-formats
-        '((mark "(" modified vc-status-mini "|" read-only locked ") "
+        '((mark "(" modified "|" read-only locked ") "
                 (size-h 10 -1 :right)
                 "   "
                 (name 15 15 :left :elide)
                 "   "
-                (mode 15 15 :left :elide)
-                "   "
-                vc-relative-file)
-          (mark "(" modified vc-status-mini "|" read-only locked ") "
+                (mode 15 15 :left :elide))
+          (mark "(" modified "|" read-only locked ") "
                 (size-h 10 -1 :right)
                 "   "
                 (name 15 -1 :left)
                 "   "
-                (mode 15 -1 :left)
-                "   "
-                (vc-status 15 15 :left)
-                "   "
-                vc-relative-file)))
+                (mode 15 -1 :left))))
 
   (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
 
@@ -2498,9 +2492,10 @@ Only set theme for ~display-graphic-p~ is ~t~.
   
   (when (display-graphic-p)
     ;; https://github.com/abo-abo/org-download
-    (require-pack 'org-download)
-    ;; Drag-and-drop to `dired`
-    (add-hook 'dired-mode-hook 'org-download-enable))
+    (when (require-pack 'org-download)
+      ;; Drag-and-drop to `dired`
+      (add-hook 'dired-mode-hook 'org-download-enable))
+    )
 
   ;; (setq org-agenda-files '("~/org"))
   
@@ -2529,8 +2524,16 @@ Only set theme for ~display-graphic-p~ is ~t~.
             org-roam-ui-follow t
             org-roam-ui-update-on-save t
             org-roam-ui-open-on-start nil)
+      ;; Start org-roam-ui, the default address: http://localhost:35901/
       (unless (default-value 'org-roam-ui-mode)
-        (org-roam-ui-mode 1)))
+        (org-roam-ui-mode 1)
+        (message "org-roam-ui started, visit at  http://localhost:35901/")
+        )
+          ;; Stop org-roam-ui when stop emacs.
+      (defun arki/org-roam-ui-stop (&rest _args)
+        (message "Stop org-roam-ui.")
+        (when org-roam-ui-mode (org-roam-ui-mode -1)))
+      (advice-add #'save-buffers-kill-terminal :before #'arki/org-roam-ui-stop))
     )
   
   ;; Config org-web-tools
@@ -2750,7 +2753,27 @@ Only set theme for ~display-graphic-p~ is ~t~.
       (ibuffer-vc-set-filter-groups-by-vc-root)
       (unless (eq ibuffer-sorting-mode 'filename/process)
         (ibuffer-do-sort-by-filename/process)))
-    (add-hook 'ibuffer-hook 'ibuffer-set-up-preferred-filters))
+    (add-hook 'ibuffer-hook 'ibuffer-set-up-preferred-filters)
+    (setq ibuffer-formats
+        '((mark "(" modified vc-status-mini "|" read-only locked ") "
+                (size-h 10 -1 :right)
+                "   "
+                (name 15 15 :left :elide)
+                "   "
+                (mode 15 15 :left :elide)
+                "   "
+                vc-relative-file)
+          (mark "(" modified vc-status-mini "|" read-only locked ") "
+                (size-h 10 -1 :right)
+                "   "
+                (name 15 -1 :left)
+                "   "
+                (mode 15 -1 :left)
+                "   "
+                (vc-status 15 15 :left)
+                "   "
+                vc-relative-file)))
+    )
 #+end_src
 
 ** layout
