@@ -401,7 +401,6 @@ Add the code below to ~init.el~.
   NO-REPEAT If t, this CALLBACK can be invoked only once, else any times."
     (when (display-graphic-p)
       (add-to-list 'arki/graphic-frame-callbacks (list callback (not no-repeat) 0))))
-
 #+end_src
 
 *** Site lisp utils
@@ -677,7 +676,6 @@ Add the code below to ~init.el~.
 
   (arki/define-key "<C-up>" (lambda (height) (interactive "P") (arki/scroll-vertical 'up height)))
   (arki/define-key "<C-down>" (lambda (height) (interactive "P") (arki/scroll-vertical 'down height)))
-
 #+end_src
 
 *** Windown resize                                                   :MODIFY:
@@ -688,7 +686,6 @@ Add the code below to ~init.el~.
 
   (arki/define-key "<M-up>" 'enlarge-window)
   (arki/define-key "<M-down>" 'shrink-window)
-
 #+end_src
 
 *** Edit behaviour
@@ -807,7 +804,6 @@ Add the code below to ~init.el~.
   (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
 
   (arki/define-key "C-x C-b" 'ibuffer)
-
 #+end_src
 
 ** Fonts
@@ -1403,7 +1399,6 @@ Add the code below to ~init.el~.
   ;; (arki/define-key "<C-M-up>" 'arki/window-move-up-border-up)
   ;; (arki/define-key "<M-down>" 'arki/window-move-down-border-down)
   ;; (arki/define-key "<C-M-down>" 'arki/window-move-up-border-down)
-
 #+end_src
 
 *** Save desktop
@@ -1466,7 +1461,7 @@ Add the code below to ~init.el~.
   DESKTOP-NAME, save tmpbuffers to this desktop.
 
   UNREFERENCE, if not nil, don't reference tmpbuffers to tmpfiles.
-  "  
+  "
     (let* ((cur-save-dir (arki/desktop--get-tmpfile-dir desktop-name)))
       (unless (file-directory-p cur-save-dir)
         (make-directory cur-save-dir))
@@ -2534,7 +2529,7 @@ Only set theme for ~display-graphic-p~ is ~t~.
         (org-roam-ui-mode 1)
         (message "org-roam-ui started, visit at  http://localhost:35901/")
         )
-          ;; Stop org-roam-ui when stop emacs.
+      ;; Stop org-roam-ui when stop emacs.
       (defun arki/org-roam-ui-stop (&rest _args)
         (message "Stop org-roam-ui.")
         (when org-roam-ui-mode (org-roam-ui-mode -1)))
@@ -2760,24 +2755,24 @@ Only set theme for ~display-graphic-p~ is ~t~.
         (ibuffer-do-sort-by-filename/process)))
     (add-hook 'ibuffer-hook 'ibuffer-set-up-preferred-filters)
     (setq ibuffer-formats
-        '((mark "(" modified vc-status-mini "|" read-only locked ") "
-                (size-h 10 -1 :right)
-                "   "
-                (name 36 36 :left :elide)
-                "   "
-                (mode 36 36 :left :elide)
-                "   "
-                vc-relative-file)
-          (mark "(" modified vc-status-mini "|" read-only locked ") "
-                (size-h 10 -1 :right)
-                "   "
-                (name 36 -1 :left)
-                "   "
-                (mode 36 -1 :left)
-                "   "
-                (vc-status 15 15 :left)
-                "   "
-                vc-relative-file)))
+          '((mark "(" modified vc-status-mini "|" read-only locked ") "
+                  (size-h 10 -1 :right)
+                  "   "
+                  (name 36 36 :left :elide)
+                  "   "
+                  (mode 36 36 :left :elide)
+                  "   "
+                  vc-relative-file)
+            (mark "(" modified vc-status-mini "|" read-only locked ") "
+                  (size-h 10 -1 :right)
+                  "   "
+                  (name 36 -1 :left)
+                  "   "
+                  (mode 36 -1 :left)
+                  "   "
+                  (vc-status 15 15 :left)
+                  "   "
+                  vc-relative-file)))
     )
 #+end_src
 
@@ -3099,8 +3094,6 @@ Only set theme for ~display-graphic-p~ is ~t~.
 :END:
 ** Desktop save
 #+begin_src emacs-lisp
-
-
   (arki/desktop-save "test")
 
   (arki/desktop-save desktop-dirname)
@@ -3201,8 +3194,6 @@ Only set theme for ~display-graphic-p~ is ~t~.
 
 Save tmp files:
 #+begin_src emacs-lisp
-
-
   ;; (arki/desktop-tmpfiles-revert "emacs" t)
   ;; (arki/desktop-tmpfiles-save arki/desktop-current-desktop)
 #+end_src
