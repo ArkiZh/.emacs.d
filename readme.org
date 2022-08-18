@@ -36,6 +36,8 @@ Add the code below to ~init.el~.
 
   ;; Set arki/package-install-disabled to t, if don't want to install new packages.
   (defvar arki/package-install-disabled nil "Disable package install if t.")
+  ;; Skip all the require-pack
+  (defvar arki/package-require-disabled nil "Disable require-pack if t.")
 
   (arki/org-babel-load-file (expand-file-name "readme.org" user-emacs-directory) t)
 #+end_src
@@ -185,29 +187,28 @@ Add the code below to ~init.el~.
   And execute require PACKAGE if newly installed, to avoid requiring it manually.
 
   If installed successfully, return t, else return nil"
-    (if (package-installed-p pack) (progn
-                                     (arki/alist-push-value arki/package-installed-info "INSTALLED_BEFORE" pack)
-                                     (when (not skip-load)
-                                       (require pack))
-                                     t)
-      ;; Set arki/package-install-disabled to t, if don't want to install new packages.
-      (unless (bound-and-true-p arki/package-install-disabled)
-        (refresh-pack-contents)
-        (message "Package: %s installing..." pack)
-        (condition-case err (progn
-                              (package-install pack)
-                              (arki/alist-push-value arki/package-installed-info "INSTALLED_NOW" pack)
-                              (message "Package: %s installed!" pack)
-                              (when (not skip-load)
-                                (require pack)
-                                (message "Package: %s loaded!" pack))
-                              t)
-          (error
-           (arki/alist-push-value arki/package-installed-info "FAILED" pack)
-           (message "Package: `%S' failed to install! ERROR: %S" pack err)
-           nil)
-          ))
-      ))
+    (unless arki/package-require-disabled
+      (if (package-installed-p pack) (progn
+                                       (arki/alist-push-value arki/package-installed-info "INSTALLED_BEFORE" pack)
+                                       (when (not skip-load)
+                                         (require pack))
+                                       t)
+        ;; Set arki/package-install-disabled to t, if don't want to install new packages.
+        (unless (bound-and-true-p arki/package-install-disabled)
+          (refresh-pack-contents)
+          (message "Package: %s installing..." pack)
+          (condition-case err (progn
+                                (package-install pack)
+                                (arki/alist-push-value arki/package-installed-info "INSTALLED_NOW" pack)
+                                (message "Package: %s installed!" pack)
+                                (when (not skip-load)
+                                  (require pack)
+                                  (message "Package: %s loaded!" pack))
+                                t)
+            (error
+             (arki/alist-push-value arki/package-installed-info "FAILED" pack)
+             (message "Package: `%S' failed to install! ERROR: %S" pack err)
+             nil))))))
 
   (defun require-packs (pack &rest packs)
     "Insall the given packs.

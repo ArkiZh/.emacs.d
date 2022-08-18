@@ -25,4 +25,6 @@ Emacs Lisp file is byte-compiled before it is loaded."
 ;; Set arki/package-install-disabled to t, if don't want to install new packages.
 (defvar arki/package-install-disabled nil "Disable package install if t.")
 
+(defvar arki/package-require-disabled nil "Disable require-pack if t.")
+
 (arki/org-babel-load-file (expand-file-name "readme.org" user-emacs-directory) t)
