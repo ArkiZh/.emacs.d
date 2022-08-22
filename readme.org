@@ -2100,8 +2100,66 @@ Only set theme for ~display-graphic-p~ is ~t~.
 ** auto-complete
 #+begin_src emacs-lisp
   ;; Input completion -- Completion of your input in the minibuffer. (See also Minibuffer Completion in the manual.)
-  (ido-mode t)
+
+  ;; Replace ido-mode with vertico.
+  ;; (ido-mode t)
   (setq ido-enable-flex-matching t)
+
+  ;; https://github.com/minad/vertico
+  (when (require-pack 'vertico)
+    (vertico-mode)
+
+    ;; Different scroll margin
+    (setq vertico-scroll-margin 0)
+
+    ;; Show more candidates
+    (setq vertico-count 10)
+
+    ;; Grow and shrink the Vertico minibuffer
+    (setq vertico-resize t)
+
+    ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+    ;; (setq vertico-cycle t)
+
+    ;; (vertico-indexed-mode -1)
+    ;; (vertico-grid-mode -1)
+    ;; (vertico-reverse-mode -1)
+    (vertico-mouse-mode)
+    (arki/define-key "M-'" 'vertico-quick-insert 'vertico-map)
+    (arki/define-key "C-'" 'vertico-quick-exit 'vertico-map)
+
+    (vertico-multiform-mode)
+    (setq vertico-multiform-commands '((execute-extended-command reverse)
+                                       (find-file reverse)))
+
+    ;; https://github.com/minad/marginalia
+    (when (require-pack 'marginalia)
+      (marginalia-mode)
+      (arki/define-key "M-A" 'marginalia-cycle 'minibuffer-local-map))
+
+    ;; https://github.com/minad/consult
+    (when (require-pack 'consult)
+      (arki/define-key "C-S-s" 'consult-line)
+      (add-to-list 'vertico-multiform-commands '(consult-line buffer))
+      (add-to-list 'vertico-multiform-commands '(consult-grep buffer))
+      )
+
+    ;; https://github.com/oantolin/embark
+    ;; TODO
+  
+    ;; (setq vertico-multiform-categories
+    ;;       '((file grid reverse)
+    ;;         (grep buffer)
+    ;;         ))
+    )
+    )
+
+  ;; https://github.com/oantolin/orderless
+  (when (require-pack 'orderless)
+    (setq completion-styles '(orderless basic)
+          completion-category-defaults nil
+          completion-category-overrides '((file (styles partial-completion)))))
+
 
 
   ;; https://github.com/joaotavora/yasnippet
@@ -2176,29 +2234,21 @@ Only set theme for ~display-graphic-p~ is ~t~.
     (add-hook 'shell-mode-hook 'company-shell-mode)
     )
 
-  ;; 配置swiper
-  (when (require-pack 'swiper)
-    ;; (ivy-mode 1)
-    ;; ;; minibuffer 里面的 M-i 绑定 与输入法的冲突了，解绑掉
-    ;; (arki/define-key "M-i" nil 'ivy-minibuffer-map)
-    ;; (setq ivy-use-virtual-buffers nil) ;I dont't need virtual buffer for now, so commented out.
-    ;; (setq enable-recursive-minibuffers nil)
+  ;; ;; 配置swiper
+  ;; ;; 用consult-line代替了
+  ;; (when (require-pack 'swiper)
+  ;;   ;; (ivy-mode 1)
+  ;;   ;; ;; minibuffer 里面的 M-i 绑定 与输入法的冲突了，解绑掉
+  ;;   ;; (arki/define-key "M-i" nil 'ivy-minibuffer-map)
+  ;;   ;; (setq ivy-use-virtual-buffers nil) ;I dont't need virtual buffer for now, so commented out.
+  ;;   ;; (setq enable-recursive-minibuffers nil)
 
-    ;; enable this if you want `swiper' to use it
-    ;; (setq search-default-mode #'char-fold-to-regexp)
-    (setq search-default-mode t)
-    (arki/define-key "C-S-s" 'swiper)
+  ;;   ;; enable this if you want `swiper' to use it
+  ;;   ;; (setq search-default-mode #'char-fold-to-regexp)
+  ;;   (setq search-default-mode t)
+  ;;   (arki/define-key "C-S-s" 'swiper)
 
-    )
-
-  (when (require-pack 'counsel)
-    ;; 配置counsel
-    (arki/define-key "M-x" 'counsel-M-x)
-    ;; (arki/define-key "C-x C-f" 'counsel-find-file)
-    ;; (arki/define-key "C-h f" 'counsel-describe-function)
-    ;; (arki/define-key "C-h v" 'counsel-describe-variable)
-    ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
-    )
+  ;;   )
 #+end_src
 
 ** elisp
@@ -3242,6 +3292,61 @@ Tested code.
 
     ;; https://github.com/org-roam/org-roam-ui
     (require-pack 'org-roam-ui)
+    )
+#+end_src
+
+** Completing
+#+begin_src emacs-lisp
+  ;; https://github.com/oantolin/orderless
+  (when (require-pack 'orderless)
+    (setq completion-styles '(orderless basic)
+          completion-category-overrides '((file (styles basic partial-completion)))))
+
+  ;; https://github.com/radian-software/selectrum
+  (when (require-pack 'selectrum)
+    (selectrum-mode +1)
+    (when (require-pack 'orderless)
+      (setq completion-styles '(orderless basic)
+            completion-category-overrides '((file (styles basic partial-completion))))
+      ;; Optional performance optimization
+      ;; by highlighting only the visible candidates.
+      (setq orderless-skip-highlighting (lambda () selectrum-is-active))
+      (setq selectrum-highlight-candidates-function #'orderless-highlight-matches))
+
+    ;; Persist history over Emacs restarts
+    (savehist-mode)
+    )
+
+
+  ;; https://github.com/minad/vertico
+  (when (require-pack 'vertico)
+    (vertico-mode)
+
+    ;; Different scroll margin
+    (setq vertico-scroll-margin 100)
+
+    ;; Show more candidates
+    (setq vertico-count 10)
+
+    ;; Grow and shrink the Vertico minibuffer
+    ;; (setq vertico-resize t)
+
+    ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+    ;; (setq vertico-cycle t)
+    (when (require-pack 'orderless)
+      (setq completion-styles '(orderless basic)
+            completion-category-defaults nil
+            completion-category-overrides '((file (styles partial-completion)))))
+    )
+
+
+  (when (require-pack 'counsel)
+    ;; 配置counsel
+    (arki/define-key "M-x" 'counsel-M-x)
+    ;; (arki/define-key "C-x C-f" 'counsel-find-file)
+    ;; (arki/define-key "C-h f" 'counsel-describe-function)
+    ;; (arki/define-key "C-h v" 'counsel-describe-variable)
+    ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
     )
 #+end_src
 
