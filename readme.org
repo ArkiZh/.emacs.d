@@ -2441,77 +2441,107 @@ Only set theme for ~display-graphic-p~ is ~t~.
     ;; TODO How to display image link like: [[./img.png][image-describe]]
     (setq org-startup-with-inline-images t)
 
-    (setq arki/org-insert-image--previous-dir nil)
-    (defun arki/org-insert-image ()
-      (interactive)
+    (defun arki/org-insert-get-file-dir ()
+      "Org mode中返回存放附件的目录，如果不存在会自动创建，目录名字为org文件路径加.file
+
+  如果当前buffer没有指向一个文件，返回nil"
       (let* ((file-path (buffer-file-name)))
         (if file-path
             (let* ((cur-dir (file-name-directory file-path))
                    (dir-name (concat (file-name-nondirectory file-path) ".file"))
-                   (dir-path (expand-file-name dir-name cur-dir))
-                   ;; (origin-file (ido-read-file-name "Image location: " arki/org-insert-image--previous-dir))
-                   (origin-file (let* ((input-path (ido-read-file-name "Image location: " arki/org-insert-image--previous-dir))
-                                       (win2linux-path (arki/wsl-path-win2linux input-path)))
-                                  (when win2linux-path
-                                    (setq input-path win2linux-path))
-                                  (if (file-directory-p input-path)
-                                      (ido-read-file-name (concat "Select image in " win2linux-path " :") input-path)
-                                    input-path)))
-                   (img-name (file-name-nondirectory origin-file))
-                   (new-name (concat (read-from-minibuffer "Rename image: " (file-name-base img-name)) (file-name-extension img-name t)))
-                   (img-width (ido-completing-read "Image width in pixel: " (list "500" "origin" "300" "600") nil nil nil))
-                   (target-file (expand-file-name new-name dir-path))
-                   ;; (target-file-relative (concat (file-name-as-directory ".") (file-name-as-directory dir-name) new-name))
-                   (target-file-relative (concat (file-name-as-directory dir-name) new-name))
-                   )
-              ;; TODO Validate whether it's an image, using `image-file-name-regexp'.
-              ;; TODO Add support for download image from url.
-              (if (and (file-exists-p origin-file)
-                       (not (file-directory-p origin-file)))
-                  (progn
-                    (make-directory dir-path t)
-                    (copy-file origin-file target-file 1)
-                    (setq arki/org-insert-image--previous-dir (file-name-directory origin-file))
-                    (if (equal img-width "origin")
-                        (insert (format "[[file:%s]]" target-file-relative))
-                      (insert (format "#+ATTR_ORG: :width %s\n[[file:%s]]" img-width target-file-relative)))
-                    (org-display-inline-images t))
-                (message (concat "Failed! The input file not exists or is a directory: " origin-file))
-                )
-              )
-          (message "This buffer hasn't been saved. Can't decide target image path."))
-        )
-      )
+                   (dir-path (expand-file-name dir-name cur-dir)))
+              (if (not (file-directory-p dir-path))
+                  (make-directory dir-path t))
+              dir-path)
+          ;; (message "This buffer hasn't been saved. Can't decide target image path.")
+          nil)))
+
+    (defun arki/url-p (url-or-file)
+      "Return nil if URL-OR-FILE is not an url."
+      (member (url-type (url-generic-parse-url url-or-file)) (list "http" "https")))
+
+    (defun arki/url-filename (url)
+      (replace-regexp-in-string
+       "%20" " "
+       (file-name-nondirectory
+        (car (url-path-and-query
+              (url-generic-parse-url url))))))
+
+    (defun arki/url-download (url target-file)
+      "Download this URL to TARGET-FILE. Return nil if failed."
+      (message "TODO: Failed to download %s" url)
+      nil)
+
+
+    (defun arki/copy-or-download-file (&optional file-or-url default-source-directory-symbol target-dir use-suggest-name)
+      "Copy or download file from FILE-OR-URL into TARGET-DIR.
+
+  If FILE-OR-URL is nil, will suggest from DEFAULT-SOURCE-DIRECTORY-SYMBOL.
+  If TARGET-DIR is nil, will suggest from current location.
+  If USE-SUGGEST-NAME is nil, will suggest to input new filename.
+
+  Return the newfile path if succeed.
+  Return nil if failed."
+      (interactive)
+
+      (let* ((origin-file (if file-or-url file-or-url
+                            (ido-read-file-name "Select source file: " (symbol-value default-source-directory-symbol))))
+             (origin-name (if (arki/url-p origin-file) (arki/url-filename origin-file) (file-name-nondirectory origin-file)))
+             (target-dir (if target-dir target-dir
+                           (ido-read-directory-name "Select target directory: "
+                                                    (if buffer-file-name (file-name-directory buffer-file-name) nil))))
+             (new-name (if use-suggest-name target-name
+                         (concat (read-from-minibuffer "Rename file: " (file-name-base origin-name)) (file-name-extension origin-name t))))
+             (target-file (expand-file-name new-name target-dir))
+             (target-file-relative (concat (file-name-as-directory target-dir) new-name)))
+        (make-directory target-dir t)
+
+        (when (and default-source-directory-symbol
+                   (not (arki/url-p origin-file)))
+          (set default-source-directory-symbol (file-name-directory origin-file)))
+
+        (let ((result-file (cond
+                            ((arki/url-p origin-file)
+                             (if (arki/url-download origin-file target-file)
+                                 target-file
+                               nil))
+
+                            ((and (file-exists-p origin-file)
+                                  (not (file-directory-p origin-file)))
+                             (copy-file origin-file target-file 1)
+                             target-file)
+
+                            (t nil))))
+          (unless result-file (if (arki/url-p origin-file)
+                                  (message "Failed to download: %s --to-- %s" origin-file target-file)
+                                (message "Failed to copy: %s --to-- %s" origin-file target-file)))
+          result-file)))
+
+
+    (setq arki/org-insert-image--previous-dir nil)
+    (defun arki/org-insert-image ()
+      "Insert image from local path or url."
+      (interactive)
+      (let* ((target-dir (arki/org-insert-get-file-dir))
+             (target-file (arki/copy-or-download-file nil 'arki/org-insert-image--previous-dir target-dir nil)))
+        (when target-file
+          (let ((img-width (ido-completing-read "Image width in pixel: " (list "500" "origin" "300" "600") nil nil nil))
+                (target-file-relative (concat (file-name-as-directory target-dir) (file-name-nondirectory target-file))))
+            (if (equal img-width "origin")
+                (insert (format "[[file:%s]]" target-file-relative))
+              (insert (format "#+ATTR_ORG: :width %s\n[[file:%s]]" img-width target-file-relative)))))))
+
 
     (setq arki/org-insert-file--previous-dir nil)
     (defun arki/org-insert-file ()
+      "Insert file from local path or url."
       (interactive)
-      (let* ((file-path (buffer-file-name)))
-        (if file-path
-            (let* ((cur-dir (file-name-directory file-path))
-                   (dir-name (concat (file-name-nondirectory file-path) ".file"))
-                   (dir-path (expand-file-name dir-name cur-dir))
-                   (origin-file (let* ((input-path (ido-read-file-name "File location: " arki/org-insert-file--previous-dir))
-                                       (win2linux-path (arki/wsl-path-win2linux input-path)))
-                                  (when win2linux-path
-                                    (setq input-path win2linux-path))
-                                  (if (file-directory-p input-path)
-                                      (ido-read-file-name (concat "Select file in " win2linux-path " :") input-path)
-                                    input-path)))
-                   (file-name (file-name-nondirectory origin-file))
-                   (new-name (concat (read-from-minibuffer "Rename file: " (file-name-base file-name)) (file-name-extension file-name t)))
-                   (target-file (expand-file-name new-name dir-path))
-                   (target-file-relative (concat (file-name-as-directory dir-name) new-name)))
-              ;; TODO Add support for download file from url.
-              (if (and (file-exists-p origin-file)
-                       (not (file-directory-p origin-file)))
-                  (progn
-                    (make-directory dir-path t)
-                    (copy-file origin-file target-file 1)
-                    (setq arki/org-insert-file--previous-dir (file-name-directory origin-file))
-                    (insert (format "[[file:%s][%s]]" target-file-relative new-name)))
-                (message (concat "Failed! The input file not exists or is a directory: " origin-file))))
-          (message "This buffer hasn't been saved. Can't decide target image path."))))
+      (let* ((target-dir (arki/org-insert-get-file-dir))
+             (target-file (arki/copy-or-download-file nil 'arki/org-insert-file--previous-dir target-dir nil)))
+        (when target-file
+          (let ((target-file-relative (concat (file-name-as-directory target-dir) (file-name-nondirectory target-file))))
+            (insert (format "[[file:%s][%s]]" target-file-relative (file-name-nondirectory target-file)))))))
+
 
     (defun arki/org-delete-file-link()
       "Delete the link at cursor, along with the associated file."
@@ -2554,12 +2584,34 @@ Only set theme for ~display-graphic-p~ is ~t~.
     )
 
 
+
+
   
   (defun init-org-download ()
     ;; https://github.com/abo-abo/org-download
     (when (require-pack 'org-download)
       ;; Drag-and-drop to `dired`
-      (add-hook 'dired-mode-hook 'org-download-enable))
+      (add-hook 'dired-mode-hook 'org-download-enable)
+
+      (defun arki/org-download-method (url)
+        (let* ((cur-dir (arki/org-insert-get-file-dir))
+               (target-name (if (arki/url-p url)
+                                (arki/url-filename url)
+                              (file-name-nondirectory url)))
+               (target-name (ido-completing-read "Use filename: " (list target-name))))
+          (expand-file-name target-name cur-dir)))
+
+      (setq org-download-method 'arki/org-download-method)
+
+      ;; (fboundp org-download-method)
+      ;; (setq link "https://www.tornadoweb.org/en/stable/_images/tornado.png")
+
+      ;; (let ((filename (funcall org-download-method link)))
+      ;;   (org-download-insert-link link filename)
+      ;;   )
+
+      (setq org-download-method 'arki/org-download-method)
+      )
     )
   (arki/add-hook-for-graphic-frame-init 'init-org-download t)
 
