@@ -21,6 +21,9 @@ recentf
 # Cache for treemacs-mode
 /.cache
 
+# Cache for savehist-mode
+history
+
 # Cache for lsp-model: session storage
 .lsp-session*
 

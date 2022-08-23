@@ -2109,6 +2109,8 @@ Only set theme for ~display-graphic-p~ is ~t~.
   (when (require-pack 'vertico)
     (vertico-mode)
 
+    (savehist-mode)
+
     ;; Different scroll margin
     (setq vertico-scroll-margin 0)
 
@@ -2129,30 +2131,45 @@ Only set theme for ~display-graphic-p~ is ~t~.
     (arki/define-key "C-'" 'vertico-quick-exit 'vertico-map)
 
     (vertico-multiform-mode)
+
+    ;; Sort directories before files
+    (defun sort-directories-first (files)
+      (setq files (vertico-sort-history-length-alpha files))
+      (nconc (seq-filter (lambda (x) (string-suffix-p "/" x)) files)
+             (seq-remove (lambda (x) (string-suffix-p "/" x)) files)))
+
     (setq vertico-multiform-commands '((execute-extended-command reverse)
-                                       (find-file reverse)))
+                                       (find-file reverse (vertico-sort-function . sort-directories-first))))
+
 
     ;; https://github.com/minad/marginalia
     (when (require-pack 'marginalia)
       (marginalia-mode)
-      (arki/define-key "M-A" 'marginalia-cycle 'minibuffer-local-map))
+      (arki/define-key "M-T" 'marginalia-cycle 'minibuffer-local-map))
 
-    ;; https://github.com/minad/consult
-    (when (require-pack 'consult)
-      (arki/define-key "C-S-s" 'consult-line)
-      (add-to-list 'vertico-multiform-commands '(consult-line buffer))
-      (add-to-list 'vertico-multiform-commands '(consult-grep buffer))
-      )
-
-    ;; https://github.com/oantolin/embark
-    ;; TODO
-  
     ;; (setq vertico-multiform-categories
     ;;       '((file grid reverse)
     ;;         (grep buffer)
     ;;         ))
+
+
+    ;; https://github.com/minad/consult
+    (when (require-pack 'consult)
+      (arki/define-key "C-S-s" 'consult-line)
+      (add-to-list 'vertico-multiform-commands '(consult-grep buffer))
+      (arki/define-key "C-x b" 'consult-buffer)
+      (add-to-list 'vertico-multiform-commands '(consult-buffer reverse))
+      )
+    ;; https://github.com/oantolin/embark
+    (when (require-pack 'embark)
+      (arki/define-key "C-." 'embark-act))
+
+    (with-eval-after-load 'consult
+      (with-eval-after-load 'embark
+        (require-pack 'embark-consult)))
+
     )
-    )
+
 
   ;; https://github.com/oantolin/orderless
   (when (require-pack 'orderless)
@@ -3297,6 +3314,10 @@ Tested code.
 
 ** Completing
 #+begin_src emacs-lisp
+  ;; Persist history over Emacs restarts
+  ((setq )avehist-mode)
+
+
   ;; https://github.com/oantolin/orderless
   (when (require-pack 'orderless)
     (setq completion-styles '(orderless basic)
@@ -3312,9 +3333,6 @@ Tested code.
       ;; by highlighting only the visible candidates.
       (setq orderless-skip-highlighting (lambda () selectrum-is-active))
       (setq selectrum-highlight-candidates-function #'orderless-highlight-matches))
-
-    ;; Persist history over Emacs restarts
-    (savehist-mode)
     )
 
 
