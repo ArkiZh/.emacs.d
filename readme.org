@@ -2531,7 +2531,8 @@ Only set theme for ~display-graphic-p~ is ~t~.
                 (target-file-relative (concat (file-name-as-directory target-dir) (file-name-nondirectory target-file))))
             (if (equal img-width "origin")
                 (insert (format "[[file:%s]]" target-file-relative))
-              (insert (format "#+ATTR_ORG: :width %spx\n#+ATTR_HTML: :width %spx\n[[file:%s]]" img-width img-width target-file-relative)))))))
+              (insert (format "#+ATTR_ORG: :width %spx\n#+ATTR_HTML: :width %spx\n[[file:%s]]" img-width img-width target-file-relative))
+              (org-display-inline-images t))))))
 
 
     (setq arki/org-insert-file--previous-dir nil)
@@ -2603,9 +2604,16 @@ Only set theme for ~display-graphic-p~ is ~t~.
                (target-name (if (arki/url-p url)
                                 (arki/url-filename url)
                               (file-name-nondirectory url)))
-               (target-name (concat (format-time-string "%Y%m%d_%H%M%S_") target-name))
                ;; (target-name (ido-completing-read "Use filename: " (list target-name)))
                )
+          (let* ((target-basename (file-name-base target-name))
+                 (target-ext (file-name-extension target-name t))
+                 (max-len 10))
+            (when (length> target-basename max-len)
+              (setq target-basename (substring target-basename 0 max-len)))
+            (setq target-name (concat target-basename target-ext))
+            )
+          (setq target-name (concat (format-time-string "%Y%m%d_%H%M%S_") target-name))
           (expand-file-name target-name cur-dir)))
 
       (setq org-download-method 'arki/org-download-method)
