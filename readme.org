@@ -1578,10 +1578,12 @@ Add the code below to ~init.el~.
             (arki/defcustom-reset-value 'arki/desktop-current-desktop))
           (message "Desktop removed: %s" desktop-name)))))
 
+  (defvar arki/desktop-load-before-hook nil "Hook before 'arki/desktop-load is executed.")
   (defun arki/desktop-load (&optional desktop-name)
     (interactive (list
                   (ido-completing-read "Read this desktop:" (arki/desktop--list) nil t arki/desktop-current-desktop)))
     (unless desktop-name (setq desktop-name arki/desktop-current-desktop))
+    (dolist (fn arki/desktop-load-before-hook) (funcall fn))
     (desktop-clear)
     (let ((cur-desktop-dir (expand-file-name desktop-name arki/desktop-dir)))
       (if (file-directory-p cur-desktop-dir)
@@ -2529,7 +2531,7 @@ Only set theme for ~display-graphic-p~ is ~t~.
                 (target-file-relative (concat (file-name-as-directory target-dir) (file-name-nondirectory target-file))))
             (if (equal img-width "origin")
                 (insert (format "[[file:%s]]" target-file-relative))
-              (insert (format "#+ATTR_ORG: :width %s\n[[file:%s]]" img-width target-file-relative)))))))
+              (insert (format "#+ATTR_ORG: :width %spx\n#+ATTR_HTML: :width %spx\n[[file:%s]]" img-width img-width target-file-relative)))))))
 
 
     (setq arki/org-insert-file--previous-dir nil)
@@ -2592,17 +2594,23 @@ Only set theme for ~display-graphic-p~ is ~t~.
     (when (require-pack 'org-download)
       ;; Drag-and-drop to `dired`
       (add-hook 'dired-mode-hook 'org-download-enable)
+      (setq org-download-image-org-width 500)
+      (setq org-download-image-html-width 500)
+      (setq org-download-screenshot-method "flameshot gui --raw > %s")
 
       (defun arki/org-download-method (url)
         (let* ((cur-dir (arki/org-insert-get-file-dir))
                (target-name (if (arki/url-p url)
                                 (arki/url-filename url)
                               (file-name-nondirectory url)))
-               (target-name (ido-completing-read "Use filename: " (list target-name))))
+               (target-name (concat (format-time-string "%Y%m%d_%H%M%S_") target-name))
+               ;; (target-name (ido-completing-read "Use filename: " (list target-name)))
+               )
           (expand-file-name target-name cur-dir)))
 
       (setq org-download-method 'arki/org-download-method)
 
+      (setq org-download-annotate-function (lambda (url) ""))
       ;; (fboundp org-download-method)
       ;; (setq link "https://www.tornadoweb.org/en/stable/_images/tornado.png")
 
@@ -2653,7 +2661,9 @@ Only set theme for ~display-graphic-p~ is ~t~.
       (defun arki/org-roam-ui-stop (&rest _args)
         (message "Stop org-roam-ui.")
         (when org-roam-ui-mode (org-roam-ui-mode -1)))
-      (advice-add #'save-buffers-kill-terminal :before #'arki/org-roam-ui-stop))
+      (advice-add #'save-buffers-kill-terminal :before #'arki/org-roam-ui-stop)
+      (add-hook 'arki/desktop-load-before-hook 'arki/org-roam-ui-stop)
+      )
     )
   
   ;; Config org-web-tools
