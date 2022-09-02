@@ -2350,6 +2350,17 @@ Only set theme for ~display-graphic-p~ is ~t~.
                   (setq org-bars-color-options '(:desaturate-level-faces -6 :darken-level-faces -16))
                   (setq line-spacing nil)
                   ))
+              ;; Toggle blocks
+              (defvar arki/org-blocks-hidden t)
+
+              (defun arki/org-toggle-blocks-and-image ()
+                (interactive)
+                (if arki/org-blocks-hidden
+                    (org-show-block-all)
+                  (org-hide-block-all))
+                (setq-local arki/org-blocks-hidden (not arki/org-blocks-hidden))
+                (org-toggle-inline-images))
+              (arki/define-key "C-c t" 'arki/org-toggle-blocks-and-image 'org-mode-map)
 
               ))
   
@@ -3380,6 +3391,21 @@ Tested code.
     ;; https://github.com/org-roam/org-roam-ui
     (require-pack 'org-roam-ui)
     )
+#+end_src
+
+** Org-protocol-capture-html
+#+begin_src emacs-lisp
+  (server-start)
+  (require 'org-protocol)
+  (require-pack 's)
+  (require-pack-local 'org-protocol-capture-html t "https://raw.githubusercontent.com/alphapapa/org-protocol-capture-html/master/org-protocol-capture-html.el" )
+  ;; (add-to-list 'org-capture-templates
+  ;;              '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
+  ;;                "* %U %^{heading}\n%?"))
+  (add-to-list 'org-capture-templates
+               '("w" "Web site" entry
+                 (file "")
+                 "* %a :website:\n\n%U %?\n\n%:initial"))
 #+end_src
 
 ** Completing
