@@ -2644,10 +2644,21 @@ Only set theme for ~display-graphic-p~ is ~t~.
 
   ;; (setq org-agenda-files '("~/org"))
   
-  ;; Config for latex formular
-  (when (require-pack 'auctex t)
-    (when (require-pack 'cdlatex)
-      (add-hook 'org-mode-hook 'turn-on-org-cdlatex))
+  ;; Config latex
+
+  ;; Check whether latex exists
+  ;; https://emacs.stackexchange.com/questions/332/how-can-i-find-the-path-to-an-executable-with-emacs-lisp
+  (when (locate-file "latex" exec-path exec-suffixes 'executable)
+    ;; Preview latex
+    (defun init-org-latex-preview ()
+      (org-latex-preview '(16))
+      (setq-local org-preview-latex-image-directory (expand-file-name "ltximg/" arki/cache-dir)))
+    (add-hook 'org-mode-hook 'init-org-latex-preview)
+
+    ;; Config for latex formular
+    (when (require-pack 'auctex t)
+      (when (require-pack 'cdlatex)
+        (add-hook 'org-mode-hook 'turn-on-org-cdlatex)))
     )
 
   
