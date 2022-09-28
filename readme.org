@@ -3427,7 +3427,7 @@ Tested code.
 ** Completing
 #+begin_src emacs-lisp
   ;; Persist history over Emacs restarts
-  ((setq )avehist-mode)
+  (savehist-mode)
 
 
   ;; https://github.com/oantolin/orderless
