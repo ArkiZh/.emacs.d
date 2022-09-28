@@ -1742,6 +1742,11 @@ Use <M-SPC w> to activate, then:
   ;; (arki/define-key "k" (lambda () (interactive) (message arki/layout-help-message)) 'arki/window-move-keymap)
 #+end_src
 
+** Start server
+#+begin_src emacs-lisp
+  (server-start)
+#+end_src
+
 * Setup extra packages or features
 :PROPERTIES:
 :header-args: :tangle yes :comments link
@@ -2516,13 +2521,13 @@ Only set theme for ~display-graphic-p~ is ~t~.
         (let ((result-file (cond
                             ((arki/url-p origin-file)
                              (if (arki/url-download origin-file target-file)
-                                 target-file
+                                 target-file-relative
                                nil))
 
                             ((and (file-exists-p origin-file)
                                   (not (file-directory-p origin-file)))
                              (copy-file origin-file target-file 1)
-                             target-file)
+                             target-file-relative)
 
                             (t nil))))
           (unless result-file (if (arki/url-p origin-file)
