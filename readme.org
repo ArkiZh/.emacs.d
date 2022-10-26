@@ -295,20 +295,25 @@ Add the code below to ~init.el~.
   (arki/define-key "k" 'arki/delete-this-file-and-buffer 'arki/prefix-keymap)
 
 
-  (defun arki/rename-this-file-and-buffer (new-name)
-    "Rename both current buffer and file to NEW-NAME."
-    (interactive "sNew name: ")
+  (defun arki/rename-this-buffer-and-file (new-name)
+    "Rename current buffer to NEW-NAME. If current file exists, also rename this file."
+    (interactive (list (read-from-minibuffer "New name: " (or (buffer-file-name) (buffer-name)))))
     (let ((name (buffer-name))
-          (filename (buffer-file-name)))
-      (unless filename
-        (error "Buffer '%s' is not visiting a file!" name))
-      (progn
-        (when (file-exists-p filename)
-          (rename-file filename new-name 1))
-        (set-visited-file-name new-name)
-        (rename-buffer new-name))))
+          (filename (buffer-file-name))
+          (buffername (buffer-name)))
+      (if (equal new-name (or filename buffername))
+          (message "Do nothing, since new name and old name are the same.")
+        (if (and filename (file-exists-p filename))
+            (progn
+              (rename-file filename new-name 1)
+              (set-visited-file-name new-name)
+              (rename-buffer new-name)
+              (message "File and buffer renamed from: %s" buffername))
+          (rename-buffer new-name)
+          (message "Buffer renamed from: %s" buffername)))))
 
-  (arki/define-key "r" 'arki/rename-this-file-and-buffer 'arki/prefix-keymap)
+
+  (arki/define-key "r" 'arki/rename-this-buffer-and-file 'arki/prefix-keymap)
 
 
   (defun arki/sudo-open-file()
@@ -694,11 +699,6 @@ Add the code below to ~init.el~.
   ;; 自动加载修改过的文件
   (global-auto-revert-mode t)
 
-  ;; 记录最近打开过的文件
-  ;; (require 'recentf)
-  (recentf-mode 1)
-  (setq recentf-max-menu-item 300)
-
   ;; 禁止 Emacs 自动生成备份文件
   (setq make-backup-files nil)
   ;; 禁止默认的自动保存
@@ -805,6 +805,16 @@ Add the code below to ~init.el~.
   (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
 
   (arki/define-key "C-x C-b" 'ibuffer)
+#+end_src
+
+*** Rencent files
+#+begin_src emacs-lisp
+  ;; 记录最近打开过的文件
+  ;; (require 'recentf)
+  (recentf-mode 1)
+  (setq recentf-max-menu-item 300)
+
+  (arki/define-key "o" 'recentf-open-files 'arki/prefix-keymap)
 #+end_src
 
 ** Fonts
@@ -1972,26 +1982,27 @@ Only set theme for ~display-graphic-p~ is ~t~.
     )
 #+end_src
 
-** dashboard
+** dashboard                                                       :Disabled:
+Replce dashboard with recent files.
 #+begin_src emacs-lisp
   ;; https://github.com/emacs-dashboard/emacs-dashboard
-  (when (require-pack 'dashboard)
-    ;; (dashboard-setup-startup-hook)
-    (arki/define-key "o" 'dashboard-refresh-buffer 'arki/prefix-keymap)
-    (setq dashboard-startup-banner nil) ;'official
-    (when dashboard-startup-banner
-      (setq dashboard-banner-logo-title "Nice day, isn't it?"))
-    (setq dashboard-center-content t)
-    (setq dashboard-items '((bookmarks . 25)
-                            (projects . 25)
-                            (registers . 25)
-                            (recents . 50)
-                            ))
-    (setq dashboard-show-shortcuts t)
-    (setq dashboard-set-file-icons t)
-    (setq dashboard-set-heading-icons t)
-    (setq dashboard-set-footer nil)
-    )
+  ;; (when (require-pack 'dashboard)
+  ;;   ;; (dashboard-setup-startup-hook)
+  ;;   (arki/define-key "o" 'dashboard-refresh-buffer 'arki/prefix-keymap)
+  ;;   (setq dashboard-startup-banner nil) ;'official
+  ;;   (when dashboard-startup-banner
+  ;;     (setq dashboard-banner-logo-title "Nice day, isn't it?"))
+  ;;   (setq dashboard-center-content t)
+  ;;   (setq dashboard-items '((bookmarks . 25)
+  ;;                           (projects . 25)
+  ;;                           (registers . 25)
+  ;;                           (recents . 50)
+  ;;                           ))
+  ;;   (setq dashboard-show-shortcuts t)
+  ;;   (setq dashboard-set-file-icons t)
+  ;;   (setq dashboard-set-heading-icons t)
+  ;;   (setq dashboard-set-footer nil)
+  ;;   )
 #+end_src
 
 ** screensaver
@@ -3479,6 +3490,8 @@ Tested code.
     ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
     )
 #+end_src
+
+** Xterm
 
 * Load custom variables
 :PROPERTIES:
