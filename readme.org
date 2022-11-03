@@ -2622,8 +2622,8 @@ Replce dashboard with recent files.
     (when (require-pack 'org-download)
       ;; Drag-and-drop to `dired`
       (add-hook 'dired-mode-hook 'org-download-enable)
-      (setq org-download-image-org-width 500)
-      (setq org-download-image-html-width 500)
+      (setq org-download-image-org-width 600)
+      (setq org-download-image-html-width 600)
       (setq org-download-screenshot-method "flameshot gui --raw > %s")
 
       (defun arki/org-download-method (url)
