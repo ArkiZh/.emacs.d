@@ -2654,6 +2654,7 @@ Replce dashboard with recent files.
       ;;   )
 
       (setq org-download-method 'arki/org-download-method)
+      (arki/define-key "<f10>" 'org-download-screenshot 'org-mode-map)
       )
     )
   (arki/add-hook-for-graphic-frame-init 'init-org-download t)
