@@ -811,9 +811,11 @@ Add the code below to ~init.el~.
 #+begin_src emacs-lisp
   ;; 记录最近打开过的文件
   ;; (require 'recentf)
+  (setq recentf-save-file (expand-file-name "recentf" arki/cache-dir))
+  (setq recentf-max-menu-items 1000)
+  (setq recentf-max-saved-items 1000)
   (recentf-mode 1)
-  (setq recentf-max-menu-item 300)
-
+  ;; (setq recentf-auto-cleanup 200)
   (arki/define-key "o" 'recentf-open-files 'arki/prefix-keymap)
 #+end_src
 
@@ -1426,6 +1428,7 @@ Add the code below to ~init.el~.
   (defvar arki/desktop--tmpfile-separator "=MODE=" "The file name sperator used for saving tmp buffers.")
   (defvar arki/desktop--tmpfile-prefix "TMPBUFFER=" "The file name prefix used for saving tmp buffers.")
   (defvar arki/desktop--tmpfile-dir "tmpbuffers" "The directory name used for saving tmp buffers.")
+  (add-to-list 'recentf-exclude (concat (file-name-as-directory arki/desktop--tmpfile-dir) arki/desktop--tmpfile-prefix))
 
   (defun arki/desktop--get-tmpfile-dir (desktop-name)
     (expand-file-name arki/desktop--tmpfile-dir (expand-file-name desktop-name arki/desktop-dir)))
@@ -2710,6 +2713,12 @@ Replce dashboard with recent files.
         (when org-roam-ui-mode (org-roam-ui-mode -1)))
       (advice-add #'save-buffers-kill-terminal :before #'arki/org-roam-ui-stop)
       (add-hook 'arki/desktop-load-before-hook 'arki/org-roam-ui-stop)
+
+      ;; Solve conflict with desktop save:
+      ;; desktop.el and org-roam-ui-mode: Cannot bind server socket: Address already in use
+      ;; https://github.com/org-roam/org-roam-ui/issues/202
+      (add-to-list 'desktop-minor-mode-table '(org-roam-ui-mode nil))
+      (add-to-list 'desktop-minor-mode-table '(org-roam-ui-follow-mode nil))
       )
     )
   
@@ -2789,6 +2798,39 @@ Replce dashboard with recent files.
                 (arki/define-key "M-p" nil 'markdown-mode-map))
               )
     )
+#+end_src
+
+
+使用[[https://github.com/honmaple/emacs-maple-preview][maple-preview]]
+#+begin_src emacs-lisp
+  (when (require-pack 'web-server)
+    (when (require-pack-local 'maple-preview)
+      ;; only enable preview within some special modes
+      (setq maple-preview:allow-modes '(org-mode markdown-mode html-mode))
+      ;; How to preview text, export to markdown or html
+      ;; (setq maple-preview:text-content '((t . maple-preview:markdown-content)))
+      ;; Preview http host
+      (setq maple-preview:host "localhost")
+      ;; Preview http port, t means use unused port
+      (setq maple-preview:port t)
+      ;; Delay preview when auto update is non-nil
+      (setq maple-preview:delay 0.1)
+      ;; Auto open browser
+      (setq maple-preview:browser-open t)
+      ;; Auto preview when insert
+      (setq maple-preview:auto-update t)
+      ;; Auto scroll when preview
+      (setq maple-preview:auto-scroll t)
+      ;; custom css or js file
+      ;; (add-to-list 'maple-preview:js-file "https://cdn.bootcss.com/mathjax/2.7.6/MathJax.js" t)
+      ;; (add-to-list 'maple-preview:css-file
+      ;;              "<style type=\"text/css\">
+      ;;             body {
+      ;;                 max-width: 800px;
+      ;;             }
+      ;;           </style>" t)
+      (advice-add #'save-buffers-kill-terminal :before #'maple-preview-cleanup)
+      ))
 #+end_src
 
 *** csv
