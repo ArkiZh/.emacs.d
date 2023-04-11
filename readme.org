@@ -154,11 +154,18 @@ Add the code below to ~init.el~.
 
 
   ;; https://emacs.stackexchange.com/questions/3022/reset-custom-variable-to-default-value-programmatically
-  (defun arki/defcustom-reset-value (var)
+  (defun arki/defcustom-reset-value-to-standard (var-symbol)
     "Reset variable defined by defcustom to its standard value."
-    (when (custom-variable-p var)
-      (let ((std-value (eval (car (get var 'standard-value)))))
-        (customize-save-variable var std-value))))
+    (when (custom-variable-p var-symbol)
+      (let ((std-value (eval (car (get var-symbol 'standard-value)))))
+        (message "Reset %s to standard value: %S --> %S " (symbol-name var-symbol) (symbol-value var-symbol) std-value)      
+        (customize-save-variable var-symbol std-value))))
+  (defun arki/defcustom-reset-value-to-saved (var-symbol)
+    "Reset variable defined by defcustom to its saved value."
+    (when (custom-variable-p var-symbol)
+      (let ((saved-value (eval (car (get var-symbol 'saved-value)))))
+        (message "Reset %s to saved value: %S --> %S " (symbol-name var-symbol) (symbol-value var-symbol) saved-value)
+        (set var-symbol saved-value))))
 
   
   ;;----------------------------------------------------------------------------
@@ -718,8 +725,10 @@ Add the code below to ~init.el~.
   (put 'narrow-to-region 'disabled nil)
   (put 'narrow-to-page 'disabled nil)
 
-  ;; Enable truncate lines
-  (setq-default truncate-lines t)
+  ;; Truncate lines
+  (setq-default truncate-lines nil)
+  (setq-default word-wrap t)
+  (setq-default fill-column 100)
 
   ;; Deal with very long columns
   ;; https://www.emacswiki.org/emacs/SoLong
@@ -1036,6 +1045,20 @@ Add the code below to ~init.el~.
     (message "Fonts config saved." )
     )
 
+  (defun arki/font-restore ()
+    (message "Fonts config restoring...")
+    (arki/defcustom-reset-value-to-saved 'arki/font-english)
+    (arki/defcustom-reset-value-to-saved 'arki/font-english-size)
+    (arki/defcustom-reset-value-to-saved 'arki/font-chinese)
+    (arki/defcustom-reset-value-to-saved 'arki/font-chinese-size)
+    (arki/defcustom-reset-value-to-saved 'arki/font-chinese-extra)
+    (arki/defcustom-reset-value-to-saved 'arki/font-chinese-extra-size)
+    (arki/defcustom-reset-value-to-saved 'arki/font-symbol)
+    (arki/defcustom-reset-value-to-saved 'arki/font-symbol-size)
+    (arki/set-font)
+    (message "Fonts config restored." )
+    )
+
   (defun arki/font-adjust ()
     (interactive)
     (message "
@@ -1045,7 +1068,7 @@ Add the code below to ~init.el~.
    | 扩展字   | 𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄉𠄀𠄁𠄂𠄃𠄄𠄅𠄆𠄇𠄈𠄄𠄅𠄆𠄇𠄇𠄆 |
    +---------------------------------------------------------------+
 
-  Set font: ENG(1 q+ a-) ZH(2 w+ s-) EXT(3 e+ d-) Symbol(4 r+ f-). Save(0)")
+  Set font: ENG(1 q+ a-) ZH(2 w+ s-) EXT(3 e+ d-) Symbol(4 r+ f-). Restore(9). Save(0)")
     (set-transient-map
      (let ((map (make-sparse-keymap)))
        (define-key map (vector (list ?1))
@@ -1076,6 +1099,8 @@ Add the code below to ~init.el~.
        (define-key map (vector (list ?f))
          (lambda () (interactive) (arki/font-step (- arki/font-size-step) 4) (arki/font-adjust)))
 
+       (define-key map (vector (list ?9))
+         (lambda () (interactive) (arki/font-restore) (arki/font-adjust)))
        (define-key map (vector (list ?0))
          (lambda () (interactive) (arki/save-font) (arki/font-adjust)))
 
@@ -1588,7 +1613,7 @@ Add the code below to ~init.el~.
         (when (file-directory-p cur-desktop-dir)
           (delete-directory cur-desktop-dir t)
           (when (string= desktop-name arki/desktop-current-desktop)
-            (arki/defcustom-reset-value 'arki/desktop-current-desktop))
+            (arki/defcustom-reset-value-to-standard 'arki/desktop-current-desktop))
           (message "Desktop removed: %s" desktop-name)))))
 
   (defvar arki/desktop-load-before-hook nil "Hook before 'arki/desktop-load is executed.")
