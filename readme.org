@@ -284,6 +284,7 @@ Add the code below to ~init.el~.
 
   (define-prefix-command 'arki/prefix-keymap)
   (arki/define-key "<M-SPC>" 'arki/prefix-keymap)
+  (arki/define-key "<f9>" 'arki/prefix-keymap)
   
   ;;----------------------------------------------------------------------------
   ;; File utils
@@ -729,6 +730,7 @@ Add the code below to ~init.el~.
   (setq-default truncate-lines nil)
   (setq-default word-wrap t)
   (setq-default fill-column 100)
+  (auto-fill-mode 1)
 
   ;; Deal with very long columns
   ;; https://www.emacswiki.org/emacs/SoLong
