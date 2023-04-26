@@ -283,7 +283,7 @@ Add the code below to ~init.el~.
 
 
   (define-prefix-command 'arki/prefix-keymap)
-  (arki/define-key "<M-SPC>" 'arki/prefix-keymap)
+  (arki/define-key "<M-SPC>" 'set-mark-command)
   (arki/define-key "<f9>" 'arki/prefix-keymap)
   
   ;;----------------------------------------------------------------------------
@@ -1686,7 +1686,7 @@ Add the code below to ~init.el~.
 #+end_src
 
 *** Assign keystroke
-Use <M-SPC w> to activate, then:
+Use <f9 w> to activate, then:
 - press <?> for help.
 - Using arrow keys to resize current window by their borders.
 - Press <s> to save desktop.
