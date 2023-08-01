@@ -1940,10 +1940,7 @@ Use <f9 w> to activate, then:
 Only set theme for ~display-graphic-p~ is ~t~.
 [[https://stackoverflow.com/a/5801740/12364313][How to detect that emacs is in terminal-mode]]
 *** doom-themes doom-modeline                                                 :manually:
-1. [[https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el][doom-themes]]需要使用[[https://github.com/domtronn/all-the-icons.el/][all-the-icons]]插件。而 ~all-the-icons~ 需要使用[[https://github.com/domtronn/all-the-icons.el/tree/master/fonts][一些符号字体]]。
-2. 可以直接下载安装，也可以使用命令 ~all-the-icons-install-fonts~ 安装，但是这个命令可能没有自己下载快，
-   有时候因为网络原因会卡住。
-3. [[https://github.com/seagle0128/doom-modeline][doom-modeline]]也需要这些字体？
+1. [[https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el][doom-modeline]]需要使用[[https://github.com/rainstormstudio/nerd-icons.el][nerd-icons]]插件。[[https://github.com/rainstormstudio/nerd-icons.el/tree/main/fonts][Font download]].
 
 #+begin_src emacs-lisp
   ;; Config theme
@@ -1964,10 +1961,6 @@ Only set theme for ~display-graphic-p~ is ~t~.
       (custom-set-faces
        ;; 避免org block激活时候，原org窗口中comment看不见
        '(secondary-selection ((t (:extend t :background "#D0D0D0")))))
-
-      ;; https://github.com/domtronn/all-the-icons.el/
-      ;; 需要安装字体文件：M-x all-the-icons-install-fonts
-      (require-pack 'all-the-icons)
       )
 
     (message "Done: init-theme.")
@@ -1975,6 +1968,9 @@ Only set theme for ~display-graphic-p~ is ~t~.
   ;; https://github.com/seagle0128/doom-modeline
   ;; Can be used in terminal.
   (when (require-pack 'doom-modeline)
+    ;;https://github.com/rainstormstudio/nerd-icons.el
+    ;; 需要安装字体文件：M-x nerd-icons-install-fonts
+    (require-pack 'nerd-icons)
     (doom-modeline-mode))
 
   (arki/add-hook-for-graphic-frame-init 'init-theme)
