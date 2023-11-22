@@ -289,8 +289,6 @@ Add the code below to ~init.el~.
   ;; No need to use this, comment it out.
   ;; (arki/define-key "<escape> SPC" 'set-mark-command)
 
-  ;; For wsl
-  (arki/define-key "<xterm-paste>" 'scroll-up-command)
 
   (arki/define-key "<f9>" 'arki/prefix-keymap)
   
@@ -395,7 +393,7 @@ Add the code below to ~init.el~.
   ;;----------------------------------------------------------------------------
   ;; Graphic frame callbacks
   ;;----------------------------------------------------------------------------
-  (defvar arki/graphic-frame-callbacks nil "Store callbacks for graphic environment.")
+  (defvar arki/graphic-frame-callbacks nil "Store callbacks for graphic environment. Tuple of: func, can repeat?, invoke count so far")
   (defvar arki/graphic-frame-callbacks-executed-p nil "Flag to judge whether these callbacks have been called.")
 
   (defun arki/callbacks-call (callbacks)
@@ -1955,7 +1953,7 @@ Only set theme for ~display-graphic-p~ is ~t~.
   ;; Favorite themes: monokai-theme solarized-theme gruvbox-theme
 
   ;; https://github.com/hlissner/emacs-doom-themes/blob/master/doom-themes.el
-  (defun init-theme()
+  (defun init-graphic-theme()
     (when (require-pack 'doom-themes)
       ;; (load-theme 'doom-dark+)
       ;; (load-theme 'doom-molokai t)
@@ -1983,9 +1981,10 @@ Only set theme for ~display-graphic-p~ is ~t~.
     (message "Done: init-theme.")
     )
 
+  (arki/add-hook-for-graphic-frame-init 'init-graphic-theme)
 
-
-  (arki/add-hook-for-graphic-frame-init 'init-theme)
+  (unless (display-graphic-p)
+    (load-theme 'wombat))
 #+end_src
 
 *** beacon mode-line-bell
@@ -3507,19 +3506,19 @@ Tested code.
     )
 #+end_src
 
-** Org-protocol-capture-html
+** Org-protocol-capture-html (disabled)
 #+begin_src emacs-lisp
-  (server-start)
-  (require 'org-protocol)
-  (require-pack 's)
-  (require-pack-local 'org-protocol-capture-html t "https://raw.githubusercontent.com/alphapapa/org-protocol-capture-html/master/org-protocol-capture-html.el" )
+  ;; (server-start)
+  ;; (require 'org-protocol)
+  ;; (require-pack 's)
+  ;; (require-pack-local 'org-protocol-capture-html t "https://raw.githubusercontent.com/alphapapa/org-protocol-capture-html/master/org-protocol-capture-html.el" )
+  ;; ;; (add-to-list 'org-capture-templates
+  ;; ;;              '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
+  ;; ;;                "* %U %^{heading}\n%?"))
   ;; (add-to-list 'org-capture-templates
-  ;;              '("i" "Thoughts" entry (file+olp+datetree arki/org-capture-file-thoughts)
-  ;;                "* %U %^{heading}\n%?"))
-  (add-to-list 'org-capture-templates
-               '("w" "Web site" entry
-                 (file "")
-                 "* %a :website:\n\n%U %?\n\n%:initial"))
+  ;;              '("w" "Web site" entry
+  ;;                (file "")
+  ;;                "* %a :website:\n\n%U %?\n\n%:initial"))
 #+end_src
 
 ** Completing
@@ -3577,8 +3576,6 @@ Tested code.
     ;; (arki/define-key "C-c p f" 'counsel-git) ;;查找当前所在git仓库管理的文件
     )
 #+end_src
-
-** Xterm
 
 * Load custom variables
 :PROPERTIES:
